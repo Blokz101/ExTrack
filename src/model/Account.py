@@ -1,5 +1,6 @@
 from typing import Optional
 
+from model.Statement import Statement
 from src.model.SqlObject import SqlObject
 from src.model.Transaction import Transaction as Trans
 
@@ -41,4 +42,11 @@ class Account(SqlObject):
         Gets the list of transactions for this account.
 
         :return: List of transactions for this account.
+        """
+
+    def statements(self) -> list[Statement]:
+        """
+        Gets the list of statements that this account is linked to.
+
+        :return: List of statements that this account is linked to.
         """

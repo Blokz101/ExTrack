@@ -81,6 +81,13 @@ class Transaction(SqlObject):
         :return: Transfer transaction this transaction is linked to.
         """
 
+    def total_amount(self) -> float:
+        """
+        Gets the combined amounts of this transaction.
+
+        :return: The combined amounts of this transaction.
+        """
+
     def amounts(self) -> list[Amount]:
         """
         Gets the list of amounts that this transaction has.

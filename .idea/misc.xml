@@ -5,5 +5,5 @@
     <option name="enabledOnSave" value="true" />
     <option name="sdkName" value="Poetry (ExTrack)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (ExTrack)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (ExTrack)" project-jdk-type="Python SDK" />
 </project>
