@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Optional
 
-from model.Statement import Statement
+from src.model import Statement
 from src.model.SqlObject import SqlObject
-from src.model.Transaction import Transaction as Trans
+from src.model import Transaction
 
 
 class Account(SqlObject):
@@ -30,23 +32,27 @@ class Account(SqlObject):
         self.amount_idx: Optional[int] = None
         self.description_idx: Optional[int] = None
         self.date_idx: Optional[int] = None
+        raise NotImplementedError()
 
     def sync(self) -> None:
         """
         Syncs this account to the database by updating the database. If the account is not in the database it is
         added.
         """
+        raise NotImplementedError()
 
-    def transactions(self) -> list[Trans]:
+    def transactions(self) -> list[Transaction.Transaction]:
         """
         Gets the list of transactions for this account.
 
         :return: List of transactions for this account.
         """
+        raise NotImplementedError()
 
-    def statements(self) -> list[Statement]:
+    def statements(self) -> list[Statement.Statement]:
         """
         Gets the list of statements that this account is linked to.
 
         :return: List of statements that this account is linked to.
         """
+        raise NotImplementedError()

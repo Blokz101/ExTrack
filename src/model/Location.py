@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from typing import Optional
 
-from model.Merchant import Merchant
+from model import Merchant
 from src.model.SqlObject import SqlObject
 
 
@@ -29,16 +31,19 @@ class Location(SqlObject):
         self.merchant_id: int = 0
         self.lat: float = 0.0
         self.long: float = 0.0
+        raise NotImplementedError()
 
     def sync(self) -> None:
         """
         Syncs this location to the database by updating the database. If the location is not in the database it is
         added.
         """
+        raise NotImplementedError()
 
-    def merchant(self) -> Merchant:
+    def merchant(self) -> Merchant.Merchant:
         """
         Gets the merchant this location belongs to.
 
         :return: The location this merchant belongs to.
         """
+        raise NotImplementedError()

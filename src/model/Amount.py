@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from typing import Optional
 
-from model.Tag import Tag
-from model.Transaction import Transaction
+from src.model import Tag
+from src.model import Transaction
 from src.model.SqlObject import SqlObject
 
 
@@ -28,23 +30,27 @@ class Amount(SqlObject):
         self.amount: float = 0.0
         self.transaction_id: int = 0
         self.description: Optional[str] = None
+        raise NotImplementedError()
 
     def sync(self) -> None:
         """
         Syncs this amount to the database by updating the database. If the amount is not in the database it is
         added.
         """
+        raise NotImplementedError()
 
-    def transaction(self) -> Transaction:
+    def transaction(self) -> Transaction.Transaction:
         """
         Get the transaction that this amount belongs to.
 
         :return: Transaction this amount belongs to.
         """
+        raise NotImplementedError()
 
-    def tags(self) -> list[Tag]:
+    def tags(self) -> list[Tag.Tag]:
         """
         Gets the list of tags that this amount is tagged with.
 
         :return: List of tags that this amount is tagged with.
         """
+        raise NotImplementedError()

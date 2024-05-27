@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
 
-from src.model.Account import Account
-from src.model.Amount import Amount
-from src.model.Merchant import Merchant
+from src.model import Account
+from src.model import Amount
+from src.model import Merchant
 from src.model.SqlObject import SqlObject
-from src.model.Statement import Statement
+from src.model import Statement
 
 
 class Transaction(SqlObject):
@@ -46,40 +48,46 @@ class Transaction(SqlObject):
         self.statement_id: Optional[int] = None
         self.account_id: Optional[int] = None
         self.transfer_trans_id: Optional[int] = None
+        raise NotImplementedError()
 
     def sync(self) -> None:
         """
         Syncs this transaction to the database by updating the database. If the transaction is not in the database it is
         added.
         """
+        raise NotImplementedError()
 
-    def merchant(self) -> Merchant:
+    def merchant(self) -> Merchant.Merchant:
         """
         Gets the merchant of this transaction.
 
         :return: Merchant of this transaction.
         """
+        raise NotImplementedError()
 
-    def statement(self) -> Statement:
+    def statement(self) -> Statement.Statement:
         """
         Gets the statement this transaction belongs to if it exists.
 
         :return: Statement this transaction belongs to.
         """
+        raise NotImplementedError()
 
-    def account(self) -> Account:
+    def account(self) -> Account.Account:
         """
         Gets the account this transaction belongs to if it exists.
 
         :return: Account this transaction belongs to.
         """
+        raise NotImplementedError()
 
-    def transfer_trans(self) -> "Transaction":
+    def transfer_trans(self) -> Transaction:
         """
         Gets the transfer transaction this transaction is linked to if it exists.
 
         :return: Transfer transaction this transaction is linked to.
         """
+        raise NotImplementedError()
 
     def total_amount(self) -> float:
         """
@@ -87,10 +95,12 @@ class Transaction(SqlObject):
 
         :return: The combined amounts of this transaction.
         """
+        raise NotImplementedError()
 
-    def amounts(self) -> list[Amount]:
+    def amounts(self) -> list[Amount.Amount]:
         """
         Gets the list of amounts that this transaction has.
 
         :return: List of amounts that this transaction has.
         """
+        raise NotImplementedError()
