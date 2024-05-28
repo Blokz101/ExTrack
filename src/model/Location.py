@@ -28,9 +28,13 @@ class Location(SqlObject):
         """
         super().__init__(sqlid)
         self.description: Optional[str] = description
+        """Description of this merchant location."""
         self.merchant_id: int = merchant_id
+        """ID of merchant this location belongs to."""
         self.lat: float = lat
+        """Latitude of this location."""
         self.long: float = long
+        """Longitude of this location."""
 
     @classmethod
     def from_id(cls, sqlid: int) -> Location:
@@ -91,7 +95,6 @@ class Location(SqlObject):
 
         :return: List of locations from all rows in the database.
         """
-
         _, cur = database.get_connection()
 
         cur.execute("SELECT id, description, merchant_id, lat, long FROM locations")

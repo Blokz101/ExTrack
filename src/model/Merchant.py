@@ -29,8 +29,11 @@ class Merchant(SqlObject):
         """
         super().__init__(sqlid)
         self.name: str = name
+        """Name of the merchant."""
         self.online: bool = online
+        """True if the merchant has no physical locations, false if otherwise."""
         self.rule: Optional[str] = rule
+        """RegEx string used to identify transactions made at this merchant."""
 
     @classmethod
     def from_id(cls, sqlid: int) -> Merchant:
@@ -82,7 +85,6 @@ class Merchant(SqlObject):
 
         :return: List of merchants from all rows in the database.
         """
-
         _, cur = database.get_connection()
 
         cur.execute("SELECT id, name, online, rule FROM merchants")

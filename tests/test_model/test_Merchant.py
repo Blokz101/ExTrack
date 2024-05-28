@@ -83,7 +83,7 @@ class TestMerchant(TestCase):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
 
-        # Update existing merchant
+        # Update existing Merchant
         expected_merchants[3] = Merchant(4, "Apple Online Store", True, "Apple")
 
         merchant = Merchant.from_id(4)

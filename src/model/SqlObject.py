@@ -14,6 +14,7 @@ class SqlObject(ABC):
         :param sqlid: ID of the corresponding row in the SQL database.
         """
         self.sqlid: Optional[int] = sqlid
+        """ID of the corresponding row in the SQL database."""
 
     @classmethod
     @abstractmethod

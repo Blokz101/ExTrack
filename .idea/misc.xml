@@ -3,9 +3,10 @@
   <component name="Black">
     <option name="enabledOnReformat" value="true" />
     <option name="enabledOnSave" value="true" />
-    <option name="sdkName" value="Poetry (ExTrack)" />
+    <option name="pathToExecutable" value="$USER_HOME$/opt/anaconda3/bin/black" />
+    <option name="sdkName" value="Python 3.12 (ExTrack)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (ExTrack)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (ExTrack)" project-jdk-type="Python SDK" />
   <component name="PythonCompatibilityInspectionAdvertiser">
     <option name="version" value="3" />
   </component>
