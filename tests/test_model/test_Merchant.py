@@ -1,5 +1,7 @@
 import os
 import shutil
+
+from model.Location import Location
 from tests.test_model import test_database, sample_database_1
 from unittest import TestCase
 
@@ -61,16 +63,16 @@ class TestMerchant(TestCase):
 
     def test_sync(self):
         """
-        Tests Merchant.sync() -> None.
+        Tests Merchant.sync().
 
-        Prerequisite: test_get_all() and from_id()
+        Prerequisite: test_get_all() and from_id(sqlid: int)
         """
 
         expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
         expected_merchants.append(Merchant(10, "Wolf Pack Outfitters", False, None))
 
         # Test create new Merchant
-        merchant = Merchant(None, "Wolf Pack Outfitters", False, None)
+        merchant: Merchant = Merchant(None, "Wolf Pack Outfitters", False, None)
         merchant.sync()
 
         actual_merchants: list[Merchant] = Merchant.get_all()
@@ -119,9 +121,21 @@ class TestMerchant(TestCase):
     #
     #     self.fail()
     #
-    # def test_locations(self):
-    #
-    #     self.fail()
+    def test_locations(self):
+        """
+        Tests Merchant.locations().
+
+        Prerequisite: test_from_id(sqlid: int) and TestLocation.test_get_all()
+        """
+
+        expected_locations: list[Location] = [
+            Location(4, "EB2", 5, 35.77184197261896, -78.67356047898443),
+            Location(5, "Park Shops", 5, 35.78546665319359, -78.66708463594044),
+            Location(6, "Talley", 5, 35.78392567533286, -78.67092696947988),
+        ]
+
+        self.assertEqual(expected_locations, Merchant.from_id(5).locations())
+
     #
     # def test_default_tags(self):
     #

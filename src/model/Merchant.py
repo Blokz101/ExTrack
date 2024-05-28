@@ -90,12 +90,12 @@ class Merchant(SqlObject):
 
     def __eq__(self, other) -> bool:
         """
-        Checks if this Merchant is a duplicate of the other Merchant.
+        Checks if this Merchant is equal to another Merchant.
 
-        A Merchant is a duplicate if all its fields except the sqlid are equal to the other Merchant.
+        A Merchant is equal if all its fields except the sqlid are equal.
 
         :param other: The other Merchant to compare against this one.
-        :return: True if the object is a duplicate, false if otherwise.
+        :return: True if the Merchants are equal, false if otherwise.
         """
         return (
             self.name == other.name
@@ -103,7 +103,7 @@ class Merchant(SqlObject):
             and self.rule == other.rule
         )
 
-    def transactions(self) -> list[Transaction]:
+    def transactions(self) -> list[Transaction.Transaction]:
         """
         Gets the list of transactions made at this merchant.
 
@@ -111,15 +111,21 @@ class Merchant(SqlObject):
         """
         raise NotImplementedError()
 
-    def locations(self) -> list[Location]:
+    def locations(self) -> list[Location.Location]:
         """
         Gets a list of physical locations this merchant has.
 
         :return: List of physical locations this merchant has.
         """
-        raise NotImplementedError()
+        _, cur = database.get_connection()
 
-    def default_tags(self) -> list[Tag]:
+        cur.execute(
+            "SELECT id, description, merchant_id, lat, long FROM locations WHERE merchant_id = ?",
+            (self.sqlid,),
+        )
+        return list(Location.Location(*data) for data in cur.fetchall())
+
+    def default_tags(self) -> list[Tag.Tag]:
         """
         List of tags a transaction made with this merchant get by default.
 
