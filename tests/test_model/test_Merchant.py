@@ -2,6 +2,7 @@ import os
 import shutil
 
 from model.Location import Location
+from model.Tag import Tag
 from tests.test_model import test_database, sample_database_1
 from unittest import TestCase
 
@@ -65,7 +66,7 @@ class TestMerchant(TestCase):
         """
         Tests Merchant.sync().
 
-        Prerequisite: test_get_all() and from_id(sqlid: int)
+        Prerequisite: test_get_all() and test_from_id()
         """
 
         expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
@@ -134,9 +135,41 @@ class TestMerchant(TestCase):
             Location(6, "Talley", 5, 35.78392567533286, -78.67092696947988),
         ]
 
-        self.assertEqual(expected_locations, Merchant.from_id(5).locations())
+        actual_locations: list[Location] = Merchant.from_id(5).locations()
 
-    #
-    # def test_default_tags(self):
-    #
-    #     self.fail()
+        self.assertEqual(len(expected_locations), len(actual_locations))
+        for expected_location, actual_location in zip(
+            expected_locations, actual_locations
+        ):
+            self.assertEqual(expected_location.sqlid, actual_location.sqlid)
+            self.assertEqual(expected_location, actual_location)
+
+    def test_default_tags(self):
+        """
+        Tests Tag.default_tags()
+
+        Prerequisite: test_from_id()
+        """
+
+        # Test with Penn Station
+        expected_tags: list[Tag] = [
+            Tag(5, "Dating", False),
+            Tag(7, "Eating Out", False),
+        ]
+
+        actual_tags: list[Tag] = Merchant.from_id(1).default_tags()
+
+        self.assertEqual(len(expected_tags), len(actual_tags))
+        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
+            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
+            self.assertEqual(expected_tag, actual_tag)
+
+        # Test with BJS
+        expected_tags = [Tag(1, "Groceries", False)]
+
+        actual_tags = Merchant.from_id(6).default_tags()
+
+        self.assertEqual(len(expected_tags), len(actual_tags))
+        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
+            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
+            self.assertEqual(expected_tag, actual_tag)

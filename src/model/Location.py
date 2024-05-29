@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from model import Merchant, database
+from src.model import Merchant, database
 from src.model.SqlObject import SqlObject
 
 
@@ -80,14 +80,6 @@ class Location(SqlObject):
 
         con.commit()
 
-    def merchant(self) -> Merchant.Merchant:
-        """
-        Gets the merchant this location belongs to.
-
-        :return: The location this merchant belongs to.
-        """
-        raise NotImplementedError()
-
     @staticmethod
     def get_all() -> list[Location]:
         """
@@ -115,3 +107,11 @@ class Location(SqlObject):
             and self.lat == other.lat
             and self.long == other.long
         )
+
+    def merchant(self) -> Merchant.Merchant:
+        """
+        Gets the merchant this location belongs to.
+
+        :return: The location this merchant belongs to.
+        """
+        return Merchant.Merchant.from_id(self.merchant_id)

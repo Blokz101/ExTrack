@@ -133,4 +133,16 @@ class Merchant(SqlObject):
 
         :return: List of default tags.
         """
-        raise NotImplementedError()
+        _, cur = database.get_connection()
+
+        cur.execute(
+            """
+            SELECT tags.id, tags.name, tags.occasional
+            FROM merchants
+            INNER JOIN mer_tag_defaults ON merchants.id = mer_tag_defaults.merchant_id
+            INNER JOIN tags ON mer_tag_defaults.tag_id = tags.id
+            WHERE merchants.id = ?
+            """,
+            (self.sqlid,),
+        )
+        return list(Tag.Tag(*data) for data in cur.fetchall())

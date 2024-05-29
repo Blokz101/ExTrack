@@ -2,9 +2,10 @@ import os
 import shutil
 from unittest import TestCase
 
-from model import database
-from model.Location import Location
-from test_model import sample_database_1, test_database
+from src.model import database
+from src.model.Location import Location
+from src.model.Merchant import Merchant
+from tests.test_model import sample_database_1, test_database
 
 
 class TestLocation(TestCase):
@@ -107,7 +108,7 @@ class TestLocation(TestCase):
 
     def test_get_all(self):
         """
-        Test Merchant.get_all().
+        Test Location.get_all().
 
         Prerequisite: None
         """
@@ -120,3 +121,22 @@ class TestLocation(TestCase):
         ):
             self.assertEqual(expected_location.sqlid, actual_location.sqlid)
             self.assertEqual(expected_location, actual_location)
+
+    def test_merchant(self):
+        """
+        Tests Location.merchant()
+
+        Prerequisite: test_from_id()
+        """
+
+        self.assertEqual(
+            Merchant(5, "Port City Java", False, None), Location.from_id(5).merchant()
+        )
+
+        self.assertEqual(
+            Merchant(5, "Port City Java", False, None), Location.from_id(4).merchant()
+        )
+
+        self.assertEqual(
+            Merchant(4, "Apple", False, None), Location.from_id(3).merchant()
+        )
