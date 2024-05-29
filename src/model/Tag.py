@@ -116,4 +116,16 @@ class Tag(SqlObject):
 
         :return: List of amounts tagged with this tag.
         """
-        raise NotImplementedError()
+        _, cur = database.get_connection()
+
+        cur.execute(
+            """
+            SELECT amounts.id, amounts.amount, amounts.transaction_id, amounts.description
+            FROM tags
+            INNER JOIN amount_tags ON tags.id = amount_tags.tag_id
+            INNER JOIN amounts ON amount_tags.amount_id = amounts.id
+            WHERE tags.id = ?
+            """,
+            (self.sqlid,),
+        )
+        return list(Amount.Amount(*data) for data in cur.fetchall())

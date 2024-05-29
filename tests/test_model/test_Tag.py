@@ -2,6 +2,7 @@ import os
 import shutil
 from unittest import TestCase
 
+from model.Amount import Amount
 from model.Merchant import Merchant
 from src.model import database
 from src.model.Tag import Tag
@@ -161,6 +162,30 @@ class TestTag(TestCase):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
 
-    # def test_amounts(self):
-    #
-    #     self.fail()
+    def test_amounts(self):
+        """
+        Tests Tag.amounts()
+
+        Prerequisite: test_from_id()
+        """
+
+        # Test with Anarack
+        expected_amounts: list[Amount] = [Amount(4, 34.82, 4, "PC Parts")]
+
+        actual_amounts: list[Amount] = Tag.from_id(3).amounts()
+        self.assertEqual(len(expected_amounts), len(actual_amounts))
+        for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
+            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
+            self.assertEqual(expected_amount, actual_amount)
+
+        # Test with Personal
+        expected_amounts: list[Amount] = [
+            Amount(2, 1245.34, 2, None),
+            Amount(3, 12.98, 3, None),
+        ]
+
+        actual_amounts: list[Amount] = Tag.from_id(10).amounts()
+        self.assertEqual(len(expected_amounts), len(actual_amounts))
+        for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
+            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
+            self.assertEqual(expected_amount, actual_amount)
