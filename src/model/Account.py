@@ -135,4 +135,10 @@ class Account(SqlObject):
 
         :return: List of statements that this account is linked to.
         """
-        raise NotImplementedError()
+        _, cur = database.get_connection()
+
+        cur.execute(
+            "SELECT id, date, path, account_id FROM statements WHERE account_id = ?",
+            (self.sqlid,),
+        )
+        return list(Statement.Statement(*data) for data in cur.fetchall())

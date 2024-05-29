@@ -125,7 +125,7 @@ class TestMerchant(TestCase):
         """
         Tests Merchant.locations().
 
-        Prerequisite: test_from_id(sqlid: int) and TestLocation.test_get_all()
+        Prerequisite: test_from_id()
         """
 
         expected_locations: list[Location] = [

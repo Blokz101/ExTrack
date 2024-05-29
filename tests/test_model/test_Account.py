@@ -1,8 +1,10 @@
 import os
 import shutil
+from datetime import datetime
 from unittest import TestCase
 
-from src.model import database
+from model.Statement import Statement
+from src.model import database, date_format
 from src.model.Account import Account
 from tests.test_model import test_database, sample_database_1
 
@@ -102,3 +104,33 @@ class TestAccount(TestCase):
         ):
             self.assertEqual(expected_account.sqlid, actual_account.sqlid)
             self.assertEqual(expected_account, actual_account)
+
+    # def test_transactions(self):
+    #     """
+    #     Tests Account.transactions()
+    #
+    #     Prerequisite: test_from_id()
+    #     """
+
+    def test_statements(self):
+        """
+        Tests Account.statements()
+
+        Prerequisite: test_from_id()
+        """
+
+        expected_statements_1: list[Statement] = [
+            Statement(1, "2019-02-14 17:48:20", None, 1),
+            Statement(2, "2020-07-08 07:12:34", None, 1),
+            Statement(3, "2023-07-20 05:46:37", None, 1),
+        ]
+
+        expected_statements_2: list[Statement] = [
+            Statement(4, "2018-12-21 08:21:34", None, 2),
+            Statement(5, "2019-08-25 12:58:05", None, 2),
+            Statement(6, "2021-04-22 09:01:52", None, 2),
+        ]
+
+        self.assertEqual(expected_statements_1, Account.from_id(1).statements())
+
+        self.assertEqual(expected_statements_2, Account.from_id(2).statements())
