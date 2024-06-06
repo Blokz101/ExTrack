@@ -73,5 +73,6 @@ CREATE TABLE mer_tag_defaults (
     merchant_id INTEGER NOT NULL,
     tag_id INTEGER NOT NULL,
     FOREIGN KEY (merchant_id) REFERENCES  merchants (id),
-    FOREIGN KEY (tag_id) REFERENCES tags (id)
+    FOREIGN KEY (tag_id) REFERENCES tags (id),
+    UNIQUE (merchant_id, tag_id)
 )
