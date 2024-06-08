@@ -4,13 +4,13 @@ import shutil
 from model.Location import Location
 from model.Tag import Tag
 from tests.test_model import test_database, sample_database_1
-from unittest import TestCase
 
 from src.model import database
 from src.model.Merchant import Merchant
+from tests.test_model.Sample1TestCase import Sample1TestCase
 
 
-class TestMerchant(TestCase):
+class MerchantTestCase(Sample1TestCase):
 
     expected_merchants: list[Merchant] = [
         Merchant(1, "Penn Station", False, None),
@@ -69,7 +69,7 @@ class TestMerchant(TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
+        expected_merchants: list[Merchant] = MerchantTestCase.expected_merchants.copy()
         expected_merchants.append(Merchant(10, "Wolf Pack Outfitters", False, None))
 
         # Test create new Merchant
@@ -111,9 +111,11 @@ class TestMerchant(TestCase):
 
         actual_merchants: list[Merchant] = Merchant.get_all()
 
-        self.assertEqual(len(TestMerchant.expected_merchants), len(actual_merchants))
+        self.assertEqual(
+            len(MerchantTestCase.expected_merchants), len(actual_merchants)
+        )
         for expected_merchant, actual_merchant in zip(
-            TestMerchant.expected_merchants, actual_merchants
+            MerchantTestCase.expected_merchants, actual_merchants
         ):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
@@ -173,3 +175,60 @@ class TestMerchant(TestCase):
         for expected_tag, actual_tag in zip(expected_tags, actual_tags):
             self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
             self.assertEqual(expected_tag, actual_tag)
+
+    def test_add_remove_default_tags(self):
+        """
+        Tests Tag.add_default_tags() and Tag.remove_default_tags()
+
+        Prerequisite: test_get_all() and test_from_id()
+        """
+
+        expected_tags: list[Tag]
+
+        # Test with penn station
+        penn_station: Merchant = Merchant.from_id(1)
+
+        expected_tags = [Tag.from_id(5), Tag.from_id(7)]
+        self.assertSqlListEqual(expected_tags, penn_station.default_tags())
+
+        # Remove valid tags
+        penn_station.remove_default_tag(5)
+        penn_station.remove_default_tag(7)
+
+        expected_tags = []
+        self.assertSqlListEqual(expected_tags, penn_station.default_tags())
+
+        # Remove invalid tags
+        with self.assertRaises(KeyError) as msg:
+            penn_station.remove_default_tag(5)
+        self.assertEqual(
+            "Merchant 'Penn Station' does not have a default tag 'Dating'.",
+            str(msg.exception)[1:-1],
+        )
+
+        with self.assertRaises(KeyError) as msg:
+            penn_station.remove_default_tag(1)
+        self.assertEqual(
+            "Merchant 'Penn Station' does not have a default tag 'Groceries'.",
+            str(msg.exception)[1:-1],
+        )
+
+        # Add valid tags
+        penn_station.add_default_tag(Tag.from_id(5))
+        penn_station.add_default_tag(Tag.from_id(7))
+
+        expected_tags = [Tag.from_id(5), Tag.from_id(7)]
+        self.assertSqlListEqual(expected_tags, penn_station.default_tags())
+
+        # Add duplicate tags
+        with self.assertRaises(ValueError) as msg:
+            penn_station.add_default_tag(Tag.from_id(5))
+        self.assertEqual(
+            "Cannot add duplicate default tag 'Dating'.", str(msg.exception)
+        )
+
+        with self.assertRaises(ValueError) as msg:
+            penn_station.add_default_tag(Tag.from_id(7))
+        self.assertEqual(
+            "Cannot add duplicate default tag 'Eating Out'.", str(msg.exception)
+        )

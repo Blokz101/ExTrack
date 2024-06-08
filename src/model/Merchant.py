@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlite3 import IntegrityError
 from typing import Optional
 
 from src.model import database
@@ -146,3 +147,49 @@ class Merchant(SqlObject):
             (self.sqlid,),
         )
         return list(Tag.Tag(*data) for data in cur.fetchall())
+
+    def add_default_tag(self, tag: Tag.Tag) -> None:
+        """
+        Adds a default tag.
+
+        :param tag: Tag to be added
+        :raises ValueError: If the tag is a duplicate.
+        """
+        con, cur = database.get_connection()
+
+        try:
+            cur.execute(
+                "INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (?, ?)",
+                (self.sqlid, tag.sqlid),
+            )
+        except IntegrityError:
+            raise ValueError(f"Cannot add duplicate default tag '{tag.name}'.")
+
+        con.commit()
+
+    def remove_default_tag(self, tag_id: int) -> None:
+        """
+        Removes a default tag.
+
+        :param tag_id: ID of tag to be removed.
+        :raises KeyError: If tag does not exist.
+        """
+        con, cur = database.get_connection()
+
+        # If the merchant tag pair does not exist throw error
+        cur.execute(
+            "SELECT 1 FROM mer_tag_defaults WHERE merchant_id = ? AND tag_id = ?",
+            (self.sqlid, tag_id),
+        )
+        if cur.fetchone() is None:
+            raise KeyError(
+                f"Merchant '{self.name}' does not have a default tag '{Tag.Tag.from_id(tag_id).name}'."
+            )
+
+        # Delete the merchant tag pair
+        cur.execute(
+            "DELETE FROM mer_tag_defaults WHERE merchant_id = ? AND tag_id = ?",
+            (self.sqlid, tag_id),
+        )
+
+        con.commit()

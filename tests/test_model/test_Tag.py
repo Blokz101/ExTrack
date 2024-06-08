@@ -4,12 +4,11 @@ from unittest import TestCase
 
 from model.Amount import Amount
 from model.Merchant import Merchant
-from src.model import database
 from src.model.Tag import Tag
-from tests.test_model import test_database, sample_database_1
+from tests.test_model.Sample1TestCase import Sample1TestCase
 
 
-class TestTag(TestCase):
+class TagTestCase(Sample1TestCase):
 
     expected_tags: list[Tag] = [
         Tag(1, "Groceries", False),
@@ -24,20 +23,6 @@ class TestTag(TestCase):
         Tag(10, "Personal", False),
         Tag(11, "Coffee", False),
     ]
-
-    def setUp(self):
-        """
-        Copy sample database file and connect to it.
-        """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
-
-    def tearDown(self):
-        """
-        Close database and delete test file.
-        """
-        database.close()
-        os.remove(test_database)
 
     def test_from_id(self):
         """
@@ -68,7 +53,7 @@ class TestTag(TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_tags: list[Tag] = TestTag.expected_tags
+        expected_tags: list[Tag] = TagTestCase.expected_tags
         expected_tags.append(Tag(12, "Other", False))
 
         # Test create new Tag
@@ -105,8 +90,8 @@ class TestTag(TestCase):
 
         actual_tags: list[Tag] = Tag.get_all()
 
-        self.assertEqual(len(TestTag.expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(TestTag.expected_tags, actual_tags):
+        self.assertEqual(len(TagTestCase.expected_tags), len(actual_tags))
+        for expected_tag, actual_tag in zip(TagTestCase.expected_tags, actual_tags):
             self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
             self.assertEqual(expected_tag, actual_tag)
 
@@ -161,6 +146,64 @@ class TestTag(TestCase):
         ):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
+
+    def test_add_remove_default_merchant(self):
+        """
+        Tests Tag.add_default_merchant() and Tag.remove_default_merchant()
+
+        Prerequisite: test_get_all() and test_from_id()
+        """
+
+        expected_merchants: list[Merchant]
+
+        # Test with eating out tag
+        eating_out: Tag = Tag.from_id(7)
+
+        expected_merchants = [Merchant.from_id(1), Merchant.from_id(2)]
+        self.assertSqlListEqual(expected_merchants, eating_out.default_merchants())
+
+        # Remove valid merchants
+        eating_out.remove_default_merchant(1)
+        eating_out.remove_default_merchant(2)
+
+        expected_merchants = []
+        self.assertSqlListEqual(expected_merchants, eating_out.default_merchants())
+
+        # Remove invalid merchants
+        with self.assertRaises(KeyError) as msg:
+            eating_out.remove_default_merchant(1)
+        self.assertEqual(
+            "Tag 'Eating Out' does not have a default merchant 'Penn Station'.",
+            str(msg.exception)[1:-1],
+        )
+
+        with self.assertRaises(KeyError) as msg:
+            eating_out.remove_default_merchant(2)
+        self.assertEqual(
+            "Tag 'Eating Out' does not have a default merchant 'Outback Steak House'.",
+            str(msg.exception)[1:-1],
+        )
+
+        # Add valid merchants
+        eating_out.add_default_merchant(Merchant.from_id(1))
+        eating_out.add_default_merchant(Merchant.from_id(2))
+
+        expected_merchants = [Merchant.from_id(1), Merchant.from_id(2)]
+        self.assertSqlListEqual(expected_merchants, eating_out.default_merchants())
+
+        # Add duplicate merchants
+        with self.assertRaises(ValueError) as msg:
+            eating_out.add_default_merchant(Merchant.from_id(1))
+        self.assertEqual(
+            "Cannot add duplicate default merchant 'Penn Station'.", str(msg.exception)
+        )
+
+        with self.assertRaises(ValueError) as msg:
+            eating_out.add_default_merchant(Merchant.from_id(2))
+        self.assertEqual(
+            "Cannot add duplicate default merchant 'Outback Steak House'.",
+            str(msg.exception),
+        )
 
     def test_amounts(self):
         """
