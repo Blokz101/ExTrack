@@ -2,7 +2,7 @@ import os
 from typing import List, Any
 from unittest import TestCase
 
-from model import Database
+from src.model import Database
 from tests.test_model import test_database, root_dir
 
 

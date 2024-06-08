@@ -1,15 +1,12 @@
-import shutil
-import os
 from datetime import datetime
 
-from model.Account import Account
-from model.Statement import Statement
-from tests.test_model import test_database, sample_database_1
-from src.model import database, date_format
-from unittest import TestCase
+from src.model.Account import Account
+from src.model.Statement import Statement
+from tests.test_model.Sample1TestCase import Sample1TestCase
+from src.model import date_format
 
 
-class TestStatement(TestCase):
+class TestStatement(Sample1TestCase):
 
     expected_statements: list[Statement] = [
         Statement(1, datetime.strptime("2019-02-14 17:48:20", date_format), None, 1),
@@ -19,20 +16,6 @@ class TestStatement(TestCase):
         Statement(5, "2019-08-25 12:58:05", None, 2),
         Statement(6, "2021-04-22 09:01:52", None, 2),
     ]
-
-    def setUp(self):
-        """
-        Copy sample database file and connect to it.
-        """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
-
-    def tearDown(self):
-        """
-        Close database and delete test file.
-        """
-        database.close()
-        os.remove(test_database)
 
     def test_from_id(self):
         """

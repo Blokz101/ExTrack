@@ -1,34 +1,14 @@
-import os
-import shutil
-from datetime import datetime
-from unittest import TestCase
-
-from model.Statement import Statement
-from src.model import database, date_format
+from src.model.Statement import Statement
 from src.model.Account import Account
-from tests.test_model import test_database, sample_database_1
+from tests.test_model.Sample1TestCase import Sample1TestCase
 
 
-class TestAccount(TestCase):
+class TestAccount(Sample1TestCase):
 
     expected_accounts: list[Account] = [
         Account(1, "Checking", 2, 3, 7),
         Account(2, "Savings", 3, 1, 5),
     ]
-
-    def setUp(self):
-        """
-        Copy sample database file and connect to it.
-        """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
-
-    def tearDown(self):
-        """
-        Close database and delete test file.
-        """
-        database.close()
-        os.remove(test_database)
 
     def test_from_id(self):
         """

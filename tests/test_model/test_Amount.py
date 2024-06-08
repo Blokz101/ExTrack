@@ -1,14 +1,9 @@
-import os
-import shutil
-from unittest import TestCase
-
-from model.Amount import Amount
-from model.Tag import Tag
-from src.model import database
-from tests.test_model import test_database, sample_database_1
+from tests.test_model.Sample1TestCase import Sample1TestCase
+from src.model.Amount import Amount
+from src.model.Tag import Tag
 
 
-class TestAmount(TestCase):
+class TestAmount(Sample1TestCase):
 
     expected_amounts: list[Amount] = [
         Amount(1, 20.54, 1, None),
@@ -19,20 +14,6 @@ class TestAmount(TestCase):
         Amount(6, -100, 5, None),
         Amount(7, 100, 6, None),
     ]
-
-    def setUp(self):
-        """
-        Copy sample database file and connect to it.
-        """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
-
-    def tearDown(self):
-        """
-        Close database and delete test file.
-        """
-        database.close()
-        os.remove(test_database)
 
     def test_from_id(self):
         """

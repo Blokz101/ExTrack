@@ -1,9 +1,5 @@
-import os
-import shutil
-from unittest import TestCase
-
-from model.Amount import Amount
-from model.Merchant import Merchant
+from src.model.Amount import Amount
+from src.model.Merchant import Merchant
 from src.model.Tag import Tag
 from tests.test_model.Sample1TestCase import Sample1TestCase
 

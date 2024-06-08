@@ -1,14 +1,9 @@
-import os
-import shutil
-from unittest import TestCase
-
-from src.model import database
 from src.model.Location import Location
 from src.model.Merchant import Merchant
-from tests.test_model import sample_database_1, test_database
+from tests.test_model.Sample1TestCase import Sample1TestCase
 
 
-class TestLocation(TestCase):
+class TestLocation(Sample1TestCase):
 
     expected_locations: list[Location] = [
         Location(1, "Falls of Neuse", 1, 35.86837825457926, -78.62150981593383),
@@ -20,20 +15,6 @@ class TestLocation(TestCase):
         Location(7, "Walnut", 6, 35.753166119681715, -78.74569648479638),
         Location(8, "Falls River", 7, 35.906477682429525, -78.59029227485301),
     ]
-
-    def setUp(self):
-        """
-        Copy sample database file and connect to it.
-        """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
-
-    def tearDown(self):
-        """
-        Close database and delete test file.
-        """
-        database.close()
-        os.remove(test_database)
 
     def test_from_id(self):
         """

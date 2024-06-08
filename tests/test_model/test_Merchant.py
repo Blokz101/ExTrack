@@ -1,16 +1,10 @@
-import os
-import shutil
-
-from model.Location import Location
-from model.Tag import Tag
-from tests.test_model import test_database, sample_database_1
-
-from src.model import database
+from src.model.Location import Location
+from src.model.Tag import Tag
 from src.model.Merchant import Merchant
 from tests.test_model.Sample1TestCase import Sample1TestCase
 
 
-class MerchantTestCase(Sample1TestCase):
+class TestMerchant(Sample1TestCase):
 
     expected_merchants: list[Merchant] = [
         Merchant(1, "Penn Station", False, None),
@@ -23,20 +17,6 @@ class MerchantTestCase(Sample1TestCase):
         Merchant(8, "Bambu Labs", True, None),
         Merchant(9, "Etsy", True, None),
     ]
-
-    def setUp(self):
-        """
-        Copy sample database file and connect to it.
-        """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
-
-    def tearDown(self):
-        """
-        Close database and delete test file.
-        """
-        database.close()
-        os.remove(test_database)
 
     def test_from_id(self):
         """
@@ -69,7 +49,7 @@ class MerchantTestCase(Sample1TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_merchants: list[Merchant] = MerchantTestCase.expected_merchants.copy()
+        expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
         expected_merchants.append(Merchant(10, "Wolf Pack Outfitters", False, None))
 
         # Test create new Merchant
@@ -111,11 +91,9 @@ class MerchantTestCase(Sample1TestCase):
 
         actual_merchants: list[Merchant] = Merchant.get_all()
 
-        self.assertEqual(
-            len(MerchantTestCase.expected_merchants), len(actual_merchants)
-        )
+        self.assertEqual(len(TestMerchant.expected_merchants), len(actual_merchants))
         for expected_merchant, actual_merchant in zip(
-            MerchantTestCase.expected_merchants, actual_merchants
+            TestMerchant.expected_merchants, actual_merchants
         ):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
