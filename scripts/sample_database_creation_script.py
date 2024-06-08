@@ -1,3 +1,8 @@
+"""
+This script creates a sample database in the tests/test_data folder from a sql creation script in
+scripts/test_database_creation_scripts.
+"""
+
 from pathlib import Path
 
 from src.model import root_dir, database
@@ -16,7 +21,7 @@ if __name__ == "__main__":
 
     # Attempt to create sample database
     creation_script_path: Path = scripts[create_index]
-    new_database_path: Path = root_dir / "test_data" / "sample_database_1.db"
+    new_database_path: Path = root_dir / "tests" / "test_data" / "sample_database_1.db"
 
     if new_database_path.exists():
         print(f"{new_database_path.absolute()} already exists.")
