@@ -64,6 +64,9 @@ class Account(SqlObject):
         """
         Syncs this account to the database by updating the database. If the account is not in the database it is
         added.
+
+        Syncing only updates edited instance variables. Sync does not need to be called after another function that
+        updates the database, that function will sync on its own.
         """
         con, cur = database.get_connection()
 

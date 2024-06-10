@@ -5,7 +5,7 @@ CREATE TABLE transactions (
     reconciled BOOLEAN NOT NULL,
     date TEXT,
     statement_id INTEGER,
-    receipt_path TEXT,
+    receipt_file_name TEXT,
     lat FLOAT,
     long FLOAT,
     account_id NOT NULL,
@@ -65,7 +65,9 @@ CREATE TABLE tags (
 CREATE TABLE amount_tags (
     amount_id INTEGER NOT NULL,
     tag_id INTEGER NOT NULL,
-    FOREIGN KEY (amount_id) REFERENCES amounts (id),
+    FOREIGN KEY (amount_id)
+        REFERENCES amounts (id)
+        ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tags (id)
 );
 

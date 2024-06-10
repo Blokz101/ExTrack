@@ -26,16 +26,16 @@ class Sample1TestCase(TestCase):
         database.close()
         os.remove(test_database)
 
-    def assertSqlEqual(self, expected: SqlObject, second: SqlObject) -> None:
+    def assertSqlEqual(self, expected: SqlObject, actual: SqlObject) -> None:
         """
         Asserts that two SqlObjects are equal and their IDs match.
 
-        :param expected: First SqlObject to compare
-        :param second: Second SqlObject to compare
+        :param expected: Expected SqlObject
+        :param actual: Actual SqlObjet
         :return: True if the two SqlObjects are equal and their IDs are equal, false if otherwise
         """
-        self.assertEqual(expected.sqlid, second.sqlid)
-        self.assertEqual(expected, second)
+        self.assertEqual(expected.sqlid, actual.sqlid)
+        self.assertEqual(expected, actual)
 
     def assertSqlListEqual(
         self, expected_list: list[SqlObject], actual_list: list[SqlObject]
@@ -43,8 +43,8 @@ class Sample1TestCase(TestCase):
         """
         Asserts that two lists of SqlObjects are equal and their IDs match.
 
-        :param expected_list: First list of SqlObject to compare
-        :param actual_list: Second list of SqlObject to compare
+        :param expected_list: Expected list of SqlObject
+        :param actual_list: Actual list of SqlObject
         """
         self.assertEqual(len(expected_list), len(actual_list))
         for expected, actual in zip(expected_list, actual_list):

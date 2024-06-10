@@ -59,6 +59,9 @@ class Amount(SqlObject):
         """
         Syncs this amount to the database by updating the database. If the amount is not in the database it is
         added.
+
+        Syncing only updates edited instance variables. Sync does not need to be called after another function that
+        updates the database, that function will sync on its own.
         """
         con, cur = database.get_connection()
 
@@ -86,6 +89,29 @@ class Amount(SqlObject):
 
         cur.execute("SELECT id, amount, transaction_id, description FROM amounts")
         return list(Amount(*data) for data in cur.fetchall())
+
+    def delete(self) -> None:
+        """
+        Deletes this Amount.
+        """
+
+        # Ensure that the transaction this amount is linked to has more then one amount.
+        transaction: Transaction.Transaction = Transaction.Transaction.from_id(
+            self.transaction_id
+        )
+        if len(transaction.amounts()) <= 1:
+            raise RuntimeError(
+                f"Cannot delete amount with id = {self.sqlid} because transaction with id = {transaction.sqlid} would "
+                "be left without an amount."
+            )
+
+        # Delete this amount
+        con, cur = database.get_connection()
+
+        cur.execute("DELETE FROM amounts WHERE id = ?", (self.sqlid,))
+        con.commit()
+
+        del self
 
     def __eq__(self, other: Amount) -> bool:
         """

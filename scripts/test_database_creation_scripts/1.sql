@@ -48,12 +48,12 @@ INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (6, 1);
 INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (8, 10);
 INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (9, 10);
 
-INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_path, lat, long, account_id, transfer_trans_id) VALUES (1, 'Date with Sara', 1, 0, '2020-08-27 21:14:40', null, null, 35.868317424041166, -78.62154243252625, 1, null);
-INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_path, lat, long, account_id, transfer_trans_id) VALUES (2, 'New Macbook', 4, 1, '2020-10-09 19:01:21', 5, null, 35.840809717971595, -78.68013948171635, 2, null);
-INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_path, lat, long, account_id, transfer_trans_id) VALUES (3, 'DND Dice', 9, 1, '2023-05-04 23:44:29', 1, null, null, null, 1, null);
-INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_path, lat, long, account_id, transfer_trans_id) VALUES (4, 'Things from Amazon', 3, 1, '2020-09-28 19:26:10', 1, null, null, null, 1, null);
-INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_path, lat, long, account_id, transfer_trans_id) VALUES (5, 'Transfer From Savings', null, 0, '2021-02-15 02:32:18', null, null, null, null, 2, null);
-INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_path, lat, long, account_id, transfer_trans_id) VALUES (6, 'Transfer Into Checking', null, 0, '2021-02-15 02:33:05', null, null, null, null, 1, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (1, 'Date with Sara', 1, 0, '2020-08-27 21:14:40', null, null, 35.868317424041166, -78.62154243252625, 1, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (2, 'New Macbook', 4, 1, '2020-10-09 19:01:21', 5, null, 35.840809717971595, -78.68013948171635, 2, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (3, 'DND Dice', 9, 1, '2023-05-04 23:44:29', 1, null, null, null, 1, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (4, 'Things from Amazon', 3, 1, '2020-09-28 19:26:10', 1, null, null, null, 1, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (5, 'Transfer From Savings', null, 0, '2021-02-15 02:32:18', null, null, null, null, 2, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (6, 'Transfer Into Checking', null, 0, '2021-02-15 02:33:05', null, null, null, null, 1, null);
 UPDATE transactions SET transfer_trans_id = 6 WHERE id = 5;
 UPDATE transactions SET transfer_trans_id = 5 WHERE id = 6;
 

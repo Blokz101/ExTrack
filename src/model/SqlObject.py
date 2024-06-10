@@ -31,6 +31,9 @@ class SqlObject(ABC):
     def sync(self) -> None:
         """
         Syncs this SqlObject to the database by updating the database. If the object is not in the database it is added.
+
+        Syncing only updates edited instance variables. Sync does not need to be called after another function that
+        updates the database, that function will sync on its own.
         """
         raise NotImplementedError()
 
@@ -43,6 +46,12 @@ class SqlObject(ABC):
         :return: List of SqlObjects from all rows in the database.
         """
         raise NotImplementedError()
+
+    def delete(self) -> None:
+        """
+        Deletes this SqlObject.
+        """
+        raise RuntimeWarning("This object can not be deleted.")
 
     @abstractmethod
     def __eq__(self, other) -> bool:

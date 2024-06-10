@@ -80,18 +80,34 @@ class TestAmount(Sample1TestCase):
         Prerequisite: None
         """
 
-        actual_amounts: list[Amount] = Amount.get_all()
-
-        self.assertEqual(len(TestAmount.expected_amounts), len(actual_amounts))
-        for expected_amount, actual_amount in zip(
-            TestAmount.expected_amounts, actual_amounts
-        ):
-            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
-            self.assertEqual(expected_amount, actual_amount)
+        self.assertSqlListEqual(TestAmount.expected_amounts, Amount.get_all())
 
     # def test_transaction(self):
     #
     #     self.fail()
+
+    def test_delete(self):
+        """
+        Tests Amount.delete()
+
+        Prerequisite: test_from_id() and test_get_all()
+        """
+
+        # Test with valid amounts
+        expected_amounts: list[Amount] = TestAmount.expected_amounts.copy()
+        expected_amounts.pop(3)
+
+        Amount.from_id(4).delete()
+
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+
+        # Test with invalid amount
+        with self.assertRaises(RuntimeError) as msg:
+            Amount.from_id(2).delete()
+        self.assertEqual(
+            "Cannot delete amount with id = 2 because transaction with id = 2 would be left without an amount.",
+            str(msg.exception),
+        )
 
     def test_tags(self):
         """
