@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from src.model.Tag import Tag
 from src.model.Account import Account
 from src.model.Amount import Amount
 from src.model.Merchant import Merchant
@@ -406,3 +407,33 @@ class TestTransaction(Sample1TestCase):
         self.assertEqual(
             "Transaction with id = 6 has no amount with id = 2.", str(msg.exception)
         )
+
+    def test_tags(self):
+        """
+        Test Transaction.tags()
+
+        Prerequisites: test_from_id()
+        """
+
+        # Test with transaction 1
+        expected_tags: list[Tag] = [
+            Tag(5, "Dating", False),
+            Tag(7, "Eating Out", False),
+        ]
+
+        self.assertSqlListEqual(expected_tags, Transaction.from_id(1).tags())
+
+        # Test with transaction 3
+        expected_tags = [
+            Tag(10, "Personal", False),
+        ]
+
+        self.assertSqlListEqual(expected_tags, Transaction.from_id(3).tags())
+
+        # Test with transaction 2
+        expected_tags = [
+            Tag(4, "University", False),
+            Tag(10, "Personal", False),
+        ]
+
+        self.assertSqlListEqual(expected_tags, Transaction.from_id(2).tags())

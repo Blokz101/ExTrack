@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from src.model import date_format
+from src.model.Transaction import Transaction
 from src.model.Location import Location
 from src.model.Tag import Tag
 from src.model.Merchant import Merchant
@@ -98,10 +102,33 @@ class TestMerchant(Sample1TestCase):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
 
-    # def test_transactions(self):
-    #
-    #     self.fail()
-    #
+    def test_transactions(self):
+        """
+        Tests Merchant.transactions()
+
+        Prerequisite: test_from_id()
+        """
+
+        expected_transactions: list[Transaction] = [
+            Transaction(
+                4,
+                "Things from Amazon",
+                3,
+                True,
+                datetime.strptime("2020-09-28 19:26:10", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+        ]
+
+        self.assertSqlListEqual(
+            expected_transactions, Merchant.from_id(3).transactions()
+        )
+
     def test_locations(self):
         """
         Tests Merchant.locations().

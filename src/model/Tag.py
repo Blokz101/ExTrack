@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlite3 import IntegrityError
 from typing import Optional
 
+from src.model import Transaction
 from src.model import Amount, database
 from src.model import Merchant
 from src.model.SqlObject import SqlObject
@@ -181,3 +182,27 @@ class Tag(SqlObject):
             (self.sqlid,),
         )
         return list(Amount.Amount(*data) for data in cur.fetchall())
+
+    def transactions(self) -> list[Transaction.Transaction]:
+        """
+        Gets the list of Transactions this Tag has.
+
+        :return: List of Transactions this Tag has.
+        """
+        _, cur = database.get_connection()
+
+        cur.execute(
+            """
+            SELECT transactions. id, transactions. description, transactions. merchant_id, transactions. reconciled, 
+            transactions. date, transactions. statement_id, transactions. receipt_file_name, transactions.lat, 
+            transactions.long, transactions.account_id, transactions.transfer_trans_id
+            FROM tags
+            INNER JOIN amount_tags ON tags.id = amount_tags.tag_id
+            INNER JOIN amounts ON amount_tags.amount_id = amounts.id
+            INNER JOIN transactions ON amounts.transaction_id = transactions.id
+            WHERE tags.id = ?
+            """,
+            (self.sqlid,),
+        )
+
+        return list(Transaction.Transaction(*data) for data in cur.fetchall())

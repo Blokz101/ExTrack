@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from src.model.Transaction import Transaction
 from src.model.Account import Account
 from src.model.Statement import Statement
 from tests.test_model.Sample1TestCase import Sample1TestCase
@@ -97,14 +98,45 @@ class TestStatement(Sample1TestCase):
             self.assertEqual(expected_statement.sqlid, actual_statement.sqlid)
             self.assertEqual(expected_statement, actual_statement)
 
-    # def test_transactions(self):
-    #     """
-    #     Tests Statement.transactions()
-    #
-    #     Prerequisite: test_from_id()
-    #     """
-    #
-    #     self.fail()
+    def test_transactions(self):
+        """
+        Tests Statement.transactions()
+
+        Prerequisite: test_from_id()
+        """
+
+        # Test with statement 1
+        expected_transactions: list[Transaction] = [
+            Transaction(
+                3,
+                "DND Dice",
+                9,
+                True,
+                datetime.strptime("2023-05-04 23:44:29", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+            Transaction(
+                4,
+                "Things from Amazon",
+                3,
+                True,
+                datetime.strptime("2020-09-28 19:26:10", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+        ]
+        self.assertSqlListEqual(
+            expected_transactions, Statement.from_id(1).transactions()
+        )
 
     def test_account(self):
         """

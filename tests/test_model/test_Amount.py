@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from src.model import date_format
+from src.model.Transaction import Transaction
 from tests.test_model.Sample1TestCase import Sample1TestCase
 from src.model.Amount import Amount
 from src.model.Tag import Tag
@@ -82,9 +86,65 @@ class TestAmount(Sample1TestCase):
 
         self.assertSqlListEqual(TestAmount.expected_amounts, Amount.get_all())
 
-    # def test_transaction(self):
-    #
-    #     self.fail()
+    def test_transaction(self):
+        """
+        Tests Amount.Transactions()
+
+        Prerequisite: test_from_id()
+        """
+
+        # Test with amount 2
+        self.assertSqlEqual(
+            Transaction(
+                2,
+                "New Macbook",
+                4,
+                True,
+                datetime.strptime("2020-10-09 19:01:21", date_format),
+                5,
+                None,
+                35.840809717971595,
+                -78.68013948171635,
+                2,
+                None,
+            ),
+            Amount.from_id(2).transaction(),
+        )
+
+        # Test with amount 4 and 5
+        self.assertSqlEqual(
+            Transaction(
+                4,
+                "Things from Amazon",
+                3,
+                True,
+                datetime.strptime("2020-09-28 19:26:10", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+            Amount.from_id(4).transaction(),
+        )
+
+        self.assertSqlEqual(
+            Transaction(
+                4,
+                "Things from Amazon",
+                3,
+                True,
+                datetime.strptime("2020-09-28 19:26:10", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+            Amount.from_id(5).transaction(),
+        )
 
     def test_delete(self):
         """

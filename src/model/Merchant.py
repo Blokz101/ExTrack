@@ -115,7 +115,16 @@ class Merchant(SqlObject):
 
         :return: List of transactions made at this merchant.
         """
-        raise NotImplementedError()
+        _, cur = database.get_connection()
+
+        cur.execute(
+            """
+            SELECT id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, 
+                account_id, transfer_trans_id FROM transactions WHERE merchant_id = ?
+            """,
+            (self.sqlid,),
+        )
+        return list(Transaction.Transaction(*data) for data in cur.fetchall())
 
     def locations(self) -> list[Location.Location]:
         """

@@ -134,7 +134,7 @@ class Amount(SqlObject):
 
         :return: Transaction this amount belongs to.
         """
-        raise NotImplementedError()
+        return Transaction.Transaction.from_id(self.transaction_id)
 
     def tags(self) -> list[Tag.Tag]:
         """

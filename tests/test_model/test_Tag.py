@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from src.model import date_format
+from src.model.Transaction import Transaction
 from src.model.Amount import Amount
 from src.model.Merchant import Merchant
 from src.model.Tag import Tag
@@ -228,3 +232,93 @@ class TagTestCase(Sample1TestCase):
         for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
             self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
             self.assertEqual(expected_amount, actual_amount)
+
+    def test_transactions(self):
+        """
+        Tests Tag.transactions()
+
+        Prerequisites: test_from_id
+        """
+
+        # Test with tag 10
+        expected_transactions: list[Transaction] = [
+            Transaction(
+                2,
+                "New Macbook",
+                4,
+                True,
+                datetime.strptime("2020-10-09 19:01:21", date_format),
+                5,
+                None,
+                35.840809717971595,
+                -78.68013948171635,
+                2,
+                None,
+            ),
+            Transaction(
+                3,
+                "DND Dice",
+                9,
+                True,
+                datetime.strptime("2023-05-04 23:44:29", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+        ]
+
+        self.assertSqlListEqual(expected_transactions, Tag.from_id(10).transactions())
+
+        # Test with tag 4
+        expected_transactions = [
+            Transaction(
+                2,
+                "New Macbook",
+                4,
+                True,
+                datetime.strptime("2020-10-09 19:01:21", date_format),
+                5,
+                None,
+                35.840809717971595,
+                -78.68013948171635,
+                2,
+                None,
+            ),
+            Transaction(
+                4,
+                "Things from Amazon",
+                3,
+                True,
+                datetime.strptime("2020-09-28 19:26:10", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+        ]
+
+        self.assertSqlListEqual(expected_transactions, Tag.from_id(4).transactions())
+
+        # Test with tag 5
+        expected_transactions = [
+            Transaction(
+                1,
+                "Date with Sara",
+                1,
+                False,
+                datetime.strptime("2020-08-27 21:14:40", date_format),
+                None,
+                None,
+                35.868317424041166,
+                -78.62154243252625,
+                1,
+                None,
+            ),
+        ]
+
+        self.assertSqlListEqual(expected_transactions, Tag.from_id(5).transactions())

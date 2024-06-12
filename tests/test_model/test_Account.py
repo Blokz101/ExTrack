@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from src.model import date_format
+from src.model.Transaction import Transaction
 from src.model.Statement import Statement
 from src.model.Account import Account
 from tests.test_model.Sample1TestCase import Sample1TestCase
@@ -85,12 +89,102 @@ class TestAccount(Sample1TestCase):
             self.assertEqual(expected_account.sqlid, actual_account.sqlid)
             self.assertEqual(expected_account, actual_account)
 
-    # def test_transactions(self):
-    #     """
-    #     Tests Account.transactions()
-    #
-    #     Prerequisite: test_from_id()
-    #     """
+    def test_transactions(self):
+        """
+        Tests Account.transactions()
+
+        Prerequisite: test_from_id()
+        """
+
+        expected_transactions: list[Transaction] = [
+            Transaction(
+                1,
+                "Date with Sara",
+                1,
+                False,
+                datetime.strptime("2020-08-27 21:14:40", date_format),
+                None,
+                None,
+                35.868317424041166,
+                -78.62154243252625,
+                1,
+                None,
+            ),
+            Transaction(
+                3,
+                "DND Dice",
+                9,
+                True,
+                datetime.strptime("2023-05-04 23:44:29", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+            Transaction(
+                4,
+                "Things from Amazon",
+                3,
+                True,
+                datetime.strptime("2020-09-28 19:26:10", date_format),
+                1,
+                None,
+                None,
+                None,
+                1,
+                None,
+            ),
+            Transaction(
+                6,
+                "Transfer Into Checking",
+                None,
+                False,
+                datetime.strptime("2021-02-15 02:33:05", date_format),
+                None,
+                None,
+                None,
+                None,
+                1,
+                5,
+            ),
+        ]
+        self.assertSqlListEqual(
+            expected_transactions, Account.from_id(1).transactions()
+        )
+
+        expected_transactions = [
+            Transaction(
+                2,
+                "New Macbook",
+                4,
+                True,
+                datetime.strptime("2020-10-09 19:01:21", date_format),
+                5,
+                None,
+                35.840809717971595,
+                -78.68013948171635,
+                2,
+                None,
+            ),
+            Transaction(
+                5,
+                "Transfer From Savings",
+                None,
+                False,
+                datetime.strptime("2021-02-15 02:32:18", date_format),
+                None,
+                None,
+                None,
+                None,
+                2,
+                6,
+            ),
+        ]
+        self.assertSqlListEqual(
+            expected_transactions, Account.from_id(2).transactions()
+        )
 
     def test_statements(self):
         """

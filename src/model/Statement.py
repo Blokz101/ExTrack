@@ -125,7 +125,14 @@ class Statement(SqlObject):
 
         :return: List of transactions in this statement.
         """
-        raise NotImplementedError()
+        _, cur = database.get_connection()
+
+        cur.execute(
+            """SELECT id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, 
+                account_id, transfer_trans_id FROM transactions WHERE statement_id = ?""",
+            (self.sqlid,),
+        )
+        return list(Transaction.Transaction(*data) for data in cur.fetchall())
 
     def account(self) -> Account.Account:
         """

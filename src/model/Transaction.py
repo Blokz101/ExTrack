@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
 
+from src.model import Tag
 from src.model import Account, date_format, database
 from src.model import Amount
 from src.model import Merchant
@@ -363,3 +364,25 @@ class Transaction(SqlObject):
 
         first_amount.sync()
         second_amount.delete()
+
+    def tags(self) -> list[Tag.Tag]:
+        """
+        Gets the list of Tags that this Transaction has.
+
+        :return: List of Tags that this Transaction has.
+        """
+        _, cur = database.get_connection()
+
+        cur.execute(
+            """
+            SELECT tags.id, tags.name, tags.occasional
+            FROM tags
+            INNER JOIN amount_tags ON tags.id = amount_tags.tag_id
+            INNER JOIN amounts ON amount_tags.amount_id = amounts.id
+            INNER JOIN transactions ON amounts.transaction_id = transactions.id
+            WHERE transactions.id = ?
+            """,
+            (self.sqlid,),
+        )
+
+        return list(Tag.Tag(*data) for data in cur.fetchall())
