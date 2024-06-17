@@ -206,3 +206,6 @@ class Tag(SqlObject):
         )
 
         return list(Transaction.Transaction(*data) for data in cur.fetchall())
+
+    def __str__(self):
+        return self.name

@@ -152,3 +152,6 @@ class Account(SqlObject):
             (self.sqlid,),
         )
         return list(Statement.Statement(*data) for data in cur.fetchall())
+
+    def __str__(self) -> str:
+        return self.name

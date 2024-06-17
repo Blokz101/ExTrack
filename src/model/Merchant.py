@@ -205,3 +205,6 @@ class Merchant(SqlObject):
         )
 
         con.commit()
+
+    def __str__(self) -> str:
+        return self.name
