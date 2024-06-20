@@ -1,18 +1,17 @@
 from PySimpleGUI import *
 from abc import ABC
 from abc import abstractmethod
+from src.view.Popup import Popup
 
 
-class Data_Popup(ABC):
+class DataPopup(Popup, ABC):
+    """
+    Base class for popups that deal with editing any of the main SqlObjects.
+    """
 
     def __init__(self, title: str, editable_widget_keys: list[str]) -> None:
-        self.title: str = title
+        super().__init__(title)
         self.editable_widget_keys: list[str] = editable_widget_keys
-
-        self.run_event_loop: bool = True
-        self.window: Window = Window(
-            self.title, self._layout_generator(), resizable=True
-        )
 
     def _layout_generator(self) -> list[list[Element]]:
         """
@@ -36,21 +35,6 @@ class Data_Popup(ABC):
             [Button("Done", key="-DONE BUTTON-", expand_x=True)],
         ]
         return header + body + footer
-
-    def event_loop(self) -> None:
-        """
-        Event loop for this popup.
-        """
-        while self.run_event_loop:
-            event, values = self.window.read()
-
-            if event == WINDOW_CLOSED or event == "Exit":
-                self.run_event_loop = False
-                break
-
-            self.check_event(event, values)
-
-        self.window.close()
 
     @abstractmethod
     def _fields_generator(self) -> list[list[Element]]:

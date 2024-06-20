@@ -1,11 +1,10 @@
-from unittest import skip
-from datetime import datetime
 from src.model.Merchant import Merchant
 from src.model.Transaction import Transaction
 from src.model.Account import Account
 from src.view.TransactionPopup import Transaction_Popup
-from src.view import full_date_format, short_date_format
+from src.view import full_date_format
 from tests.test_model.Sample1TestCase import Sample1TestCase
+from unittest import skip
 
 
 class TestTransactionPopup(Sample1TestCase):
@@ -59,5 +58,6 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
+    @skip
     def test_manual(self):
         Transaction_Popup(3).event_loop()

@@ -3,7 +3,9 @@ import re
 from PySimpleGUI import *
 
 from datetime import datetime
-from src.view.DataPopup import Data_Popup
+
+from src.model.Tag import Tag
+from src.view.DataPopup import DataPopup
 from src.view.ValidatedInput import (
     ValidatedInput,
     CoordinateInput,
@@ -18,11 +20,14 @@ from src.model.Merchant import Merchant
 from typing import cast
 
 
-class Transaction_Popup(Data_Popup):
+class Transaction_Popup(DataPopup):
 
     def __init__(self, sqlid: int):
         self.trans: Transaction = Transaction.from_id(sqlid)
-        self.tag_selector: TagSelector = TagSelector(self.trans.amounts()[0].tags())
+        """Transaction that this popup interacts with."""
+
+        self.selected_tags: list[Tag] = self.trans.tags()
+        """Tags the user has selected but have not been synced to the transaction yet."""
 
         self.validated_input_keys: list[str] = [
             "-DATE INPUT-",
@@ -144,9 +149,10 @@ class Transaction_Popup(Data_Popup):
             self.trans.account_id = values["-ACCOUNT SELECTOR-"].sqlid
 
         if event == ("-AMOUNT TAG SELECTOR-", self.trans.sqlid, 0):
-            self.tag_selector.popup()
+            tag_selector: TagSelector = TagSelector(selected_tags=self.selected_tags)
+            tag_selector.event_loop()
             self.window[("-AMOUNT TAG SELECTOR-", self.trans.sqlid, 0)].update(
-                text=", ".join(tag.name for tag in self.tag_selector.selected_tags)
+                text=", ".join(tag.name for tag in tag_selector.selected_tags)
             )
 
         if event == "-DESCRIPTION INPUT-":

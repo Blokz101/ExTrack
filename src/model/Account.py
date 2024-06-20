@@ -112,7 +112,7 @@ class Account(SqlObject):
         """
         Checks if this Account is equal to another Account.
 
-        A Account is equal if all its fields except the sqlid are equal.
+        An Account is equal if all its fields except the sqlid are equal.
 
         :param other: The other Account to compare against this one.
         :return: True if the Accounts are equal, false if otherwise.

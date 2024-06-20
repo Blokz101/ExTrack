@@ -95,7 +95,7 @@ class Amount(SqlObject):
         Deletes this Amount.
         """
 
-        # Ensure that the transaction this amount is linked to has more then one amount.
+        # Ensure that the transaction this amount is linked to has more than one amount.
         transaction: Transaction.Transaction = Transaction.Transaction.from_id(
             self.transaction_id
         )
