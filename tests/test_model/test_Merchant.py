@@ -237,3 +237,40 @@ class TestMerchant(Sample1TestCase):
         self.assertEqual(
             "Cannot add duplicate default tag 'Eating Out'.", str(msg.exception)
         )
+
+    def test_set_default_tags(self):
+        """
+        Tests Merchant.set_default_tags(tag_id_list: list[int])
+
+        Prerequisites: test_default_tags and test_from_id and test_Tag.from_id
+        """
+        merchant: Merchant
+        expected_tags: list[Tag]
+
+        # Test with Penn Station and adding and removing tags
+        merchant = Merchant.from_id(1)
+        expected_tags = [Tag.from_id(1), Tag.from_id(10), Tag.from_id(7)]
+        merchant.set_default_tags(list(tag.sqlid for tag in expected_tags))
+
+        self.assertSqlListEqual(
+            expected_tags, merchant.from_id(1).default_tags(), strict_order=False
+        )
+
+        # Test with BJS and adding tags and adding tags
+        merchant = Merchant.from_id(6)
+        expected_tags = [Tag.from_id(1), Tag.from_id(5), Tag.from_id(10)]
+        merchant.set_default_tags(list(tag.sqlid for tag in expected_tags))
+
+        self.assertSqlListEqual(
+            expected_tags, merchant.from_id(6).default_tags(), strict_order=False
+        )
+
+        # Test with Apple and removing tags
+        # Test with BJS and adding tags
+        merchant = Merchant.from_id(4)
+        expected_tags = []
+        merchant.set_default_tags(list(tag.sqlid for tag in expected_tags))
+
+        self.assertSqlListEqual(
+            expected_tags, merchant.from_id(4).default_tags(), strict_order=False
+        )

@@ -206,5 +206,23 @@ class Merchant(SqlObject):
 
         con.commit()
 
+    def set_default_tags(self, tag_id_list: list[int]) -> None:
+        """
+        Sets the default tags for a Merchant.
+
+        :param tag_id_list: List of Tag ids to set the default tags to
+        """
+        con, cur = database.get_connection()
+
+        cur.execute("DELETE FROM mer_tag_defaults WHERE merchant_id = ?", (self.sqlid,))
+
+        for tag_id in tag_id_list:
+            cur.execute(
+                "INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (?, ?)",
+                (self.sqlid, tag_id),
+            )
+
+        con.commit()
+
     def __str__(self) -> str:
         return self.name

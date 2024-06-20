@@ -38,14 +38,34 @@ class Sample1TestCase(TestCase):
         self.assertEqual(expected, actual)
 
     def assertSqlListEqual(
-        self, expected_list: list[SqlObject], actual_list: list[SqlObject]
+        self,
+        expected_list: list[SqlObject],
+        actual_list: list[SqlObject],
+        strict_order: bool = True,
     ) -> None:
         """
         Asserts that two lists of SqlObjects are equal and their IDs match.
+        To use non strict_order each SqlObject must have a sqlid set.
 
         :param expected_list: Expected list of SqlObject
         :param actual_list: Actual list of SqlObject
+        :param strict_order: True if the order of the lists must be the same, false if they can be different
         """
         self.assertEqual(len(expected_list), len(actual_list))
-        for expected, actual in zip(expected_list, actual_list):
-            self.assertSqlEqual(expected, actual)
+
+        # Ensure order
+        if strict_order:
+            for expected, actual in zip(expected_list, actual_list):
+                self.assertSqlEqual(expected, actual)
+
+        # Sort objects by their sqlid then call this function with strict_order=True
+        else:
+            sorted_expected_list: list[SqlObject] = expected_list.copy()
+            sorted_actual_list: list[SqlObject] = actual_list.copy()
+
+            sorted_expected_list.sort(key=lambda x: x.sqlid)
+            sorted_actual_list.sort(key=lambda x: x.sqlid)
+
+            self.assertSqlListEqual(
+                sorted_expected_list, sorted_actual_list, strict_order=True
+            )
