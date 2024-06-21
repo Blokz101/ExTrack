@@ -74,6 +74,18 @@ class TestTagSelector(Sample1TestCase):
 
     # TODO Write test for selecting values by clicking in the list box
 
+    def test_list_box(self):
+        popup: TagSelector = TagSelector()
+        popup.window.read(timeout=0)
+        tag: Tag = Tag.from_id(2)
+
+        popup.check_event("-TAGS LISTBOX-", {"-TAGS LISTBOX-": [tag]})
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertSqlListEqual(
+            [tag], popup.window["-SELECTED TAGS LISTBOX-"].get_list_values()
+        )
+
     # TODO Write test for deselecting values by clicking in the selected list box
 
     # TODO Write test for submitting values via the done button

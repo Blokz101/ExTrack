@@ -22,6 +22,7 @@ class TestTransactionPopup(Sample1TestCase):
         key: str = "-ACCOUNT SELECTOR-"
         new_account_id: int = 2
         popup.window[key].update(value=Account.from_id(new_account_id))
+
         popup.check_event(key, {key: Account.from_id(new_account_id)})
 
         key = "-DESCRIPTION INPUT-"
@@ -58,6 +59,19 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    @skip
     def test_manual(self):
         Transaction_Popup(3).event_loop()
+        pass
+
+    def test_individual(self):
+        popup: Transaction_Popup = Transaction_Popup(3)
+        popup.window.read(timeout=0)
+        key: str = "-ACCOUNT SELECTOR-"
+        new_account_id: int = 2
+
+        popup.check_event(key, {key: Account.from_id(2)})
+
+        popup.check_event("-DONE BUTTON-", {})
+        trans: Transaction = Transaction.from_id(3)
+
+        self.assertSqlEqual(Account.from_id(new_account_id), trans.account())
