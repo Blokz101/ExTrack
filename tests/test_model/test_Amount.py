@@ -213,3 +213,33 @@ class TestAmount(Sample1TestCase):
         for expected_tag, actual_tag in zip(expected_tags, actual_tags):
             self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
             self.assertEqual(expected_tag, actual_tag)
+
+    def test_set_tags(self):
+        """
+        Tests Amount.set_tags()
+
+        :return:
+        """
+        amount: Amount
+        expected_tags: list[Tag]
+
+        # Test with 34.82
+        amount = Amount.from_id(1)
+        expected_tags = [Tag.from_id(10), Tag.from_id(4)]
+        amount.set_tags(list(tag.sqlid for tag in expected_tags))
+
+        self.assertSqlListEqual(expected_tags, amount.from_id(1).tags())
+
+        # Test with 34.82 and adding tags
+        amount = Amount.from_id(4)
+        expected_tags = [Tag.from_id(3), Tag.from_id(7)]
+        amount.set_tags(list(tag.sqlid for tag in expected_tags))
+
+        self.assertSqlListEqual(expected_tags, amount.from_id(4).tags())
+
+        # Test with 1245.34 and removing tags
+        amount = Amount.from_id(2)
+        expected_tags = []
+        amount.set_tags(list(tag.sqlid for tag in expected_tags))
+
+        self.assertSqlListEqual(expected_tags, amount.from_id(2).tags())

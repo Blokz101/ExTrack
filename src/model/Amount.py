@@ -155,3 +155,24 @@ class Amount(SqlObject):
             (self.sqlid,),
         )
         return list(Tag.Tag(*data) for data in cur.fetchall())
+
+    def set_tags(self, tag_id_list: list[int]) -> None:
+        """
+        Sets the tags that this amount is tagged with.
+
+        :param tag_id_list: List of tags to set for this amount
+        """
+        con, cur = database.get_connection()
+
+        cur.execute("DELETE FROM amount_tags WHERE amount_id = ?", (self.sqlid,))
+
+        for tag_id in tag_id_list:
+            cur.execute(
+                "INSERT INTO amount_tags (amount_id, tag_id) VALUES (?, ?)",
+                (
+                    self.sqlid,
+                    tag_id,
+                ),
+            )
+
+        con.commit()

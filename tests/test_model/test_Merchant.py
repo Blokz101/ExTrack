@@ -256,7 +256,7 @@ class TestMerchant(Sample1TestCase):
             expected_tags, merchant.from_id(1).default_tags(), strict_order=False
         )
 
-        # Test with BJS and adding tags and adding tags
+        # Test with BJS and adding tags
         merchant = Merchant.from_id(6)
         expected_tags = [Tag.from_id(1), Tag.from_id(5), Tag.from_id(10)]
         merchant.set_default_tags(list(tag.sqlid for tag in expected_tags))
@@ -266,7 +266,6 @@ class TestMerchant(Sample1TestCase):
         )
 
         # Test with Apple and removing tags
-        # Test with BJS and adding tags
         merchant = Merchant.from_id(4)
         expected_tags = []
         merchant.set_default_tags(list(tag.sqlid for tag in expected_tags))
