@@ -19,17 +19,17 @@ class Transaction(SqlObject):
 
     def __init__(
         self,
-        sqlid: Optional[int],
-        description: Optional[str],
-        merchant_id: Optional[int],
-        reconciled: Union[bool, int],
-        date: Optional[Union[str, datetime]],
-        statement_id: Optional[int],
-        receipt_file_name: Optional[str],
-        lat: Optional[float],
-        long: Optional[float],
-        account_id: Optional[int],
-        transfer_trans_id: Optional[int],
+        sqlid: Optional[int] = None,
+        description: Optional[str] = None,
+        merchant_id: Optional[int] = None,
+        reconciled: Optional[Union[bool, int]] = None,
+        date: Optional[Union[str, datetime]] = None,
+        statement_id: Optional[int] = None,
+        receipt_file_name: Optional[str] = None,
+        lat: Optional[float] = None,
+        long: Optional[float] = None,
+        account_id: Optional[int] = None,
+        transfer_trans_id: Optional[int] = None,
     ):
         """
         :param sqlid: ID of SQL row that this Transaction belongs to.
@@ -49,12 +49,16 @@ class Transaction(SqlObject):
         """Description of Transaction."""
         self.merchant_id: Optional[int] = merchant_id
         """ID of the Merchant of this Transaction."""
-        self.reconciled: bool = (
-            reconciled
-            if isinstance(reconciled, bool)
-            else False if reconciled == 0 else True
-        )
+        self.reconciled: Optional[bool]
         """True if this Transaction has been reconciled, false otherwise."""
+        if reconciled is not None:
+            self.reconciled = (
+                reconciled
+                if isinstance(reconciled, bool)
+                else False if reconciled == 0 else True
+            )
+        else:
+            self.reconciled = None
         self.date: Optional[datetime] = (
             date
             if isinstance(date, datetime) or date is None
@@ -130,7 +134,10 @@ class Transaction(SqlObject):
 
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
+
+        :raises RuntimeError: If this Transaction is not syncable
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -174,6 +181,23 @@ class Transaction(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Transaction has non-null values for all required fields.
+
+        :return: None if this Transaction is syncable or a list of error messages if it is not.
+        """
+        errors: list[str] = []
+
+        if self.reconciled is None:
+            errors.append("reconciled cannot be None.")
+
+        if self.account_id is None:
+            errors.append("account_id cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Transaction]:

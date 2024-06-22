@@ -17,10 +17,10 @@ class Merchant(SqlObject):
 
     def __init__(
         self,
-        sqlid: Optional[int],
-        name: str,
-        online: bool,
-        rule: Optional[str],
+        sqlid: Optional[int] = None,
+        name: Optional[str] = None,
+        online: Optional[bool] = None,
+        rule: Optional[str] = None,
     ) -> None:
         """
         :param sqlid: ID of SQL row that this merchant belongs to.
@@ -29,9 +29,9 @@ class Merchant(SqlObject):
         :param rule: RegEx string used to identify transactions made at this merchant.
         """
         super().__init__(sqlid)
-        self.name: str = name
+        self.name: Optional[str] = name
         """Name of the merchant."""
-        self.online: bool = online
+        self.online: Optional[bool] = online
         """True if the merchant has no physical locations, false if otherwise."""
         self.rule: Optional[str] = rule
         """RegEx string used to identify transactions made at this merchant."""
@@ -67,6 +67,7 @@ class Merchant(SqlObject):
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -81,6 +82,23 @@ class Merchant(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Merchant has non-null values for all required fields.
+
+        :return: None if this Merchant is syncable or a list of error messages if it is not
+        """
+        errors: list[str] = []
+
+        if self.name is None:
+            errors.append("name cannot be None.")
+
+        if self.online is None:
+            errors.append("online cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Merchant]:

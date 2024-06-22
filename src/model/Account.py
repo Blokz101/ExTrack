@@ -14,11 +14,11 @@ class Account(SqlObject):
 
     def __init__(
         self,
-        sqlid: Optional[int],
-        name: str,
-        amount_idx: Optional[int],
-        description_idx: Optional[int],
-        date_idx: Optional[int],
+        sqlid: Optional[int] = None,
+        name: Optional[str] = None,
+        amount_idx: Optional[int] = None,
+        description_idx: Optional[int] = None,
+        date_idx: Optional[int] = None,
     ) -> None:
         """
         :param sqlid: ID of SQL row that this account belongs to.
@@ -28,7 +28,7 @@ class Account(SqlObject):
         :param date_idx: Index of date column on each statement for this account.
         """
         super().__init__(sqlid)
-        self.name: str = name
+        self.name: Optional[str] = name
         """Name of account."""
         self.amount_idx: Optional[int] = amount_idx
         """Index of amount column on each statement for this account."""
@@ -68,6 +68,7 @@ class Account(SqlObject):
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -93,6 +94,20 @@ class Account(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Account has non-null values for all required fields.
+
+        :return: None if this Account is syncable or a list of error messages if it is not
+        """
+        errors: list[str] = []
+
+        if self.name is None:
+            errors.append("name cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Account]:

@@ -56,13 +56,8 @@ class TestStatement(Sample1TestCase):
         statement: Statement = Statement(None, "2017-07-29 06:05:37", None, 1)
         statement.sync()
 
-        actual_statements: list[Statement] = Statement.get_all()
-        self.assertEqual(len(expected_statements), len(actual_statements))
-        for expected_statement, actual_statement in zip(
-            expected_statements, actual_statements
-        ):
-            self.assertEqual(expected_statement.sqlid, actual_statement.sqlid)
-            self.assertEqual(expected_statement, actual_statement)
+        self.assertSqlListEqual(expected_statements, Statement.get_all())
+        self.assertEqual(7, statement.sqlid)
 
         # Update existing Statement
         expected_statements[3] = Statement(4, "2018-05-24 11:34:53", None, 2)
@@ -74,13 +69,34 @@ class TestStatement(Sample1TestCase):
 
         statement.sync()
 
-        actual_statements: list[Statement] = Statement.get_all()
-        self.assertEqual(len(expected_statements), len(actual_statements))
-        for expected_statement, actual_statement in zip(
-            expected_statements, actual_statements
-        ):
-            self.assertEqual(expected_statement.sqlid, actual_statement.sqlid)
-            self.assertEqual(expected_statement, actual_statement)
+        self.assertSqlListEqual(expected_statements, Statement.get_all())
+
+    def test_syncable(self):
+        """
+        Tests Statement.syncable() and Statement.sync()
+
+        Prerequisite: test_get_all() and test_sync()
+        """
+        statement: Statement = Statement(None, None, None, None)
+
+        self.assertEqual(
+            ["date cannot be None.", "account_id cannot be None."], statement.syncable()
+        )
+
+        with self.assertRaises(RuntimeError) as msg:
+            statement.sync()
+        self.assertEqual("date cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(TestStatement.expected_statements, Statement.get_all())
+
+        # Try to sync with required fields
+        statement = Statement(date="2018-05-24 11:34:53", account_id=2)
+
+        self.assertIsNone(statement.syncable())
+
+        statement.sync()
+        self.assertSqlListEqual(
+            TestStatement.expected_statements + [statement], Statement.get_all()
+        )
 
     def test_get_all(self):
         """

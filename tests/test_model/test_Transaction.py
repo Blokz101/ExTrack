@@ -170,6 +170,7 @@ class TestTransaction(Sample1TestCase):
         transaction.sync()
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertEqual(7, transaction.sqlid)
 
         # Update existing Transaction
         expected_transactions[2] = Transaction(
@@ -199,6 +200,49 @@ class TestTransaction(Sample1TestCase):
         transaction.sync()
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+
+    def test_syncable(self):
+        """
+        Tests Transaction.syncable() and Transaction.sync()
+
+        Prerequisite: test_get_all() and test_sync()
+        """
+        trans: Transaction = Transaction(
+            None,
+            "Fancy date with Sara",
+            2,
+            None,
+            "2021-12-10 21:43:08",
+            None,
+            None,
+            35.85667580264126,
+            -78.58033709794717,
+            None,
+            None,
+        )
+
+        # Try to sync without required fields
+        self.assertEqual(
+            ["reconciled cannot be None.", "account_id cannot be None."],
+            trans.syncable(),
+        )
+
+        with self.assertRaises(RuntimeError) as msg:
+            trans.sync()
+        self.assertEqual("reconciled cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(
+            TestTransaction.expected_transactions, Transaction.get_all()
+        )
+
+        # Try to sync with required fields
+        trans = Transaction(reconciled=True, account_id=1)
+
+        self.assertIsNone(trans.syncable())
+
+        trans.sync()
+        self.assertSqlListEqual(
+            TestTransaction.expected_transactions + [trans], Transaction.get_all()
+        )
 
     def test_get_all(self):
         """

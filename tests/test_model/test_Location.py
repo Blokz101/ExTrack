@@ -58,13 +58,8 @@ class TestLocation(Sample1TestCase):
         )
         location.sync()
 
-        actual_locations: list[Location] = Location.get_all()
-        self.assertEqual(len(expected_locations), len(actual_locations))
-        for expected_location, actual_location in zip(
-            expected_locations, actual_locations
-        ):
-            self.assertEqual(expected_location.sqlid, actual_location.sqlid)
-            self.assertEqual(expected_location, actual_location)
+        self.assertSqlListEqual(expected_locations, Location.get_all())
+        self.assertEqual(9, location.sqlid)
 
         # Update existing location
         expected_locations[1] = Location(
@@ -79,13 +74,40 @@ class TestLocation(Sample1TestCase):
 
         location.sync()
 
-        actual_locations: list[Location] = Location.get_all()
-        self.assertEqual(len(expected_locations), len(actual_locations))
-        for expected_location, actual_location in zip(
-            expected_locations, actual_locations
-        ):
-            self.assertEqual(expected_location.sqlid, actual_location.sqlid)
-            self.assertEqual(expected_location, actual_location)
+        self.assertSqlListEqual(expected_locations, Location.get_all())
+
+    def test_syncable(self):
+        """
+        Tests Location.syncable() and Location.sync()
+
+        Prerequisites: test_get_all() and test_sync()
+        """
+        location: Location = Location(None, "Nelson Hall", None, None, None)
+
+        # Try to sync without required fields
+        self.assertEqual(
+            [
+                "merchant_id cannot be None.",
+                "lat cannot be None.",
+                "long cannot be None.",
+            ],
+            location.syncable(),
+        )
+
+        with self.assertRaises(RuntimeError) as msg:
+            location.sync()
+        self.assertEqual("merchant_id cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(TestLocation.expected_locations, Location.get_all())
+
+        # Try to sync with required fields
+        location = Location(merchant_id=5, lat=10, long=-10)
+
+        self.assertIsNone(location.syncable())
+
+        location.sync()
+        self.assertSqlListEqual(
+            TestLocation.expected_locations + [location], Location.get_all()
+        )
 
     def test_get_all(self):
         """

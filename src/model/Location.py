@@ -13,11 +13,11 @@ class Location(SqlObject):
 
     def __init__(
         self,
-        sqlid: Optional[int],
-        description: Optional[str],
-        merchant_id: int,
-        lat: float,
-        long: float,
+        sqlid: Optional[int] = None,
+        description: Optional[str] = None,
+        merchant_id: Optional[int] = None,
+        lat: Optional[float] = None,
+        long: Optional[float] = None,
     ) -> None:
         """
         :param sqlid: ID of SQL row this object belongs to.
@@ -29,11 +29,11 @@ class Location(SqlObject):
         super().__init__(sqlid)
         self.description: Optional[str] = description
         """Description of this merchant location."""
-        self.merchant_id: int = merchant_id
+        self.merchant_id: Optional[int] = merchant_id
         """ID of merchant this location belongs to."""
-        self.lat: float = lat
+        self.lat: Optional[float] = lat
         """Latitude of this location."""
-        self.long: float = long
+        self.long: Optional[float] = long
         """Longitude of this location."""
 
     @classmethod
@@ -68,6 +68,7 @@ class Location(SqlObject):
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -82,6 +83,26 @@ class Location(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Location has non-null values for all required fields.
+
+        :return: None if this Location is syncable or a list of error messages if it is not
+        """
+        errors: list[str] = []
+
+        if self.merchant_id is None:
+            errors.append("merchant_id cannot be None.")
+
+        if self.lat is None:
+            errors.append("lat cannot be None.")
+
+        if self.long is None:
+            errors.append("long cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Location]:

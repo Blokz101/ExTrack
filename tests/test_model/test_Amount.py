@@ -48,18 +48,15 @@ class TestAmount(Sample1TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_amounts: list[Amount] = TestAmount.expected_amounts
+        expected_amounts: list[Amount] = TestAmount.expected_amounts.copy()
         expected_amounts.append(Amount(8, 65.48, 4, "Box Fan"))
 
         # Test create new Amount
         amount: Amount = Amount(None, 65.48, 4, "Box Fan")
         amount.sync()
 
-        actual_amounts: list[Amount] = Amount.get_all()
-        self.assertEqual(len(TestAmount.expected_amounts), len(actual_amounts))
-        for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
-            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
-            self.assertEqual(expected_amount, actual_amount)
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+        self.assertEqual(8, amount.sqlid)
 
         # Update existing Amount
         expected_amounts[3] = Amount(4, 2.45, 3, "Gum separate from rest of purchase.")
@@ -71,11 +68,36 @@ class TestAmount(Sample1TestCase):
 
         amount.sync()
 
-        actual_amounts: list[Amount] = Amount.get_all()
-        self.assertEqual(len(TestAmount.expected_amounts), len(actual_amounts))
-        for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
-            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
-            self.assertEqual(expected_amount, actual_amount)
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+
+    def test_syncable(self):
+        """
+        Test Amount.syncable() and Amount.sync()
+
+        Prerequisite: test_get_all() and test_sync()
+        """
+        amount: Amount = Amount(None, None, None, "Box Fan")
+
+        # Try to sync without required fields
+        self.assertEqual(
+            ["amount cannot be None.", "transaction_id cannot be None."],
+            amount.syncable(),
+        )
+
+        with self.assertRaises(RuntimeError) as msg:
+            amount.sync()
+        self.assertEqual("amount cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(TestAmount.expected_amounts, Amount.get_all())
+
+        # Try to sync with the required fields
+        amount = Amount(amount=57.34, transaction_id=3)
+
+        self.assertIsNone(amount.syncable())
+
+        amount.sync()
+        self.assertSqlListEqual(
+            TestAmount.expected_amounts + [amount], Amount.get_all()
+        )
 
     def test_get_all(self):
         """

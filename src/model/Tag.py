@@ -14,15 +14,22 @@ class Tag(SqlObject):
     Represents a tag in the SQL database.
     """
 
-    def __init__(self, sqlid: Optional[int], name: str, occasional: bool) -> None:
+    def __init__(
+        self,
+        sqlid: Optional[int] = None,
+        name: Optional[str] = None,
+        occasional: Optional[bool] = None,
+    ) -> None:
         """
         :param sqlid: ID of the SQL row this tag belongs to.
         :param name: Name of the tag.
         :param occasional: True if this tag will not have long term use, false if otherwise.
         """
         super().__init__(sqlid)
-        self.name: str = name
-        self.occasional: bool = occasional
+        self.name: Optional[str] = name
+        """Name of Tag."""
+        self.occasional: Optional[bool] = occasional
+        """True if this tag is only used for an occasion, False if it is recurring."""
 
     @classmethod
     def from_id(cls, sqlid: int) -> Tag:
@@ -52,7 +59,10 @@ class Tag(SqlObject):
 
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
+
+        :raise RuntimeError: If this Tag is not syncable
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -71,6 +81,23 @@ class Tag(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Tag has non-null values for all required fields.
+
+        :return: None of this Tag is syncable or a list of error messages if it is not
+        """
+        errors: list[str] = []
+
+        if self.name is None:
+            errors.append("name cannot be None.")
+
+        if self.occasional is None:
+            errors.append("occasional cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Tag]:

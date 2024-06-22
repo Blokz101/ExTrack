@@ -34,6 +34,19 @@ class SqlObject(ABC):
 
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
+
+        :raises RuntimeError: If this SqlObject is not syncable
+        """
+        errors: Optional[list[str]] = self.syncable()
+        if errors is not None:
+            raise RuntimeError(errors[0])
+
+    @abstractmethod
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this SqlObject has non-null values for all required fields.
+
+        :return: None if this SqlObject is syncable or a list of error messages if it is not.
         """
         raise NotImplementedError()
 

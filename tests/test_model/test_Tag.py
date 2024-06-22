@@ -53,18 +53,15 @@ class TagTestCase(Sample1TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_tags: list[Tag] = TagTestCase.expected_tags
+        expected_tags: list[Tag] = TagTestCase.expected_tags.copy()
         expected_tags.append(Tag(12, "Other", False))
 
         # Test create new Tag
         tag: Tag = Tag(None, "Other", False)
         tag.sync()
 
-        actual_tags: list[Tag] = Tag.get_all()
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(expected_tags, Tag.get_all())
+        self.assertEqual(12, tag.sqlid)
 
         # Update existing Merchant
         expected_tags[5] = Tag(6, "Christmas Gifts", True)
@@ -75,11 +72,33 @@ class TagTestCase(Sample1TestCase):
 
         tag.sync()
 
-        actual_tags: list[Tag] = Tag.get_all()
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(expected_tags, Tag.get_all())
+
+    def test_syncable(self):
+        """
+        Tests Tag.syncable() and Tag.sync()
+
+        Prerequisite: test_get_all() and test_sync()
+        """
+        tag: Tag = Tag(None, None, None)
+
+        # Try to sync without required fields
+        self.assertEqual(
+            ["name cannot be None.", "occasional cannot be None."], tag.syncable()
+        )
+
+        with self.assertRaises(RuntimeError) as msg:
+            tag.sync()
+        self.assertEqual("name cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(TagTestCase.expected_tags, Tag.get_all())
+
+        # Try to sync with required fields
+        tag = Tag(name="Gaming", occasional=False)
+
+        self.assertIsNone(tag.syncable())
+
+        tag.sync()
+        self.assertSqlListEqual(TagTestCase.expected_tags + [tag], Tag.get_all())
 
     def test_get_all(self):
         """

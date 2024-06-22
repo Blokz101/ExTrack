@@ -16,10 +16,10 @@ class Statement(SqlObject):
 
     def __init__(
         self,
-        sqlid: Optional[int],
-        date: Union[str, datetime],
-        path: Optional[Path],
-        account_id: int,
+        sqlid: Optional[int] = None,
+        date: Optional[Union[str, datetime]] = None,
+        path: Optional[Path] = None,
+        account_id: Optional[int] = None,
     ) -> None:
         """
         :param sqlid: ID of SQL row that this statement belongs to.
@@ -28,13 +28,19 @@ class Statement(SqlObject):
         :param account_id: ID of account of this statement.
         """
         super().__init__(sqlid)
-        self.date: datetime = (
-            date if isinstance(date, datetime) else datetime.strptime(date, date_format)
-        )
+        self.date: Optional[datetime]
         """Start date of billing period of statement."""
+        if date is None:
+            self.date = None
+        else:
+            self.date = (
+                date
+                if isinstance(date, datetime)
+                else datetime.strptime(date, date_format)
+            )
         self.path: Optional[Path] = path
         """Path to statement CSV."""
-        self.account_id: int = account_id
+        self.account_id: Optional[int] = account_id
         """ID of account of this statement."""
 
     @classmethod
@@ -68,6 +74,7 @@ class Statement(SqlObject):
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -91,6 +98,23 @@ class Statement(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Statement has non-null values for all required fields.
+
+        :return: None if this Statement is syncable or a list of error messages if it is not
+        """
+        errors: list[str] = []
+
+        if self.date is None:
+            errors.append("date cannot be None.")
+
+        if self.account_id is None:
+            errors.append("account_id cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Statement]:

@@ -15,10 +15,10 @@ class Amount(SqlObject):
 
     def __init__(
         self,
-        sqlid: Optional[int],
-        amount: float,
-        transaction_id: int,
-        description: Optional[str],
+        sqlid: Optional[int] = None,
+        amount: Optional[float] = None,
+        transaction_id: Optional[int] = None,
+        description: Optional[str] = None,
     ) -> None:
         """
         :param sqlid: ID of SQL row that this amount belongs to.
@@ -27,8 +27,8 @@ class Amount(SqlObject):
         :param description: Description of this amount.
         """
         super().__init__(sqlid)
-        self.amount: float = amount
-        self.transaction_id: int = transaction_id
+        self.amount: Optional[float] = amount
+        self.transaction_id: Optional[int] = transaction_id
         self.description: Optional[str] = description
 
     @classmethod
@@ -62,7 +62,10 @@ class Amount(SqlObject):
 
         Syncing only updates edited instance variables. Sync does not need to be called after another function that
         updates the database, that function will sync on its own.
+
+        :raises RuntimeError: If this Amount is not syncable
         """
+        super().sync()
         con, cur = database.get_connection()
 
         if self.exists():
@@ -77,6 +80,23 @@ class Amount(SqlObject):
             )
 
         con.commit()
+        self.sqlid = cur.lastrowid
+
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this Amount has non-null values for all required fields.
+
+        :return: None if this Amount is syncable or a list of error messages if it is not
+        """
+        errors: list[str] = []
+
+        if self.amount is None:
+            errors.append("amount cannot be None.")
+
+        if self.transaction_id is None:
+            errors.append("transaction_id cannot be None.")
+
+        return None if len(errors) == 0 else errors
 
     @staticmethod
     def get_all() -> list[Amount]:

@@ -40,10 +40,10 @@ class TestAccount(Sample1TestCase):
         """
         Tests Account.sync()
 
-        Prerequisite: test_get_all() and from_id(sqlid: int)
+        Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_accounts: list[Account] = TestAccount.expected_accounts
+        expected_accounts: list[Account] = TestAccount.expected_accounts.copy()
         expected_accounts.append(Account(3, "BJS Card", 1, 2, 6))
 
         # Test create new Account
@@ -52,9 +52,9 @@ class TestAccount(Sample1TestCase):
 
         actual_accounts: list[Account] = Account.get_all()
         self.assertEqual(len(expected_accounts), len(actual_accounts))
-        for expected_account, actual_account in zip(expected_accounts, actual_accounts):
-            self.assertEqual(expected_account.sqlid, actual_account.sqlid)
-            self.assertEqual(expected_account, actual_account)
+
+        self.assertSqlListEqual(expected_accounts, actual_accounts)
+        self.assertEqual(3, account.sqlid)
 
         # Update existing Account
         expected_accounts[1] = Account(2, "College Funds", 5, 3, 4)
@@ -67,11 +67,33 @@ class TestAccount(Sample1TestCase):
 
         account.sync()
 
-        actual_accounts: list[Account] = Account.get_all()
-        self.assertEqual(len(TestAccount.expected_accounts), len(actual_accounts))
-        for expected_account, actual_account in zip(expected_accounts, actual_accounts):
-            self.assertEqual(expected_account.sqlid, actual_account.sqlid)
-            self.assertEqual(expected_account, actual_account)
+        self.assertSqlListEqual(expected_accounts, Account.get_all())
+
+    def test_syncable(self):
+        """
+        Tests Account.syncable() and Account.sync()
+
+        Prerequisites: test_get_all() and test_sync()
+        """
+        account: Account = Account(None, None, 1, 2, 6)
+
+        # Try to sync without required fields
+        self.assertEqual(["name cannot be None."], account.syncable())
+
+        with self.assertRaises(RuntimeError) as msg:
+            account.sync()
+        self.assertEqual("name cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(TestAccount.expected_accounts, Account.get_all())
+
+        # Try to sync with required fields
+        account = Account(name="University")
+
+        self.assertIsNone(account.syncable())
+
+        account.sync()
+        self.assertSqlListEqual(
+            TestAccount.expected_accounts + [account], Account.get_all()
+        )
 
     def test_get_all(self):
         """

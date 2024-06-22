@@ -60,13 +60,8 @@ class TestMerchant(Sample1TestCase):
         merchant: Merchant = Merchant(None, "Wolf Pack Outfitters", False, None)
         merchant.sync()
 
-        actual_merchants: list[Merchant] = Merchant.get_all()
-        self.assertEqual(len(expected_merchants), len(actual_merchants))
-        for expected_merchant, actual_merchant in zip(
-            expected_merchants, actual_merchants
-        ):
-            self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
-            self.assertEqual(expected_merchant, actual_merchant)
+        self.assertSqlListEqual(expected_merchants, Merchant.get_all())
+        self.assertEqual(10, merchant.sqlid)
 
         # Update existing Merchant
         expected_merchants[3] = Merchant(4, "Apple Online Store", True, "Apple")
@@ -78,13 +73,35 @@ class TestMerchant(Sample1TestCase):
 
         merchant.sync()
 
-        actual_merchants: list[Merchant] = Merchant.get_all()
-        self.assertEqual(len(expected_merchants), len(actual_merchants))
-        for expected_merchant, actual_merchant in zip(
-            expected_merchants, actual_merchants
-        ):
-            self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
-            self.assertEqual(expected_merchant, actual_merchant)
+        self.assertSqlListEqual(expected_merchants, Merchant.get_all())
+
+    def test_syncable(self):
+        """
+        Tests Merchant.syncable() and Merchant.sync()
+
+        Prerequisite: test_get_all() and test_sync()
+        """
+        merchant: Merchant = Merchant(None, None, None, None)
+
+        # Try to sync without required fields
+        self.assertEqual(
+            ["name cannot be None.", "online cannot be None."], merchant.syncable()
+        )
+
+        with self.assertRaises(RuntimeError) as msg:
+            merchant.sync()
+        self.assertEqual("name cannot be None.", str(msg.exception))
+        self.assertSqlListEqual(TestMerchant.expected_merchants, Merchant.get_all())
+
+        # Try to sync with required fields
+        merchant = Merchant(name="Smash Burger", online=False)
+
+        self.assertIsNone(merchant.syncable())
+
+        merchant.sync()
+        self.assertSqlListEqual(
+            TestMerchant.expected_merchants + [merchant], Merchant.get_all()
+        )
 
     def test_get_all(self):
         """
