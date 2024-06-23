@@ -34,6 +34,7 @@ class Transaction_Popup(DataPopup):
             "-COORDINATE INPUT-",
             "-TOTAL AMOUNT INPUT-",
         ]
+        """List of validated input widget keys."""
 
         super().__init__(
             f"Transaction ID = {sqlid}",
@@ -46,6 +47,10 @@ class Transaction_Popup(DataPopup):
                 "-AMOUNT TAG SELECTOR-",
             ],
         )
+
+        for key in self.validated_input_keys:
+            validated_input: ValidatedInput = cast(ValidatedInput, self.window[key])
+            self.add_callback(validated_input.update_validation_appearance)
 
     def _fields_generator(self) -> list[list[Element]]:
         labels: list[Element] = list(
@@ -139,11 +144,6 @@ class Transaction_Popup(DataPopup):
 
     def check_event(self, event: any, values: dict) -> None:
         super().check_event(event, values)
-
-        for key in self.validated_input_keys:
-            if event == key:
-                validated_input: ValidatedInput = cast(ValidatedInput, self.window[key])
-                validated_input.update_validation_appearance()
 
         if event == "-ACCOUNT SELECTOR-":
             self.trans.account_id = values["-ACCOUNT SELECTOR-"].sqlid

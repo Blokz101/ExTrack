@@ -19,6 +19,9 @@ class Popup(ABC):
         )
         """Window for this popup."""
 
+        self._event_loop_callback: list[any] = []
+        """List of functions to call every time the event loop runs."""
+
     @abstractmethod
     def _layout_generator(self) -> list[list[Element]]:
         """
@@ -46,6 +49,9 @@ class Popup(ABC):
                 self.run_event_loop = False
                 break
 
+            for callback in self._event_loop_callback:
+                callback(event, values)
+
             self.check_event(event, values)
 
         self.run_event_loop = False
@@ -59,6 +65,16 @@ class Popup(ABC):
         :param event: Event to parse
         :param values: Values related to the event
         """
+
+    def add_callback(self, func: any) -> None:
+        """
+        Add a callback function to be run with every event loop.
+
+        Each callback function will take parameters (event, values).
+
+        :param func: Function to run
+        """
+        self._event_loop_callback.append(func)
 
     def __del__(self) -> None:
         if self.window is not None:

@@ -18,7 +18,7 @@ class ValidatedInput(Input, ABC):
         :return: None if the input is valid or error message if the input is invalid.
         """
 
-    def update_validation_appearance(self) -> None:
+    def update_validation_appearance(self, *_) -> None:
         """
         Updates the appearance of this Input based on validation_status.
 
