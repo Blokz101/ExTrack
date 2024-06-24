@@ -1,5 +1,6 @@
+from src.view import gui_theme
 from abc import ABC, abstractmethod
-from PySimpleGUI import Window, Element, WINDOW_CLOSED
+from PySimpleGUI import Window, Element, WINDOW_CLOSED, theme
 
 
 class Popup(ABC):
@@ -8,6 +9,8 @@ class Popup(ABC):
     """
 
     def __init__(self, title: str) -> None:
+        theme(gui_theme)
+
         self.title: str = title
         """Title of popup that will be displayed as the window title."""
 

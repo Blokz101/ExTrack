@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.view import full_date_format, short_date_format
-from PySimpleGUI import Input
+from PySimpleGUI import Input, theme_input_text_color
 from abc import ABC
 from abc import abstractmethod
 import re
@@ -25,7 +25,7 @@ class ValidatedInput(Input, ABC):
         This function should be called in the main event loop of the program.
         """
         if self.validation_status() is None:
-            super().update(text_color="black")
+            super().update(text_color=theme_input_text_color())
         else:
             super().update(text_color="red")
 
