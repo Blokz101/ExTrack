@@ -163,12 +163,10 @@ class TransactionPopup(DataPopup):
                 [
                     Text(
                         "Description",
-                        size=TransactionPopup.AmountRow.DESCRIPTION_INPUT_WIDTH - 5,
+                        size=TransactionPopup.AmountRow.DESCRIPTION_INPUT_WIDTH - 3,
                     ),
                     Text(
-                        "Amount",
-                        size=TransactionPopup.AmountRow.AMOUNT_INPUT_WIDTH - 2,
-                        key="-AMOUNTS STATUS-",
+                        "Amount", size=TransactionPopup.AmountRow.AMOUNT_INPUT_WIDTH - 2
                     ),
                     Text("Tags"),
                 ],
@@ -234,22 +232,40 @@ class TransactionPopup(DataPopup):
             self.trans.sync()
             self.run_event_loop = False
 
+        # Calculate different between total amount and the sum of the row amounts
+        total_row_amount_difference: Optional[float] = None
+        if self._total_amount() is not None and self._amount_rows_total() is not None:
+            total_row_amount_difference = round(
+                self._total_amount() - self._amount_rows_total(), 2
+            )
+
         if event == "-NEW AMOUNT BUTTON-":
             new_amount_row: TransactionPopup.AmountRow = TransactionPopup.AmountRow(
-                self
+                self,
+                default_amount=(
+                    None
+                    if total_row_amount_difference is None
+                    else str(total_row_amount_difference)
+                ),
             )
             self.amount_rows.append(new_amount_row)
             self.window.extend_layout(
                 self.window["-AMOUNTS FRAME-"], [[pin(new_amount_row, expand_x=True)]]
             )
 
-        # Update amounts counter thing
-        if self._total_amount() is not None and self._amount_rows_total() is not None:
-            self.window["-AMOUNTS STATUS-"].update(
-                value=f"Amount ({self._total_amount() - self._amount_rows_total()} left)"
+            total_row_amount_difference = round(
+                self._total_amount() - self._amount_rows_total(), 2
+            )
+
+            super().check_event(event, values)
+
+        # Update create new amount button to show the total amount vs sum of row amounts difference
+        if total_row_amount_difference is not None:
+            self.window["-NEW AMOUNT BUTTON-"].update(
+                text=f"Create New Amount (${total_row_amount_difference} left)"
             )
         else:
-            self.window["-AMOUNTS STATUS-"].update("Amount (Invalid)")
+            self.window["-NEW AMOUNT BUTTON-"].update(text="Create New Amount")
 
     def _total_amount(self) -> Optional[float]:
         """
@@ -266,7 +282,7 @@ class TransactionPopup(DataPopup):
         """
         Calculates the total amount from all amount rows.
 
-        :return: Total amount from all amount rows or None if one or more amout rows is invalid
+        :return: Total amount from all amount rows or None if one or more amount rows is invalid
         """
         try:
             return sum(row.amount() for row in self.amount_rows)
