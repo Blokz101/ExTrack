@@ -2,7 +2,6 @@ from __future__ import annotations
 import re
 from PySimpleGUI import *
 from datetime import datetime
-from src.view import gui_theme
 from src.model.Tag import Tag
 from src.view.DataPopup import DataPopup
 from src.view.ValidatedInput import (
@@ -57,9 +56,6 @@ class TransactionPopup(DataPopup):
                 )
             )
 
-        self.selected_tags: list[Tag] = self.trans.tags()
-        """Tags the user has selected but have not been synced to the transaction yet."""
-
         self.validated_input_keys: list[str] = [
             "-DATE INPUT-",
             "-COORDINATE INPUT-",
@@ -89,7 +85,7 @@ class TransactionPopup(DataPopup):
         )
 
         fields: list[Element] = [
-            Text(self.trans.sqlid),
+            Text(self.trans.sqlid, key="-TRANS ID TEXT-"),
             Combo(
                 Account.get_all(),
                 default_value=self.trans.account(),
@@ -135,13 +131,14 @@ class TransactionPopup(DataPopup):
                 enable_events=True,
                 expand_x=True,
             ),
-            Text(self.trans.reconciled),
+            Text(self.trans.reconciled, key="-RECONCILED TEXT-"),
             Text(
                 (
-                    self.trans.statement().date
+                    self.trans.statement().date.strftime(full_date_format)
                     if self.trans.statement_id is not None
                     else "None"
                 ),
+                key="-STATEMENT TEXT-",
                 expand_x=True,
             ),
             Text(
@@ -150,6 +147,7 @@ class TransactionPopup(DataPopup):
                     if self.trans.transfer_trans_id is not None
                     else "None"
                 ),
+                key="-TRANSFER TRANSACTION TEXT-",
                 expand_x=True,
             ),
         ]

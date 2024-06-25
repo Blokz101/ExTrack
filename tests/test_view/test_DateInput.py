@@ -1,7 +1,7 @@
 from unittest import TestCase
 from ddt import ddt, data
 from src.view.ValidatedInput import DateInput
-from PySimpleGUI import Window
+from PySimpleGUI import Window, theme_input_text_color
 
 
 @ddt
@@ -26,13 +26,13 @@ class TestDateInput(TestCase):
         self.date_input.update(value=date)
         self.date_input.update_validation_appearance()
 
-        self.assertEqual("black", self.date_input.TextColor)
-        self.assertEqual(None, self.date_input.validation_status())
+        self.assertIsNone(self.date_input.validation_status())
+        self.assertEqual(theme_input_text_color(), self.date_input.TextColor)
 
     @data("", "234kkdab", "6/2/1985 20:13:3a", "2092/2/1 ", "09:38:11", "03/22 20:4")
     def test_invalid_dates(self, date: str):
         self.date_input.update(value=date)
         self.date_input.update_validation_appearance()
 
-        self.assertEqual("red", self.date_input.TextColor)
         self.assertEqual("Invalid date.", self.date_input.validation_status())
+        self.assertEqual("red", self.date_input.TextColor)

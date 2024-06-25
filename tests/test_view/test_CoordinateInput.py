@@ -1,7 +1,7 @@
 from unittest import TestCase
 from ddt import ddt, data
 from src.view.ValidatedInput import CoordinateInput
-from PySimpleGUI import Window
+from PySimpleGUI import Window, theme_input_text_color
 
 
 @ddt
@@ -28,8 +28,8 @@ class TestCoordinateInput(TestCase):
         self.date_input.update(value=date)
         self.date_input.update_validation_appearance()
 
-        self.assertEqual("black", self.date_input.TextColor)
-        self.assertEqual(None, self.date_input.validation_status())
+        self.assertIsNone(self.date_input.validation_status())
+        self.assertEqual(theme_input_text_color(), self.date_input.TextColor)
 
     @data(
         "",
@@ -44,5 +44,5 @@ class TestCoordinateInput(TestCase):
         self.date_input.update(value=date)
         self.date_input.update_validation_appearance()
 
-        self.assertEqual("red", self.date_input.TextColor)
         self.assertEqual("Invalid coordinates.", self.date_input.validation_status())
+        self.assertEqual("red", self.date_input.TextColor)
