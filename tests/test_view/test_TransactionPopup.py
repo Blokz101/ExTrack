@@ -1,8 +1,8 @@
 from PySimpleGUI import Window
+from ddt import ddt, data
 
 from src.model.Merchant import Merchant
 from src.model.Transaction import Transaction
-from src.model.Amount import Amount
 from src.model.Account import Account
 from src.view.TransactionPopup import TransactionPopup
 from src.view import full_date_format
@@ -10,16 +10,18 @@ from tests.test_model.Sample1TestCase import Sample1TestCase
 from unittest import skip
 
 
+@ddt
 class TestTransactionPopup(Sample1TestCase):
 
-    def test_construction_with_existing_transaction_3(self):
+    @data(1, 2, 3, 4, 5, 6)
+    def test_construction_with_existing_transaction(self, trans_id: int):
         """
-        Ensures the proper fields are filled in when a popup is created from existing transaction 3
+        Ensures the proper fields are filled in when a popup is created from an existing transaction
 
         Prerequisites: TestTransaction.test_from_id
         """
-        trans: Transaction = Transaction.from_id(3)
-        popup: TransactionPopup = TransactionPopup(3)
+        trans: Transaction = Transaction.from_id(trans_id)
+        popup: TransactionPopup = TransactionPopup(trans_id)
         popup_window: Window = popup.window
         _, _ = popup.window.read(timeout=0)
 
@@ -30,7 +32,13 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertEqual(
             str(trans.total_amount()), popup_window["-TOTAL AMOUNT INPUT-"].get()
         )
-        self.assertSqlEqual(trans.merchant(), popup_window["-MERCHANT SELECTOR-"].get())
+        # Test merchant differently for the case where the transaction has a merchant and the case where it does not.
+        if trans.merchant_id is None:
+            self.assertEqual("", popup_window["-MERCHANT SELECTOR-"].get())
+        else:
+            self.assertSqlEqual(
+                trans.merchant(), popup_window["-MERCHANT SELECTOR-"].get()
+            )
         lat: str = trans.lat if trans.lat is not None else "None"
         long: str = trans.long if trans.long is not None else "None"
         self.assertEqual(f"{lat}, {long}", popup_window["-COORDINATE INPUT-"].get())
@@ -39,25 +47,39 @@ class TestTransactionPopup(Sample1TestCase):
         )
         self.assertEqual(str(trans.reconciled), popup_window["-RECONCILED TEXT-"].get())
         self.assertEqual(
-            trans.statement().date.strftime(full_date_format),
+            (
+                "None"
+                if trans.statement_id is None
+                else trans.statement().date.strftime(full_date_format)
+            ),
             popup_window["-STATEMENT TEXT-"].get(),
         )
 
         # Validate amounts
-        self.assertEqual(1, len(popup.amount_rows))
+        self.assertEqual(len(trans.amounts()), len(popup.amount_rows))
 
-        trans_amount: Amount = trans.amounts()[0]
-        self.assertEqual(
-            "" if trans_amount.description is None else trans_amount.description,
-            popup_window[("-AMOUNT ROW DESCRIPTION-", 0)].get(),
-        )
-        self.assertEqual(
-            str(trans_amount.amount), popup_window[("-AMOUNT ROW AMOUNT-", 0)].get()
-        )
-        self.assertEqual(
-            ",".join(tag.name for tag in trans_amount.tags()),
-            popup_window[("-AMOUNT ROW TAG SELECTOR-", 0)].get_text(),
-        )
+        for index, trans_amount in enumerate(trans.amounts()):
+            self.assertEqual(
+                "" if trans_amount.description is None else trans_amount.description,
+                popup_window[("-AMOUNT ROW DESCRIPTION-", index)].get(),
+            )
+            self.assertEqual(
+                str(trans_amount.amount),
+                popup_window[("-AMOUNT ROW AMOUNT-", index)].get(),
+            )
+            # Test tags differently for the case where the amount has tags and the case where it does not.
+            if len(trans_amount.tags()) == 0:
+                self.assertEqual(
+                    "No Tags",
+                    popup_window[("-AMOUNT ROW TAG SELECTOR-", index)].get_text(),
+                )
+            else:
+                self.assertEqual(
+                    ", ".join(tag.name for tag in trans_amount.tags()),
+                    popup_window[("-AMOUNT ROW TAG SELECTOR-", index)].get_text(),
+                )
+
+        popup_window.close()
 
     # TODO Test proper construction of new transaction
 

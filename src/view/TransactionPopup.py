@@ -107,9 +107,13 @@ class TransactionPopup(DataPopup):
             Combo(
                 Merchant.get_all(),
                 default_value=(
-                    self.trans.merchant().name
-                    if self.trans.merchant_id is not None
-                    else "None"
+                    ""
+                    if self.trans.merchant_id is None
+                    else (
+                        self.trans.merchant().name
+                        if self.trans.merchant_id is not None
+                        else "None"
+                    )
                 ),
                 key="-MERCHANT SELECTOR-",
                 enable_events=True,
