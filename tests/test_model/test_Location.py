@@ -143,3 +143,6 @@ class TestLocation(Sample1TestCase):
         self.assertEqual(
             Merchant(4, "Apple", False, None), Location.from_id(3).merchant()
         )
+
+        # Test with new location
+        self.assertEqual(None, Location().merchant())

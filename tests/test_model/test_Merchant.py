@@ -146,6 +146,9 @@ class TestMerchant(Sample1TestCase):
             expected_transactions, Merchant.from_id(3).transactions()
         )
 
+        # Test with new merchant
+        self.assertEqual([], Merchant().transactions())
+
     def test_locations(self):
         """
         Tests Merchant.locations().
@@ -167,6 +170,9 @@ class TestMerchant(Sample1TestCase):
         ):
             self.assertEqual(expected_location.sqlid, actual_location.sqlid)
             self.assertEqual(expected_location, actual_location)
+
+        # Test with new merchant
+        self.assertEqual([], Merchant().locations())
 
     def test_default_tags(self):
         """
@@ -197,6 +203,9 @@ class TestMerchant(Sample1TestCase):
         for expected_tag, actual_tag in zip(expected_tags, actual_tags):
             self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
             self.assertEqual(expected_tag, actual_tag)
+
+        # Test with new merchant
+        self.assertEqual([], Merchant().default_tags())
 
     def test_add_remove_default_tags(self):
         """

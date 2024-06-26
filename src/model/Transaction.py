@@ -277,10 +277,11 @@ class Transaction(SqlObject):
 
         :return: Transfer Transaction this Transaction is linked to.
         """
-        try:
-            return Transaction.from_id(self.transfer_trans_id)
-        except ValueError:
-            return None
+        return (
+            []
+            if self.transfer_trans_id is None
+            else Transaction.from_id(self.transfer_trans_id)
+        )
 
     def total_amount(self) -> float:
         """
@@ -294,7 +295,8 @@ class Transaction(SqlObject):
             "SELECT SUM(amount) FROM amounts WHERE transaction_id = ?", (self.sqlid,)
         )
 
-        return cur.fetchone()[0]
+        result: Optional[float] = cur.fetchone()[0]
+        return 0 if result is None else result
 
     def amounts(self) -> list[Amount.Amount]:
         """

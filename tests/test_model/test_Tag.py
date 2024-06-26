@@ -166,6 +166,9 @@ class TagTestCase(Sample1TestCase):
             self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
             self.assertEqual(expected_merchant, actual_merchant)
 
+        # Test with new Tag
+        self.assertEqual([], Tag().default_merchants())
+
     def test_add_remove_default_merchant(self):
         """
         Tests Tag.add_default_merchant() and Tag.remove_default_merchant()
@@ -251,6 +254,9 @@ class TagTestCase(Sample1TestCase):
         for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
             self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
             self.assertEqual(expected_amount, actual_amount)
+
+        # Tset with new tag
+        self.assertEqual([], Tag().amounts())
 
     def test_transactions(self):
         """
@@ -341,3 +347,6 @@ class TagTestCase(Sample1TestCase):
         ]
 
         self.assertSqlListEqual(expected_transactions, Tag.from_id(5).transactions())
+
+        # Test with new tag
+        self.assertEqual([], Tag().transactions())

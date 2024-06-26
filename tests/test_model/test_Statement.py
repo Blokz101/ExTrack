@@ -154,6 +154,9 @@ class TestStatement(Sample1TestCase):
             expected_transactions, Statement.from_id(1).transactions()
         )
 
+        # Test with new Statement
+        self.assertEqual([], Statement().transactions())
+
     def test_account(self):
         """
         Tests Statement.account()
@@ -166,3 +169,6 @@ class TestStatement(Sample1TestCase):
         )
 
         self.assertEqual(Account(2, "Savings", 3, 1, 5), Statement.from_id(5).account())
+
+        # Test with new Statement
+        self.assertEqual(None, Statement().account())

@@ -275,6 +275,9 @@ class TestTransaction(Sample1TestCase):
             Transaction.from_id(6).merchant(),
         )
 
+        # Test with new Transaction
+        self.assertEqual(None, Transaction().merchant())
+
     def test_statement(self):
         """
         Tests Transaction.statement().
@@ -299,6 +302,9 @@ class TestTransaction(Sample1TestCase):
             Transaction.from_id(5).statement(),
         )
 
+        # Test with new Transaction
+        self.assertEqual(None, Transaction().statement())
+
     def test_account(self):
         """
         Tests Transaction.account().
@@ -313,6 +319,9 @@ class TestTransaction(Sample1TestCase):
         self.assertEqual(
             Account(2, "Savings", 3, 1, 5), Transaction.from_id(5).account()
         )
+
+        # Test with new Transaction
+        self.assertEqual(None, Transaction().account())
 
     def test_transfer_trans(self):
         """
@@ -356,9 +365,12 @@ class TestTransaction(Sample1TestCase):
         )
 
         self.assertEqual(
-            None,
+            [],
             Transaction.from_id(3).transfer_trans(),
         )
+
+        # Test with new Transaction
+        self.assertEqual([], Transaction().transfer_trans())
 
     def test_total_amount(self):
         """
@@ -370,6 +382,9 @@ class TestTransaction(Sample1TestCase):
         self.assertEqual(34.82 + 12.63, Transaction.from_id(4).total_amount())
 
         self.assertEqual(1245.34, Transaction.from_id(2).total_amount())
+
+        # Test with new Transaction
+        self.assertEqual(0, Transaction().total_amount())
 
     def test_amounts(self):
         """
@@ -388,6 +403,9 @@ class TestTransaction(Sample1TestCase):
         expected_amounts = [Amount(2, 1245.34, 2, None)]
 
         self.assertEqual(expected_amounts, Transaction.from_id(2).amounts())
+
+        # Test with new Transaction
+        self.assertEqual([], Transaction().amounts())
 
     def test_split_amount(self):
         """
@@ -481,3 +499,6 @@ class TestTransaction(Sample1TestCase):
         ]
 
         self.assertSqlListEqual(expected_tags, Transaction.from_id(2).tags())
+
+        # Test with new Transaction
+        self.assertEqual([], Transaction().tags())

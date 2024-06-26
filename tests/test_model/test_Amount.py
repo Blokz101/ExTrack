@@ -168,6 +168,9 @@ class TestAmount(Sample1TestCase):
             Amount.from_id(5).transaction(),
         )
 
+        # Test with new Amount
+        self.assertEqual(None, Amount().transaction())
+
     def test_delete(self):
         """
         Tests Amount.delete()
@@ -236,11 +239,12 @@ class TestAmount(Sample1TestCase):
             self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
             self.assertEqual(expected_tag, actual_tag)
 
+        # Test with new amount
+        self.assertEqual([], Amount().tags())
+
     def test_set_tags(self):
         """
         Tests Amount.set_tags()
-
-        :return:
         """
         amount: Amount
         expected_tags: list[Tag]

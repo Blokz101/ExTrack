@@ -154,7 +154,11 @@ class Amount(SqlObject):
 
         :return: Transaction this amount belongs to.
         """
-        return Transaction.Transaction.from_id(self.transaction_id)
+        return (
+            None
+            if self.transaction_id is None
+            else Transaction.Transaction.from_id(self.transaction_id)
+        )
 
     def tags(self) -> list[Tag.Tag]:
         """

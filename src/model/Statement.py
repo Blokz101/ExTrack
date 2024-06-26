@@ -164,4 +164,8 @@ class Statement(SqlObject):
 
         :return: Account this statement belongs to.
         """
-        return Account.Account.from_id(self.account_id)
+        return (
+            None
+            if self.account_id is None
+            else Account.Account.from_id(self.account_id)
+        )

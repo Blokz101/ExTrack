@@ -138,4 +138,8 @@ class Location(SqlObject):
 
         :return: The location this merchant belongs to.
         """
-        return Merchant.Merchant.from_id(self.merchant_id)
+        return (
+            None
+            if self.merchant_id is None
+            else Merchant.Merchant.from_id(self.merchant_id)
+        )
