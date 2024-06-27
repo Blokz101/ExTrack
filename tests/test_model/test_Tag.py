@@ -169,64 +169,6 @@ class TagTestCase(Sample1TestCase):
         # Test with new Tag
         self.assertEqual([], Tag().default_merchants())
 
-    def test_add_remove_default_merchant(self):
-        """
-        Tests Tag.add_default_merchant() and Tag.remove_default_merchant()
-
-        Prerequisite: test_get_all() and test_from_id()
-        """
-
-        expected_merchants: list[Merchant]
-
-        # Test with eating out tag
-        eating_out: Tag = Tag.from_id(7)
-
-        expected_merchants = [Merchant.from_id(1), Merchant.from_id(2)]
-        self.assertSqlListEqual(expected_merchants, eating_out.default_merchants())
-
-        # Remove valid merchants
-        eating_out.remove_default_merchant(1)
-        eating_out.remove_default_merchant(2)
-
-        expected_merchants = []
-        self.assertSqlListEqual(expected_merchants, eating_out.default_merchants())
-
-        # Remove invalid merchants
-        with self.assertRaises(KeyError) as msg:
-            eating_out.remove_default_merchant(1)
-        self.assertEqual(
-            "Tag 'Eating Out' does not have a default merchant 'Penn Station'.",
-            str(msg.exception)[1:-1],
-        )
-
-        with self.assertRaises(KeyError) as msg:
-            eating_out.remove_default_merchant(2)
-        self.assertEqual(
-            "Tag 'Eating Out' does not have a default merchant 'Outback Steak House'.",
-            str(msg.exception)[1:-1],
-        )
-
-        # Add valid merchants
-        eating_out.add_default_merchant(Merchant.from_id(1))
-        eating_out.add_default_merchant(Merchant.from_id(2))
-
-        expected_merchants = [Merchant.from_id(1), Merchant.from_id(2)]
-        self.assertSqlListEqual(expected_merchants, eating_out.default_merchants())
-
-        # Add duplicate merchants
-        with self.assertRaises(ValueError) as msg:
-            eating_out.add_default_merchant(Merchant.from_id(1))
-        self.assertEqual(
-            "Cannot add duplicate default merchant 'Penn Station'.", str(msg.exception)
-        )
-
-        with self.assertRaises(ValueError) as msg:
-            eating_out.add_default_merchant(Merchant.from_id(2))
-        self.assertEqual(
-            "Cannot add duplicate default merchant 'Outback Steak House'.",
-            str(msg.exception),
-        )
-
     def test_amounts(self):
         """
         Tests Tag.amounts()

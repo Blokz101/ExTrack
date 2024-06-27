@@ -269,3 +269,11 @@ class TestAmount(Sample1TestCase):
         amount.set_tags(list(tag.sqlid for tag in expected_tags))
 
         self.assertSqlListEqual(expected_tags, amount.from_id(2).tags())
+
+        # Test with a new amount
+        with self.assertRaises(RuntimeError) as msg:
+            Amount().set_tags([0, 3])
+        self.assertEqual(
+            "Cannot set tags of an amount that does not exist in the database.",
+            str(msg.exception),
+        )

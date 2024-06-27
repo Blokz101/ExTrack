@@ -142,54 +142,6 @@ class Tag(SqlObject):
         )
         return list(Merchant.Merchant(*data) for data in cur.fetchall())
 
-    def add_default_merchant(self, merchant: Merchant.Merchant) -> None:
-        """
-        Adds a default merchant.
-
-        :param merchant: Merchant to be added
-        :raises ValueError: If the merchant is a duplicate.
-        """
-        con, cur = database.get_connection()
-
-        try:
-            cur.execute(
-                "INSERT INTO mer_tag_defaults (tag_id, merchant_id) VALUES (?, ?)",
-                (self.sqlid, merchant.sqlid),
-            )
-        except IntegrityError:
-            raise ValueError(
-                f"Cannot add duplicate default merchant '{merchant.name}'."
-            )
-
-        con.commit()
-
-    def remove_default_merchant(self, merchant_id: int) -> None:
-        """
-        Removes a default merchant.
-
-        :param merchant_id: ID of merchant to be removed.
-        :raises KeyError: If merchant does not exist.
-        """
-        con, cur = database.get_connection()
-
-        # If the merchant tag pair does not exist throw error
-        cur.execute(
-            "SELECT 1 FROM mer_tag_defaults WHERE tag_id = ? AND merchant_id = ?",
-            (self.sqlid, merchant_id),
-        )
-        if cur.fetchone() is None:
-            raise KeyError(
-                f"Tag '{self.name}' does not have a default merchant '{Merchant.Merchant.from_id(merchant_id).name}'."
-            )
-
-        # Delete the merchant tag pair
-        cur.execute(
-            "DELETE FROM mer_tag_defaults WHERE tag_id = ? AND merchant_id = ?",
-            (self.sqlid, merchant_id),
-        )
-
-        con.commit()
-
     def amounts(self) -> list[Amount.Amount]:
         """
         Gets the list of amounts tagged with this tag.

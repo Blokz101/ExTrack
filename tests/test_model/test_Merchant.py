@@ -299,3 +299,11 @@ class TestMerchant(Sample1TestCase):
         self.assertSqlListEqual(
             expected_tags, merchant.from_id(4).default_tags(), strict_order=False
         )
+
+        # Test with new Merchant
+        with self.assertRaises(RuntimeError) as msg:
+            Merchant().set_default_tags([3, 5])
+        self.assertEqual(
+            "Cannot set default tags of a merchant that does not exist in the database.",
+            str(msg.exception),
+        )

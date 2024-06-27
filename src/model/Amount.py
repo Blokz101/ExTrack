@@ -185,7 +185,13 @@ class Amount(SqlObject):
         Sets the tags that this amount is tagged with.
 
         :param tag_id_list: List of tags to set for this amount
+        :raise RuntimeError: If the amount does not exist in the database
         """
+        if not self.exists():
+            raise RuntimeError(
+                "Cannot set tags of an amount that does not exist in the database."
+            )
+
         con, cur = database.get_connection()
 
         cur.execute("DELETE FROM amount_tags WHERE amount_id = ?", (self.sqlid,))

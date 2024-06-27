@@ -229,7 +229,13 @@ class Merchant(SqlObject):
         Sets the default tags for a Merchant.
 
         :param tag_id_list: List of Tag ids to set the default tags to
+        :raise RuntimeError: If the merchant does not exist in the database
         """
+        if not self.exists():
+            raise RuntimeError(
+                "Cannot set default tags of a merchant that does not exist in the database."
+            )
+
         con, cur = database.get_connection()
 
         cur.execute("DELETE FROM mer_tag_defaults WHERE merchant_id = ?", (self.sqlid,))
