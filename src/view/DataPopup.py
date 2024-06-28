@@ -51,10 +51,8 @@ class DataPopup(Popup, ABC):
         :param event: Event to respond to
         :param values: Values correlated with the event
         """
-        if self.inputs_valid():
-            self.window["-DONE BUTTON-"].update(disabled=False)
-        else:
-            self.window["-DONE BUTTON-"].update(disabled=True)
+        super().check_event(event, values)
+        self.window["-DONE BUTTON-"].update(disabled=True)
 
     @abstractmethod
     def inputs_valid(self) -> bool:

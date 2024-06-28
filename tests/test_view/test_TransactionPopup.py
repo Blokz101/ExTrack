@@ -136,7 +136,7 @@ class TestTransactionPopup(Sample1TestCase):
 
     def test_edit_single_amount(self):
         """
-        Tests a valid transaction with a single amount.
+        Tests a valid transaction by editing a single amount.
         """
         expected_transactions: list[Transaction] = Transaction.get_all()
         expected_amounts: list[Amount] = Amount.get_all()
@@ -150,14 +150,199 @@ class TestTransactionPopup(Sample1TestCase):
         popup.window.read(timeout=0)
 
         popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
+        popup.check_event(("-AMOUNT ROW DESCRIPTION-", 0), {})
+        popup.window["-TOTAL AMOUNT INPUT-"].update(value="803.54")
+        popup.check_event("-TOTAL AMOUNT INPUT-", {})
         popup.window[("-AMOUNT ROW AMOUNT-", 0)].update(value="803.54")
+        popup.check_event(("-AMOUNT ROW AMOUNT", 0), {})
         popup.amount_rows[0].tag_list = [Tag.from_id(10), Tag.from_id(5)]
+        popup.check_event(None, {})
         popup.check_event("-DONE BUTTON-", {})
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
 
         popup.window.close()
+
+    def test_create_amount_row(self):
+        """
+        Tests creating new amount rows with varying total amounts and other amount rows.
+        """
+        popup: TransactionPopup = TransactionPopup(4)
+        popup.window.read(timeout=0)
+
+        self.assertEqual(
+            "Create New Amount ($0.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+
+        # Create new amount when amounts rows are equal to total amount.
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(3, len(popup.amount_rows))
+        for row in popup.amount_rows:
+            self.assertTrue(row.visible)
+        self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 2)].get())
+        self.assertEqual("0.0", popup.window[("-AMOUNT ROW AMOUNT-", 2)].get())
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 2)].get_text()
+        )
+
+        # Remove 4.82 from the first amount row and create a new amount
+        popup.window[("-AMOUNT ROW AMOUNT-", 0)].update(value=30)
+        popup.check_event(("-AMOUNT ROW AMOUNT-", 0), {})
+
+        self.assertEqual(
+            "Create New Amount ($4.82 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(
+            "Create New Amount ($0.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertEqual(4, len(popup.amount_rows))
+        for row in popup.amount_rows:
+            self.assertTrue(row.visible)
+        self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 3)].get())
+        self.assertEqual("4.82", popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 3)].get_text()
+        )
+
+        # Add an extra 23.56 to the total amount and create a new amount
+        popup.window["-TOTAL AMOUNT INPUT-"].update(value="71.01")
+        popup.check_event("-TOTAL AMOUNT INPUT-", {})
+
+        self.assertEqual(
+            "Create New Amount ($23.56 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(
+            "Create New Amount ($0.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertEqual(5, len(popup.amount_rows))
+        for row in popup.amount_rows:
+            self.assertTrue(row.visible)
+        self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 4)].get())
+        self.assertEqual("23.56", popup.window[("-AMOUNT ROW AMOUNT-", 4)].get())
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 4)].get_text()
+        )
+
+        # Change to total amount to gibberish and create a new amount
+        popup.window["-TOTAL AMOUNT INPUT-"].update(value="this is not a float")
+        popup.check_event("-TOTAL AMOUNT INPUT-", {})
+
+        self.assertEqual(
+            "Create New Amount", popup.window["-NEW AMOUNT BUTTON-"].get_text()
+        )
+
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(
+            "Create New Amount", popup.window["-NEW AMOUNT BUTTON-"].get_text()
+        )
+        self.assertEqual(6, len(popup.amount_rows))
+        for row in popup.amount_rows:
+            self.assertTrue(row.visible)
+        self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 5)].get())
+        self.assertEqual("", popup.window[("-AMOUNT ROW AMOUNT-", 5)].get())
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 5)].get_text()
+        )
+
+        popup.window.close()
+
+    def test_edit_amounts_scenario(self):
+        """
+        Tests a scenario with the following steps:
+        1. Opens transaction id = 4
+        2. Set amount row 2 to have an amount of 2.36
+        3. Creates a new amount
+        4. Edit the new amount to have an amount of $5
+        5. Deletes the new amount
+        6. Creates a new amount
+        """
+        # Open a transaction id = 4
+        popup: TransactionPopup = TransactionPopup(4)
+        popup.window.read(timeout=0)
+
+        # Set amount row 2 to have an amount of 2.63
+        popup.window[("-AMOUNT ROW AMOUNT-", 1)].update(value="2.63")
+        popup.check_event("-AMOUNT ROW AMOUNT-", {})
+
+        self.assertFalse(popup.inputs_valid())
+        self.assertEqual(
+            "Create New Amount ($10.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+
+        # Create a new amount
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(
+            "Create New Amount ($0.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertEqual(3, len(popup.amount_rows))
+        self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 2)].get())
+        self.assertEqual("10.0", popup.window[("-AMOUNT ROW AMOUNT-", 2)].get())
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 2)].get_text()
+        )
+        for row in popup.amount_rows:
+            self.assertTrue(row.visible)
+        self.assertTrue(popup.inputs_valid())
+
+        # Edit the new amount to have an amount of $5
+        popup.window[("-AMOUNT ROW AMOUNT-", 2)].update("5")
+        popup.check_event(("-AMOUNT ROW AMOUNT-", 2), {})
+
+        self.assertEqual(
+            "Create New Amount ($5.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertFalse(popup.inputs_valid())
+
+        # Delete the new amount
+        popup.check_event(("-AMOUNT ROW DELETE-", 2), {})
+
+        self.assertEqual(
+            "Create New Amount ($10.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertFalse(popup.inputs_valid())
+        self.assertEqual(2, len(popup.amount_rows))
+        for index, row_visible in enumerate([True, True, False]):
+            self.assertEqual(row_visible, popup.window[("-AMOUNT ROW-", index)].visible)
+
+        # Create new amount
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(
+            "Create New Amount ($0.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertEqual(3, len(popup.amount_rows))
+        self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 3)].get())
+        self.assertEqual("10.0", popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 3)].get_text()
+        )
+        for index, row_visible in enumerate([True, True, False, True]):
+            self.assertEqual(row_visible, popup.window[("-AMOUNT ROW-", index)].visible)
+        self.assertTrue(popup.inputs_valid())
+
+        popup.window.close()
+
+    # TODO Test deleting amounts and redistributing the lost amount row to make the popup submittable
 
     @data(1, 2, 3, 4, 5, 6)
     def test_submit_unchanged_transaction(self, trans_id: int):
@@ -178,13 +363,9 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    # TODO Test correct amount use with one amount and too many decimal places
+    # TODO Test more then required decimal places for any amount input
 
-    # TODO Text correct amount use with many amounts and too many decimal places
-
-    # TODO Test incorrect amounts and ensure done button cant be pressed
-
-    # TODO Test setting amounts, then deleting amounts, then changing total amount
+    # TODO Test ability to submit transaction while setting amounts, then deleting amounts, then changing total amount
 
     # TODO Test user inputs in combo box
 

@@ -52,9 +52,6 @@ class Popup(ABC):
                 self.run_event_loop = False
                 break
 
-            for callback in self._event_loop_callback:
-                callback(event, values)
-
             self.check_event(event, values)
 
         self.run_event_loop = False
@@ -68,6 +65,8 @@ class Popup(ABC):
         :param event: Event to parse
         :param values: Values related to the event
         """
+        for callback in self._event_loop_callback:
+            callback(event, values)
 
     def add_callback(self, func: any) -> None:
         """

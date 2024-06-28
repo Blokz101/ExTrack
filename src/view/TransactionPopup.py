@@ -168,7 +168,13 @@ class TransactionPopup(DataPopup):
         amounts_frame: Frame = Frame(
             "Amounts",
             [
-                [Button("Create New Amount", key="-NEW AMOUNT BUTTON-", expand_x=True)],
+                [
+                    Button(
+                        "Create New Amount ($0.0 left)",
+                        key="-NEW AMOUNT BUTTON-",
+                        expand_x=True,
+                    )
+                ],
                 [
                     Text(
                         "Description",
@@ -212,6 +218,11 @@ class TransactionPopup(DataPopup):
 
         if event == "-DONE BUTTON-":
 
+            if not self.inputs_valid():
+                raise RuntimeError(
+                    "Cannot submit transaction while inputs are not valid."
+                )
+
             # Update Transaction fields
             self.trans.account_id = None if self.account is None else self.account.sqlid
             self.trans.description = self.window["-DESCRIPTION INPUT-"].get()
@@ -248,20 +259,13 @@ class TransactionPopup(DataPopup):
 
             self.run_event_loop = False
 
-        # Calculate different between total amount and the sum of the row amounts
-        total_row_amount_difference: Optional[float] = None
-        if self._total_amount() is not None and self._amount_rows_total() is not None:
-            total_row_amount_difference = round(
-                self._total_amount() - self._amount_rows_total(), 2
-            )
-
         if event == "-NEW AMOUNT BUTTON-":
             new_amount_row: TransactionPopup.AmountRow = TransactionPopup.AmountRow(
                 self,
                 default_amount=(
-                    None
-                    if total_row_amount_difference is None
-                    else str(total_row_amount_difference)
+                    Amount()
+                    if self._total_row_amount_difference() is None
+                    else Amount(amount=self._total_row_amount_difference())
                 ),
             )
             self.amount_rows.append(new_amount_row)
@@ -269,19 +273,27 @@ class TransactionPopup(DataPopup):
                 self.window["-AMOUNTS FRAME-"], [[pin(new_amount_row, expand_x=True)]]
             )
 
-            total_row_amount_difference = round(
-                self._total_amount() - self._amount_rows_total(), 2
-            )
-
-            super().check_event(event, values)
+            # Update done button after new amount is created
+            self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
 
         # Update create new amount button to show the total amount vs sum of row amounts difference
-        if total_row_amount_difference is not None:
+        if self._total_row_amount_difference() is not None:
             self.window["-NEW AMOUNT BUTTON-"].update(
-                text=f"Create New Amount (${total_row_amount_difference} left)"
+                text=f"Create New Amount (${self._total_row_amount_difference()} left)"
             )
         else:
             self.window["-NEW AMOUNT BUTTON-"].update(text="Create New Amount")
+
+    def _total_row_amount_difference(self) -> Optional[float]:
+        """
+        Gets the difference between the total amount and the sum of the amount rows if it exists.
+
+        :return: Difference if it exists or None if it does not
+        """
+        if self._total_amount() is not None and self._amount_rows_total() is not None:
+            return round(self._total_amount() - self._amount_rows_total(), 2)
+        else:
+            return None
 
     def _total_amount(self) -> Optional[float]:
         """
@@ -296,14 +308,14 @@ class TransactionPopup(DataPopup):
 
     def _amount_rows_total(self) -> Optional[float]:
         """
-        Calculates the total amount from all amount rows.
+        Calculates the total amount from all amount rows that have not been deleted.
 
         :return: Total amount from all amount rows or None if one or more amount rows is invalid
         """
         rows_sum: float = 0
-        for index in range(len(self.amount_rows)):
+        for row_id in (row.amount_row_id for row in self.amount_rows if row.visible):
             try:
-                rows_sum += float(self.window[("-AMOUNT ROW AMOUNT-", index)].get())
+                rows_sum += float(self.window[("-AMOUNT ROW AMOUNT-", row_id)].get())
             except ValueError:
                 return None
         return rows_sum
@@ -343,15 +355,13 @@ class TransactionPopup(DataPopup):
 
             self.outer: TransactionPopup = outer
             """Instance of outer class."""
-            self._amount: Amount = (
-                default_amount if default_amount is not None else Amount()
-            )
+            self._amount: Amount = Amount() if not default_amount else default_amount
             """Underlying SqlObject used to communicate with the database."""
             self.amount_row_id: int = self.outer._next_amount_row_id
             """Internal ID of this amount row, used make unique amount rows despite potentially hidden rows."""
             self.outer._next_amount_row_id += 1
 
-            self.tag_list: list[Tag] = default_amount.tags()
+            self.tag_list: list[Tag] = self._amount.tags()
             """List of selected tags for this amount."""
 
             self._amount.transaction_id = self.outer.trans.sqlid
@@ -366,7 +376,11 @@ class TransactionPopup(DataPopup):
                         ),
                         Text(" $", pad=0),
                         AmountInput(
-                            default_text=self._amount.amount,
+                            default_text=(
+                                ""
+                                if self._amount.amount is None
+                                else self._amount.amount
+                            ),
                             key=("-AMOUNT ROW AMOUNT-", self.amount_row_id),
                             size=TransactionPopup.AmountRow.AMOUNT_INPUT_WIDTH,
                             enable_events=True,
@@ -383,6 +397,7 @@ class TransactionPopup(DataPopup):
                         ),
                     ]
                 ],
+                key=("-AMOUNT ROW-", self.amount_row_id),
                 expand_x=True,
             )
 
@@ -425,9 +440,10 @@ class TransactionPopup(DataPopup):
                 tag_selector: TagSelector = TagSelector(self.tag_list)
                 tag_selector.event_loop()
                 self.tag_list = tag_selector.selected_tags
-                self.outer.window[
-                    ("-AMOUNT ROW TAG SELECTOR-", self.amount_row_id)
-                ].update(self.tags_as_string())
+
+            self.outer.window[("-AMOUNT ROW TAG SELECTOR-", self.amount_row_id)].update(
+                self.tags_as_string()
+            )
 
         def tags_as_string(self) -> str:
             """
