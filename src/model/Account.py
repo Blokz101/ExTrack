@@ -102,6 +102,9 @@ class Account(SqlObject):
 
         :return: None if this Account is syncable or a list of error messages if it is not
         """
+        if self.name == "":
+            self.name = None
+
         errors: list[str] = []
 
         if self.name is None:

@@ -201,6 +201,19 @@ class TestTransaction(Sample1TestCase):
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
 
+        # Test with "" fields
+        transaction = Transaction.from_id(3)
+        transaction.description = ""
+        transaction.sync()
+
+        self.assertIsNone(Transaction.from_id(3).description)
+
+        transaction = Transaction.from_id(2)
+        transaction.receipt_file_name = ""
+        transaction.sync()
+
+        self.assertIsNone(Transaction.from_id(2).receipt_file_name)
+
     def test_syncable(self):
         """
         Tests Transaction.syncable() and Transaction.sync()

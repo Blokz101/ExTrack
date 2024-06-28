@@ -75,6 +75,12 @@ class TestMerchant(Sample1TestCase):
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())
 
+        # Test with "" text fields
+        merchant = Merchant.from_id(6)
+        merchant.name = ""
+        with self.assertRaises(RuntimeError):
+            merchant.sync()
+
     def test_syncable(self):
         """
         Tests Merchant.syncable() and Merchant.sync()

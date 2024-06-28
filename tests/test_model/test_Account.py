@@ -59,7 +59,7 @@ class TestAccount(Sample1TestCase):
         # Update existing Account
         expected_accounts[1] = Account(2, "College Funds", 5, 3, 4)
 
-        account: Account = Account.from_id(2)
+        account = Account.from_id(2)
         account.name = "College Funds"
         account.amount_idx = 5
         account.description_idx = 3
@@ -68,6 +68,12 @@ class TestAccount(Sample1TestCase):
         account.sync()
 
         self.assertSqlListEqual(expected_accounts, Account.get_all())
+
+        # Sync with "" text fields
+        account = Account.from_id(2)
+        account.name = ""
+        with self.assertRaises(RuntimeError):
+            account.sync()
 
     def test_syncable(self):
         """

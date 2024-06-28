@@ -70,6 +70,13 @@ class TestAmount(Sample1TestCase):
 
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
 
+        # Test with "" text fields
+        amount = Amount.from_id(4)
+        amount.description = ""
+        amount.sync()
+
+        self.assertIsNone(Amount.from_id(4).description)
+
     def test_syncable(self):
         """
         Test Amount.syncable() and Amount.sync()

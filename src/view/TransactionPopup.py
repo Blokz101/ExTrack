@@ -2,6 +2,8 @@ from __future__ import annotations
 import re
 from PySimpleGUI import *
 from datetime import datetime
+
+from src.model.Amount import Amount
 from src.model.Tag import Tag
 from src.view.DataPopup import DataPopup
 from src.view.ValidatedInput import (
@@ -44,17 +46,22 @@ class TransactionPopup(DataPopup):
 
         self._next_amount_row_id: int = 0
         self.amount_rows: list[TransactionPopup.AmountRow] = []
+        """Amount rows elements that this popup has and are visible."""
         if sqlid is None:
             self._set_amount_rows([TransactionPopup.AmountRow(self)])
         else:
             self._set_amount_rows(
                 list(
-                    TransactionPopup.AmountRow(
-                        self, amount.description, str(amount.amount), amount.tags()
-                    )
+                    TransactionPopup.AmountRow(self, amount)
                     for amount in self.trans.amounts()
                 )
             )
+
+        self.account: Optional[Account] = self.trans.account()
+        """Internal Account object updated by the account combo element."""
+
+        self.merchant: Optional[Merchant] = self.trans.merchant()
+        """Internal Merchant object updated by the merchant combo element."""
 
         self.validated_input_keys: list[str] = [
             "-DATE INPUT-",
@@ -198,40 +205,47 @@ class TransactionPopup(DataPopup):
         super().check_event(event, values)
 
         if event == "-ACCOUNT SELECTOR-":
-            self.trans.account_id = values["-ACCOUNT SELECTOR-"].sqlid
-
-        if event == "-DESCRIPTION INPUT-":
-            self.trans.description = values["-DESCRIPTION INPUT-"]
+            self.account = values["-ACCOUNT SELECTOR-"]
 
         if event == "-MERCHANT SELECTOR-":
-            self.trans.merchant_id = values["-MERCHANT SELECTOR-"].sqlid
+            self.merchant = values["-MERCHANT SELECTOR-"]
 
-        if event == "-COORDINATE INPUT-":
+        if event == "-DONE BUTTON-":
+
+            # Update Transaction fields
+            self.trans.account_id = None if self.account is None else self.account.sqlid
+            self.trans.description = self.window["-DESCRIPTION INPUT-"].get()
+            self.trans.merchant_id = (
+                None if self.merchant is None else self.merchant.sqlid
+            )
             single_coordinate_pattern: str = r"-?\d{1,}\.?\d*"
             coords: list[str] = re.findall(
-                single_coordinate_pattern, values["-COORDINATE INPUT-"]
+                single_coordinate_pattern, self.window["-COORDINATE INPUT-"].get()
             )
             if len(coords) == 2:
                 self.trans.lat = float(coords[0])
                 self.trans.long = float(coords[1])
 
-        if event == "-DATE INPUT-":
+            user_input_date: str = self.window["-DATE INPUT-"].get()
             date: Optional[datetime] = None
             try:
-                date = datetime.strptime(values["-DATE INPUT-"], full_date_format)
+                date = datetime.strptime(user_input_date, full_date_format)
             except ValueError:
                 pass
 
             try:
-                date = datetime.strptime(values["-DATE INPUT-"], short_date_format)
+                date = datetime.strptime(user_input_date, short_date_format)
             except ValueError:
                 pass
 
             if date is not None:
                 self.trans.date = date
 
-        if event == "-DONE BUTTON-":
+            # Sync Transaction and Amounts
             self.trans.sync()
+            for row in self.amount_rows:
+                row.get_amount().sync()
+
             self.run_event_loop = False
 
         # Calculate different between total amount and the sum of the row amounts
@@ -286,10 +300,13 @@ class TransactionPopup(DataPopup):
 
         :return: Total amount from all amount rows or None if one or more amount rows is invalid
         """
-        try:
-            return sum(row.amount() for row in self.amount_rows)
-        except ValueError:
-            return None
+        rows_sum: float = 0
+        for index in range(len(self.amount_rows)):
+            try:
+                rows_sum += float(self.window[("-AMOUNT ROW AMOUNT-", index)].get())
+            except ValueError:
+                return None
+        return rows_sum
 
     def inputs_valid(self) -> bool:
         for key in self.validated_input_keys:
@@ -317,30 +334,39 @@ class TransactionPopup(DataPopup):
         def __init__(
             self,
             outer: TransactionPopup,
-            default_description: str = "",
-            default_amount: str = "",
-            default_tags: Optional[list[Tag]] = None,
+            default_amount: Optional[Amount] = None,
         ) -> None:
+            """
+            :param outer: Superclass instance
+            :param default_amount: Default Amount for this amount row, if None a new Amount will be created
+            """
+
             self.outer: TransactionPopup = outer
             """Instance of outer class."""
+            self._amount: Amount = (
+                default_amount if default_amount is not None else Amount()
+            )
+            """Underlying SqlObject used to communicate with the database."""
             self.amount_row_id: int = self.outer._next_amount_row_id
             """Internal ID of this amount row, used make unique amount rows despite potentially hidden rows."""
             self.outer._next_amount_row_id += 1
 
-            self.tag_list: list[Tag] = default_tags if default_tags is not None else []
+            self.tag_list: list[Tag] = default_amount.tags()
             """List of selected tags for this amount."""
+
+            self._amount.transaction_id = self.outer.trans.sqlid
 
             super().__init__(
                 [
                     [
                         Input(
-                            default_description,
+                            self._amount.description,
                             key=("-AMOUNT ROW DESCRIPTION-", self.amount_row_id),
                             size=TransactionPopup.AmountRow.DESCRIPTION_INPUT_WIDTH,
                         ),
                         Text(" $", pad=0),
                         AmountInput(
-                            default_text=default_amount,
+                            default_text=self._amount.amount,
                             key=("-AMOUNT ROW AMOUNT-", self.amount_row_id),
                             size=TransactionPopup.AmountRow.AMOUNT_INPUT_WIDTH,
                             enable_events=True,
@@ -362,33 +388,21 @@ class TransactionPopup(DataPopup):
 
             self.outer.add_callback(self.event_loop_callback)
 
-        def description(self) -> str:
+        def get_amount(self) -> Amount:
             """
-            Gets the description of this amount row.
+            Updates then gets the internal Amount.
 
-            :return: Description of this amount row
+            :return: Internal Amount for this amount row
             """
-            return self.outer.window[
+            self._amount.description = self.outer.window[
                 ("-AMOUNT ROW DESCRIPTION-", self.amount_row_id)
             ].get()
-
-        def amount(self) -> float:
-            """
-            Gets the amount of this amount row.
-
-            :return: Amount of this amount row
-            """
-            return float(
+            self._amount.amount = float(
                 self.outer.window[("-AMOUNT ROW AMOUNT-", self.amount_row_id)].get()
             )
+            self._amount.set_tags(list(tag.sqlid for tag in self.tag_list))
 
-        def tags(self) -> list[Tag]:
-            """
-            Gets the list of tags for this amount row.
-
-            :return: List of tags for this amount row
-            """
-            return self.tag_list
+            return self._amount
 
         def event_loop_callback(self, event: any, _) -> None:
             """

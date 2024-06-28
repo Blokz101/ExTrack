@@ -91,6 +91,9 @@ class Location(SqlObject):
 
         :return: None if this Location is syncable or a list of error messages if it is not
         """
+        if self.description == "":
+            self.description = None
+
         errors: list[str] = []
 
         if self.merchant_id is None:

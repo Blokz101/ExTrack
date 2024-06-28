@@ -76,6 +76,13 @@ class TestLocation(Sample1TestCase):
 
         self.assertSqlListEqual(expected_locations, Location.get_all())
 
+        # Test with "" text fields
+        location = Location.from_id(6)
+        location.description = ""
+        location.sync()
+
+        self.assertIsNone(Location.from_id(6).description)
+
     def test_syncable(self):
         """
         Tests Location.syncable() and Location.sync()

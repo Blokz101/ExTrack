@@ -74,6 +74,13 @@ class TagTestCase(Sample1TestCase):
 
         self.assertSqlListEqual(expected_tags, Tag.get_all())
 
+        # Test with "" text fields
+        tag = Tag.from_id(2)
+        tag.name = ""
+
+        with self.assertRaises(RuntimeError):
+            tag.sync()
+
     def test_syncable(self):
         """
         Tests Tag.syncable() and Tag.sync()

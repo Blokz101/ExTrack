@@ -88,6 +88,9 @@ class Amount(SqlObject):
 
         :return: None if this Amount is syncable or a list of error messages if it is not
         """
+        if self.description == "":
+            self.description = None
+
         errors: list[str] = []
 
         if self.amount is None:

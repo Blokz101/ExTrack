@@ -3,6 +3,8 @@ from ddt import ddt, data
 
 from src.model.Merchant import Merchant
 from src.model.Transaction import Transaction
+from src.model.Tag import Tag
+from src.model.Amount import Amount
 from src.model.Account import Account
 from src.view.TransactionPopup import TransactionPopup
 from src.view import full_date_format
@@ -18,7 +20,7 @@ class TestTransactionPopup(Sample1TestCase):
         """
         Ensures the proper fields are filled in when a popup is created from an existing transaction
 
-        Prerequisites: TestTransaction.test_from_id
+        Prerequisites: all of TestTransaction
         """
         trans: Transaction = Transaction.from_id(trans_id)
         popup: TransactionPopup = TransactionPopup(trans_id)
@@ -87,7 +89,7 @@ class TestTransactionPopup(Sample1TestCase):
         """
         Tests the Account, Description, Merchant, Coordinate, and Date inputs.
 
-        Perquisites: test_construction_with_existing_transaction_3
+        Perquisites: test_construction_with_existing_transaction
         """
         popup: TransactionPopup = TransactionPopup(3)
         _, _ = popup.window.read(timeout=0)
@@ -132,12 +134,51 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    # TODO Test correct amount use with one amount and too many decimal places
-    def test_single_amount(self):
+    def test_edit_single_amount(self):
         """
         Tests a valid transaction with a single amount.
-        :return:
         """
+        expected_transactions: list[Transaction] = Transaction.get_all()
+        expected_amounts: list[Amount] = Amount.get_all()
+
+        edited_expected_amount: Amount = expected_amounts[2]
+        edited_expected_amount.description = "Graphics Card"
+        edited_expected_amount.amount = 803.54
+        edited_expected_amount.set_tags([10, 5])
+
+        popup: TransactionPopup = TransactionPopup(3)
+        popup.window.read(timeout=0)
+
+        popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
+        popup.window[("-AMOUNT ROW AMOUNT-", 0)].update(value="803.54")
+        popup.amount_rows[0].tag_list = [Tag.from_id(10), Tag.from_id(5)]
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+
+        popup.window.close()
+
+    @data(1, 2, 3, 4, 5, 6)
+    def test_submit_unchanged_transaction(self, trans_id: int):
+        """
+        Tests opening a transaction popup and clicking done without changing anything.
+
+        Prerequisite: test_construction_with_existing_transaction
+        """
+        expected_transactions: list[Transaction] = Transaction.get_all()
+        expected_amounts: list[Amount] = Amount.get_all()
+
+        popup: TransactionPopup = TransactionPopup(trans_id)
+        popup.window.read(timeout=0)
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+
+        popup.window.close()
+
+    # TODO Test correct amount use with one amount and too many decimal places
 
     # TODO Text correct amount use with many amounts and too many decimal places
 

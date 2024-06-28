@@ -189,6 +189,12 @@ class Transaction(SqlObject):
 
         :return: None if this Transaction is syncable or a list of error messages if it is not.
         """
+        if self.description == "":
+            self.description = None
+
+        if self.receipt_file_name == "":
+            self.receipt_file_name = None
+
         errors: list[str] = []
 
         if self.reconciled is None:
