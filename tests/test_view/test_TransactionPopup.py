@@ -19,8 +19,6 @@ class TestTransactionPopup(Sample1TestCase):
     def test_construction_with_existing_transaction(self, trans_id: int):
         """
         Ensures the proper fields are filled in when a popup is created from an existing transaction
-
-        Prerequisites: all of TestTransaction
         """
         trans: Transaction = Transaction.from_id(trans_id)
         popup: TransactionPopup = TransactionPopup(trans_id)
@@ -83,90 +81,9 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup_window.close()
 
-    # TODO Test proper construction of new transaction
-
-    def test_basic_inputs(self):
-        """
-        Tests the Account, Description, Merchant, Coordinate, and Date inputs.
-
-        Perquisites: test_construction_with_existing_transaction
-        """
-        popup: TransactionPopup = TransactionPopup(3)
-        _, _ = popup.window.read(timeout=0)
-
-        # Fake user inputs
-        key: str = "-ACCOUNT SELECTOR-"
-        new_account_id: int = 2
-        popup.window[key].update(value=Account.from_id(new_account_id))
-        popup.check_event(key, {key: Account.from_id(new_account_id)})
-
-        key = "-DESCRIPTION INPUT-"
-        new_description: str = "This is an edited transaction"
-        popup.window[key].update(value=new_description)
-        popup.check_event(key, {key: new_description})
-
-        key = "-MERCHANT SELECTOR-"
-        new_merchant_id: int = 1
-        popup.window[key].update(value=Merchant.from_id(new_merchant_id))
-        popup.check_event(key, {key: Merchant.from_id(new_merchant_id)})
-
-        key = "-COORDINATE INPUT-"
-        new_lat: float = 35.86351608517815
-        new_long: float = -78.64574508597906
-        popup.window[key].update(value=f"{new_lat}, {new_long}")
-        popup.check_event(key, {key: f"{new_lat}, {new_long}"})
-
-        key = "-DATE INPUT-"
-        new_date: str = "07/24/2004 12:45:31"
-        popup.window[key].update(value=new_date)
-        popup.check_event(key, {key: new_date})
-
-        # Check changes by getting the transaction from the database again
-        popup.check_event("-DONE BUTTON-", {})
-        actual_trans: Transaction = Transaction.from_id(3)
-
-        self.assertSqlEqual(Account.from_id(new_account_id), actual_trans.account())
-        self.assertEqual(new_description, actual_trans.description)
-        self.assertSqlEqual(Merchant.from_id(new_merchant_id), actual_trans.merchant())
-        self.assertEqual(new_lat, actual_trans.lat)
-        self.assertEqual(new_long, actual_trans.long)
-        self.assertEqual(new_date, actual_trans.date.strftime(full_date_format))
-
-        popup.window.close()
-
-    def test_edit_single_amount(self):
-        """
-        Tests a valid transaction by editing a single amount.
-        """
-        expected_transactions: list[Transaction] = Transaction.get_all()
-        expected_amounts: list[Amount] = Amount.get_all()
-
-        edited_expected_amount: Amount = expected_amounts[2]
-        edited_expected_amount.description = "Graphics Card"
-        edited_expected_amount.amount = 803.54
-        edited_expected_amount.set_tags([10, 5])
-
-        popup: TransactionPopup = TransactionPopup(3)
-        popup.window.read(timeout=0)
-
-        popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
-        popup.check_event(("-AMOUNT ROW DESCRIPTION-", 0), {})
-        popup.window["-TOTAL AMOUNT INPUT-"].update(value="803.54")
-        popup.check_event("-TOTAL AMOUNT INPUT-", {})
-        popup.window[("-AMOUNT ROW AMOUNT-", 0)].update(value="803.54")
-        popup.check_event(("-AMOUNT ROW AMOUNT", 0), {})
-        popup.amount_rows[0].tag_list = [Tag.from_id(10), Tag.from_id(5)]
-        popup.check_event(None, {})
-        popup.check_event("-DONE BUTTON-", {})
-
-        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
-        self.assertSqlListEqual(expected_amounts, Amount.get_all())
-
-        popup.window.close()
-
     def test_create_amount_row(self):
         """
-        Tests creating new amount rows with varying total amounts and other amount rows.
+        Tests popup behavior while creating new amount rows.
         """
         popup: TransactionPopup = TransactionPopup(4)
         popup.window.read(timeout=0)
@@ -262,7 +179,7 @@ class TestTransactionPopup(Sample1TestCase):
 
     def test_edit_amounts_scenario(self):
         """
-        Tests a scenario with the following steps:
+        Tests popup behavior with the following steps:
         1. Opens transaction id = 4
         2. Set amount row 2 to have an amount of 2.36
         3. Creates a new amount
@@ -342,14 +259,10 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    # TODO Test deleting amounts and redistributing the lost amount row to make the popup submittable
-
     @data(1, 2, 3, 4, 5, 6)
     def test_submit_unchanged_transaction(self, trans_id: int):
         """
-        Tests opening a transaction popup and clicking done without changing anything.
-
-        Prerequisite: test_construction_with_existing_transaction
+        Tests database after opening and submitting transactions while making no edits.
         """
         expected_transactions: list[Transaction] = Transaction.get_all()
         expected_amounts: list[Amount] = Amount.get_all()
@@ -363,11 +276,87 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    # TODO Test more then required decimal places for any amount input
+    def test_submit_basic_input_edits(self):
+        """
+        Tests editing the database with the basic input fields.
+        """
+        popup: TransactionPopup = TransactionPopup(3)
+        _, _ = popup.window.read(timeout=0)
 
-    # TODO Test ability to submit transaction while setting amounts, then deleting amounts, then changing total amount
+        # Fake user inputs
+        key: str = "-ACCOUNT SELECTOR-"
+        new_account_id: int = 2
+        popup.window[key].update(value=Account.from_id(new_account_id))
+        popup.check_event(key, {key: Account.from_id(new_account_id)})
 
-    # TODO Test user inputs in combo box
+        key = "-DESCRIPTION INPUT-"
+        new_description: str = "This is an edited transaction"
+        popup.window[key].update(value=new_description)
+        popup.check_event(key, {key: new_description})
+
+        key = "-MERCHANT SELECTOR-"
+        new_merchant_id: int = 1
+        popup.window[key].update(value=Merchant.from_id(new_merchant_id))
+        popup.check_event(key, {key: Merchant.from_id(new_merchant_id)})
+
+        key = "-COORDINATE INPUT-"
+        new_lat: float = 35.86351608517815
+        new_long: float = -78.64574508597906
+        popup.window[key].update(value=f"{new_lat}, {new_long}")
+        popup.check_event(key, {key: f"{new_lat}, {new_long}"})
+
+        key = "-DATE INPUT-"
+        new_date: str = "07/24/2004 12:45:31"
+        popup.window[key].update(value=new_date)
+        popup.check_event(key, {key: new_date})
+
+        # Check changes by getting the transaction from the database again
+        popup.check_event("-DONE BUTTON-", {})
+        actual_trans: Transaction = Transaction.from_id(3)
+
+        self.assertSqlEqual(Account.from_id(new_account_id), actual_trans.account())
+        self.assertEqual(new_description, actual_trans.description)
+        self.assertSqlEqual(Merchant.from_id(new_merchant_id), actual_trans.merchant())
+        self.assertEqual(new_lat, actual_trans.lat)
+        self.assertEqual(new_long, actual_trans.long)
+        self.assertEqual(new_date, actual_trans.date.strftime(full_date_format))
+
+        popup.window.close()
+
+    def test_submit_single_amount_edit(self):
+        """
+        Tests editing the database by editing a single amount of a transaction.
+        """
+        expected_transactions: list[Transaction] = Transaction.get_all()
+        expected_amounts: list[Amount] = Amount.get_all()
+
+        edited_expected_amount: Amount = expected_amounts[2]
+        edited_expected_amount.description = "Graphics Card"
+        edited_expected_amount.amount = 803.54
+        edited_expected_amount.set_tags([10, 5])
+
+        popup: TransactionPopup = TransactionPopup(3)
+        popup.window.read(timeout=0)
+
+        popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
+        popup.check_event(("-AMOUNT ROW DESCRIPTION-", 0), {})
+        popup.window["-TOTAL AMOUNT INPUT-"].update(value="803.54")
+        popup.check_event("-TOTAL AMOUNT INPUT-", {})
+        popup.window[("-AMOUNT ROW AMOUNT-", 0)].update(value="803.54")
+        popup.check_event(("-AMOUNT ROW AMOUNT", 0), {})
+        popup.amount_rows[0].tag_list = [Tag.from_id(10), Tag.from_id(5)]
+        popup.check_event(None, {})
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+
+        popup.window.close()
+
+    def test_submit_edit_multiple_amounts(self):
+        """
+        Tests editing the database by editing, creating, or destroying many amounts of a transaction.
+        """
 
     @skip
     def test_manual(self):
