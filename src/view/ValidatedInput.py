@@ -64,11 +64,17 @@ class DateInput(ValidatedInput):
 class AmountInput(ValidatedInput):
 
     def validation_status(self) -> Optional[str]:
-        if self.get() == "":
-            return "Invalid amount."
-
-        try:
-            float(self.get())
-        except ValueError:
+        if self.get() is None:
             return "Invalid amount."
         return None
+
+    def get(self) -> Optional[float]:
+        """
+        Read and return the current value of this input widget if it is a float.
+
+        :return: The current value of this input widget as a float or None if the value is not a float
+        """
+        try:
+            return round(float(super().get()), 2)
+        except ValueError:
+            return None

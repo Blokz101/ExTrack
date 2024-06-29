@@ -1,3 +1,5 @@
+from typing import cast
+
 from PySimpleGUI import Window
 from ddt import ddt, data
 
@@ -30,7 +32,7 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertSqlEqual(trans.account(), popup_window["-ACCOUNT SELECTOR-"].get())
         self.assertEqual(trans.description, popup_window["-DESCRIPTION INPUT-"].get())
         self.assertEqual(
-            str(trans.total_amount()), popup_window["-TOTAL AMOUNT INPUT-"].get()
+            trans.total_amount(), popup_window["-TOTAL AMOUNT INPUT-"].get()
         )
         # Test merchant differently for the case where the transaction has a merchant and the case where it does not.
         if trans.merchant_id is None:
@@ -64,7 +66,7 @@ class TestTransactionPopup(Sample1TestCase):
                 popup_window[("-AMOUNT ROW DESCRIPTION-", index)].get(),
             )
             self.assertEqual(
-                str(trans_amount.amount),
+                trans_amount.amount,
                 popup_window[("-AMOUNT ROW AMOUNT-", index)].get(),
             )
             # Test tags differently for the case where the amount has tags and the case where it does not.
@@ -100,7 +102,7 @@ class TestTransactionPopup(Sample1TestCase):
         for row in popup.amount_rows:
             self.assertTrue(row.visible)
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 2)].get())
-        self.assertEqual("0.0", popup.window[("-AMOUNT ROW AMOUNT-", 2)].get())
+        self.assertEqual(0.0, popup.window[("-AMOUNT ROW AMOUNT-", 2)].get())
         self.assertEqual(
             "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 2)].get_text()
         )
@@ -124,7 +126,7 @@ class TestTransactionPopup(Sample1TestCase):
         for row in popup.amount_rows:
             self.assertTrue(row.visible)
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 3)].get())
-        self.assertEqual("4.82", popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
+        self.assertEqual(4.82, popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
         self.assertEqual(
             "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 3)].get_text()
         )
@@ -148,7 +150,7 @@ class TestTransactionPopup(Sample1TestCase):
         for row in popup.amount_rows:
             self.assertTrue(row.visible)
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 4)].get())
-        self.assertEqual("23.56", popup.window[("-AMOUNT ROW AMOUNT-", 4)].get())
+        self.assertEqual(23.56, popup.window[("-AMOUNT ROW AMOUNT-", 4)].get())
         self.assertEqual(
             "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 4)].get_text()
         )
@@ -170,7 +172,7 @@ class TestTransactionPopup(Sample1TestCase):
         for row in popup.amount_rows:
             self.assertTrue(row.visible)
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 5)].get())
-        self.assertEqual("", popup.window[("-AMOUNT ROW AMOUNT-", 5)].get())
+        self.assertEqual(None, popup.window[("-AMOUNT ROW AMOUNT-", 5)].get())
         self.assertEqual(
             "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 5)].get_text()
         )
@@ -210,7 +212,7 @@ class TestTransactionPopup(Sample1TestCase):
         )
         self.assertEqual(3, len(popup.amount_rows))
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 2)].get())
-        self.assertEqual("10.0", popup.window[("-AMOUNT ROW AMOUNT-", 2)].get())
+        self.assertEqual(10, popup.window[("-AMOUNT ROW AMOUNT-", 2)].get())
         self.assertEqual(
             "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 2)].get_text()
         )
@@ -249,7 +251,7 @@ class TestTransactionPopup(Sample1TestCase):
         )
         self.assertEqual(3, len(popup.amount_rows))
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 3)].get())
-        self.assertEqual("10.0", popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
+        self.assertEqual(10.0, popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
         self.assertEqual(
             "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 3)].get_text()
         )
@@ -330,12 +332,12 @@ class TestTransactionPopup(Sample1TestCase):
         expected_transactions: list[Transaction] = Transaction.get_all()
         expected_amounts: list[Amount] = Amount.get_all()
 
-        edited_expected_amount: Amount = expected_amounts[2]
-        edited_expected_amount.description = "Graphics Card"
-        edited_expected_amount.amount = 803.54
-        edited_expected_amount.set_tags([10, 5])
+        trans_id: int = 3
 
-        popup: TransactionPopup = TransactionPopup(3)
+        expected_amounts[2] = Amount(3, 803.54, trans_id, "Graphics Card")
+        expected_amount_tags: list[Tag] = [Tag.from_id(10), Tag.from_id(5)]
+
+        popup: TransactionPopup = TransactionPopup(trans_id)
         popup.window.read(timeout=0)
 
         popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
@@ -350,6 +352,9 @@ class TestTransactionPopup(Sample1TestCase):
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
+        self.assertSqlListEqual(
+            expected_amount_tags, Transaction.from_id(trans_id).amounts()[0].tags()
+        )
 
         popup.window.close()
 
@@ -357,6 +362,52 @@ class TestTransactionPopup(Sample1TestCase):
         """
         Tests editing the database by editing, creating, or destroying many amounts of a transaction.
         """
+        expected_transactions: list[Transaction] = Transaction.get_all()
+        expected_amounts: list[Amount] = Amount.get_all()
+
+        trans_id: int = 4
+
+        expected_amounts[3] = Amount(4, 803.21, trans_id, "Graphics Card")
+        expected_amount_tags_1: list[Tag] = []
+        expected_amounts[4] = Amount(6, 4.32, trans_id, "Limit Switches")
+        expected_amount_tags_2: list[Tag] = [Tag.from_id(4), Tag.from_id(5)]
+
+        popup: TransactionPopup = TransactionPopup(trans_id)
+        popup.window.read(timeout=0)
+
+        # Edit first amount
+        popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
+        popup.window[("-AMOUNT ROW AMOUNT-", 0)].update(value=803.21)
+        cast(TransactionPopup.AmountRow, popup.window[("-AMOUNT ROW-", 0)]).tag_list = (
+            []
+        )
+
+        # Delete the second amount
+        popup.check_event(("-AMOUNT ROW DELETE-", 1), {})
+
+        # Creat the third amount
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+        popup.window[("-AMOUNT ROW DESCRIPTION-", 2)].update(value="Limit Switches")
+        popup.window[("-AMOUNT ROW AMOUNT-", 2)].update(value="4.32")
+        cast(TransactionPopup.AmountRow, popup.window[("-AMOUNT ROW-", 2)]).tag_list = [
+            Tag.from_id(4),
+            Tag.from_id(5),
+        ]
+
+        # Submit popup and check database
+        popup.window["-TOTAL AMOUNT INPUT-"].update(value="807.53")
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+        self.assertSqlListEqual(
+            expected_amount_tags_1, Transaction.from_id(trans_id).amounts()[0].tags()
+        )
+        self.assertSqlListEqual(
+            expected_amount_tags_2, Transaction.from_id(trans_id).amounts()[1].tags()
+        )
+
+        popup.window.close()
 
     @skip
     def test_manual(self):

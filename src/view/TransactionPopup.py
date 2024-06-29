@@ -301,10 +301,7 @@ class TransactionPopup(DataPopup):
 
         :return: Total amount from the total amount input or None if total amount is invalid
         """
-        try:
-            return float(self.window["-TOTAL AMOUNT INPUT-"].get())
-        except ValueError:
-            return None
+        return self.window["-TOTAL AMOUNT INPUT-"].get()
 
     def _amount_rows_total(self) -> Optional[float]:
         """
@@ -314,11 +311,14 @@ class TransactionPopup(DataPopup):
         """
         rows_sum: float = 0
         for row_id in (row.amount_row_id for row in self.amount_rows if row.visible):
-            try:
-                rows_sum += float(self.window[("-AMOUNT ROW AMOUNT-", row_id)].get())
-            except ValueError:
+            row_amount: Optional[float] = self.window[
+                ("-AMOUNT ROW AMOUNT-", row_id)
+            ].get()
+            if row_amount is None:
                 return None
-        return rows_sum
+            else:
+                rows_sum += row_amount
+        return round(rows_sum, 2)
 
     def inputs_valid(self) -> bool:
         for key in self.validated_input_keys:
@@ -415,6 +415,7 @@ class TransactionPopup(DataPopup):
             self._amount.amount = float(
                 self.outer.window[("-AMOUNT ROW AMOUNT-", self.amount_row_id)].get()
             )
+            self._amount.sync()
             self._amount.set_tags(list(tag.sqlid for tag in self.tag_list))
 
             return self._amount
