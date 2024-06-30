@@ -81,9 +81,9 @@ class Location(SqlObject):
                 "INSERT INTO locations (description, merchant_id, lat, long) VALUES (?, ?, ?, ?)",
                 (self.description, self.merchant_id, self.lat, self.long),
             )
+            self.sqlid = cur.lastrowid
 
         con.commit()
-        self.sqlid = cur.lastrowid
 
     def syncable(self) -> Optional[list[str]]:
         """

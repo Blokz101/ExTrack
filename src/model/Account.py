@@ -92,9 +92,9 @@ class Account(SqlObject):
                     self.date_idx,
                 ),
             )
+            self.sqlid = cur.lastrowid
 
         con.commit()
-        self.sqlid = cur.lastrowid
 
     def syncable(self) -> Optional[list[str]]:
         """

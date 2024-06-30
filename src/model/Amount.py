@@ -78,9 +78,9 @@ class Amount(SqlObject):
                 "INSERT INTO amounts (amount, transaction_id, description) VALUES (?, ?, ?)",
                 (self.amount, self.transaction_id, self.description),
             )
+            self.sqlid = cur.lastrowid
 
         con.commit()
-        self.sqlid = cur.lastrowid
 
     def syncable(self) -> Optional[list[str]]:
         """

@@ -79,9 +79,9 @@ class Tag(SqlObject):
                 "INSERT INTO tags (name, occasional) VALUES (?, ?)",
                 (self.name, self.occasional),
             )
+            self.sqlid = cur.lastrowid
 
         con.commit()
-        self.sqlid = cur.lastrowid
 
     def syncable(self) -> Optional[list[str]]:
         """

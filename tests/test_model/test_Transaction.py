@@ -200,6 +200,7 @@ class TestTransaction(Sample1TestCase):
         transaction.sync()
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertEqual(3, transaction.sqlid)
 
         # Test with "" fields
         transaction = Transaction.from_id(3)

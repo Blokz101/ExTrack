@@ -70,6 +70,7 @@ class TestStatement(Sample1TestCase):
         statement.sync()
 
         self.assertSqlListEqual(expected_statements, Statement.get_all())
+        self.assertEqual(4, statement.sqlid)
 
     def test_syncable(self):
         """

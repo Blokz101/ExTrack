@@ -68,6 +68,7 @@ class TestAccount(Sample1TestCase):
         account.sync()
 
         self.assertSqlListEqual(expected_accounts, Account.get_all())
+        self.assertEqual(2, account.sqlid)
 
         # Sync with "" text fields
         account = Account.from_id(2)

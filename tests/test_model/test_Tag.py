@@ -73,6 +73,7 @@ class TagTestCase(Sample1TestCase):
         tag.sync()
 
         self.assertSqlListEqual(expected_tags, Tag.get_all())
+        self.assertEqual(6, tag.sqlid)
 
         # Test with "" text fields
         tag = Tag.from_id(2)

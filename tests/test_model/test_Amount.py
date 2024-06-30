@@ -69,6 +69,7 @@ class TestAmount(Sample1TestCase):
         amount.sync()
 
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
+        self.assertEqual(4, amount.sqlid)
 
         # Test with "" text fields
         amount = Amount.from_id(4)

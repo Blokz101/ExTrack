@@ -75,6 +75,7 @@ class TestLocation(Sample1TestCase):
         location.sync()
 
         self.assertSqlListEqual(expected_locations, Location.get_all())
+        self.assertEqual(2, location.sqlid)
 
         # Test with "" text fields
         location = Location.from_id(6)

@@ -74,6 +74,7 @@ class TestMerchant(Sample1TestCase):
         merchant.sync()
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())
+        self.assertEqual(4, merchant.sqlid)
 
         # Test with "" text fields
         merchant = Merchant.from_id(6)

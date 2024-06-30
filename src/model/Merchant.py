@@ -80,9 +80,9 @@ class Merchant(SqlObject):
                 "INSERT INTO merchants (name, online, rule) VALUES (?, ?, ?)",
                 (self.name, self.online, self.rule),
             )
+            self.sqlid = cur.lastrowid
 
         con.commit()
-        self.sqlid = cur.lastrowid
 
     def syncable(self) -> Optional[list[str]]:
         """

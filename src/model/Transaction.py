@@ -179,9 +179,9 @@ class Transaction(SqlObject):
                     self.transfer_trans_id,
                 ),
             )
+            self.sqlid = cur.lastrowid
 
         con.commit()
-        self.sqlid = cur.lastrowid
 
     def syncable(self) -> Optional[list[str]]:
         """
