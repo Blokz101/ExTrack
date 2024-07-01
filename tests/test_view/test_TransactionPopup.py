@@ -2,6 +2,7 @@ from typing import cast
 
 from PySimpleGUI import Window
 from ddt import ddt, data
+from datetime import datetime
 
 from src.model.Merchant import Merchant
 from src.model.Transaction import Transaction
@@ -9,7 +10,7 @@ from src.model.Tag import Tag
 from src.model.Amount import Amount
 from src.model.Account import Account
 from src.view.TransactionPopup import TransactionPopup
-from src.view import full_date_format
+from src.view import full_date_format, short_date_format
 from tests.test_model.Sample1TestCase import Sample1TestCase
 from unittest import skip
 
@@ -17,13 +18,41 @@ from unittest import skip
 @ddt
 class TestTransactionPopup(Sample1TestCase):
 
+    def test_construction_for_new_transaction(self):
+        """
+        Tests the construction of a new transaction popup for a new transaction.
+        """
+
+        popup: TransactionPopup = TransactionPopup(Transaction())
+        popup_window: Window = popup.window
+        _, _ = popup.window.read(timeout=0)
+
+        # Validate basic fields and inputs
+        self.assertEqual("", popup_window["-ACCOUNT SELECTOR-"].get())
+        self.assertEqual("", popup_window["-DESCRIPTION INPUT-"].get())
+        self.assertEqual(None, popup_window["-TOTAL AMOUNT INPUT-"].get())
+        self.assertEqual("", popup_window["-MERCHANT SELECTOR-"].get())
+        self.assertEqual("None, None", popup_window["-COORDINATE INPUT-"].get())
+        self.assertEqual(
+            datetime.now().strftime(short_date_format),
+            popup_window["-DATE INPUT-"].get(),
+        )
+        self.assertEqual("False", popup_window["-RECONCILED TEXT-"].get())
+        self.assertEqual("None", popup_window["-STATEMENT TEXT-"].get())
+        self.assertEqual("None", popup_window["-TRANSFER TRANSACTION TEXT-"].get())
+
+        # Validate amounts
+        self.assertEqual([], popup.amount_rows)
+
+        self.assertFalse(popup.inputs_valid())
+
     @data(1, 2, 3, 4, 5, 6)
     def test_construction_with_existing_transaction(self, trans_id: int):
         """
-        Ensures the proper fields are filled in when a popup is created from an existing transaction
+        Tests the construction of a transaction popup for an existing transaction.
         """
         trans: Transaction = Transaction.from_id(trans_id)
-        popup: TransactionPopup = TransactionPopup(trans_id)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(trans_id))
         popup_window: Window = popup.window
         _, _ = popup.window.read(timeout=0)
 
@@ -87,7 +116,7 @@ class TestTransactionPopup(Sample1TestCase):
         """
         Tests popup behavior while creating new amount rows.
         """
-        popup: TransactionPopup = TransactionPopup(4)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(4))
         popup.window.read(timeout=0)
 
         self.assertEqual(
@@ -190,7 +219,7 @@ class TestTransactionPopup(Sample1TestCase):
         6. Creates a new amount
         """
         # Open a transaction id = 4
-        popup: TransactionPopup = TransactionPopup(4)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(4))
         popup.window.read(timeout=0)
 
         # Set amount row 2 to have an amount of 2.63
@@ -269,7 +298,7 @@ class TestTransactionPopup(Sample1TestCase):
         expected_transactions: list[Transaction] = Transaction.get_all()
         expected_amounts: list[Amount] = Amount.get_all()
 
-        popup: TransactionPopup = TransactionPopup(trans_id)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(trans_id))
         popup.window.read(timeout=0)
         popup.check_event("-DONE BUTTON-", {})
 
@@ -285,7 +314,7 @@ class TestTransactionPopup(Sample1TestCase):
         expected_transactions: list[Transaction] = Transaction.get_all()
         expected_amounts: list[Amount] = Amount.get_all()
 
-        popup: TransactionPopup = TransactionPopup(3)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(3))
         _, _ = popup.window.read(timeout=0)
 
         # Fake user inputs
@@ -335,7 +364,7 @@ class TestTransactionPopup(Sample1TestCase):
         """
         Tests editing the database with the basic input fields.
         """
-        popup: TransactionPopup = TransactionPopup(3)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(3))
         _, _ = popup.window.read(timeout=0)
 
         # Fake user inputs
@@ -390,7 +419,7 @@ class TestTransactionPopup(Sample1TestCase):
         expected_amounts[2] = Amount(3, 803.54, trans_id, "Graphics Card")
         expected_amount_tags: list[Tag] = [Tag.from_id(10), Tag.from_id(5)]
 
-        popup: TransactionPopup = TransactionPopup(trans_id)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(trans_id))
         popup.window.read(timeout=0)
 
         popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
@@ -426,7 +455,7 @@ class TestTransactionPopup(Sample1TestCase):
         expected_amounts.append(Amount(8, 4.32, trans_id, "Limit Switches"))
         expected_amount_tags_2: list[Tag] = [Tag.from_id(4), Tag.from_id(5)]
 
-        popup: TransactionPopup = TransactionPopup(trans_id)
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(trans_id))
         popup.window.read(timeout=0)
 
         # Edit first amount
@@ -465,4 +494,4 @@ class TestTransactionPopup(Sample1TestCase):
 
     @skip
     def test_manual(self):
-        TransactionPopup(4).event_loop()
+        TransactionPopup(Transaction.from_id(4)).event_loop()

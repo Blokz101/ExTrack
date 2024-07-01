@@ -22,16 +22,16 @@ from typing import cast
 
 class TransactionPopup(DataPopup):
 
-    def __init__(self, sqlid: Optional[int]):
+    def __init__(self, trans: Optional[Transaction]):
         self.trans: Transaction
         """Transaction that this popup interacts with."""
-        if sqlid is not None:
-            self.trans = Transaction.from_id(sqlid)
+        if trans is not None:
+            self.trans = trans
         else:
             self.trans = Transaction()
 
         super().__init__(
-            f"Transaction ID = {sqlid}",
+            f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else 'New'}",
             [
                 "-ACCOUNT SELECTOR-",
                 "-DESCRIPTION INPUT-",
@@ -47,7 +47,7 @@ class TransactionPopup(DataPopup):
         self._next_amount_row_id: int = 0
         self.amount_rows: list[TransactionPopup.AmountRow] = []
         """Amount rows elements that this popup has."""
-        if sqlid is None:
+        if trans is None:
             self._set_amount_rows([TransactionPopup.AmountRow(self)])
         else:
             self._set_amount_rows(
@@ -106,7 +106,9 @@ class TransactionPopup(DataPopup):
                 expand_x=True,
             ),
             AmountInput(
-                default_text=self.trans.total_amount(),
+                default_text=(
+                    "" if self.trans.amounts() == [] else self.trans.total_amount()
+                ),
                 key="-TOTAL AMOUNT INPUT-",
                 enable_events=True,
                 expand_x=True,
@@ -134,15 +136,22 @@ class TransactionPopup(DataPopup):
             ),
             DateInput(
                 default_text=(
-                    self.trans.date.strftime(full_date_format)
-                    if self.trans.date is not None
-                    else "None"
+                    datetime.now().strftime(short_date_format)
+                    if self.trans.date is None
+                    else (
+                        self.trans.date.strftime(full_date_format)
+                        if self.trans.date is not None
+                        else "None"
+                    )
                 ),
                 key="-DATE INPUT-",
                 enable_events=True,
                 expand_x=True,
             ),
-            Text(self.trans.reconciled, key="-RECONCILED TEXT-"),
+            Text(
+                "False" if self.trans.reconciled is None else self.trans.reconciled,
+                key="-RECONCILED TEXT-",
+            ),
             Text(
                 (
                     self.trans.statement().date.strftime(full_date_format)
