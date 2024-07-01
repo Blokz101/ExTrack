@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.model import date_format
+from src.model import date_format, database
 from src.model.Transaction import Transaction
 from tests.test_model.Sample1TestCase import Sample1TestCase
 from src.model.Amount import Amount
@@ -193,6 +193,11 @@ class TestAmount(Sample1TestCase):
         Amount.from_id(4).delete()
 
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
+
+        # Ensure that the amount_tag branches have been deleted
+        _, cur = database.get_connection()
+        cur.execute("SELECT 1 FROM amount_tags WHERE amount_id = 4")
+        self.assertEqual([], cur.fetchall())
 
         # Test with invalid amount
         with self.assertRaises(RuntimeError) as msg:

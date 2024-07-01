@@ -238,7 +238,7 @@ class TestTransactionPopup(Sample1TestCase):
             popup.window["-NEW AMOUNT BUTTON-"].get_text(),
         )
         self.assertFalse(popup.inputs_valid())
-        self.assertEqual(2, len(popup.amount_rows))
+        self.assertEqual(2, len(list(row for row in popup.amount_rows if row.visible)))
         for index, row_visible in enumerate([True, True, False]):
             self.assertEqual(row_visible, popup.window[("-AMOUNT ROW-", index)].visible)
 
@@ -249,7 +249,7 @@ class TestTransactionPopup(Sample1TestCase):
             "Create New Amount ($0.0 left)",
             popup.window["-NEW AMOUNT BUTTON-"].get_text(),
         )
-        self.assertEqual(3, len(popup.amount_rows))
+        self.assertEqual(3, len(list(row for row in popup.amount_rows if row.visible)))
         self.assertEqual("", popup.window[("-AMOUNT ROW DESCRIPTION-", 3)].get())
         self.assertEqual(10.0, popup.window[("-AMOUNT ROW AMOUNT-", 3)].get())
         self.assertEqual(
@@ -369,7 +369,8 @@ class TestTransactionPopup(Sample1TestCase):
 
         expected_amounts[3] = Amount(4, 803.21, trans_id, "Graphics Card")
         expected_amount_tags_1: list[Tag] = []
-        expected_amounts[4] = Amount(6, 4.32, trans_id, "Limit Switches")
+        expected_amounts.pop(4)
+        expected_amounts.append(Amount(8, 4.32, trans_id, "Limit Switches"))
         expected_amount_tags_2: list[Tag] = [Tag.from_id(4), Tag.from_id(5)]
 
         popup: TransactionPopup = TransactionPopup(trans_id)

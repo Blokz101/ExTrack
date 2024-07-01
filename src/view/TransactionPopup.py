@@ -46,7 +46,7 @@ class TransactionPopup(DataPopup):
 
         self._next_amount_row_id: int = 0
         self.amount_rows: list[TransactionPopup.AmountRow] = []
-        """Amount rows elements that this popup has and are visible."""
+        """Amount rows elements that this popup has."""
         if sqlid is None:
             self._set_amount_rows([TransactionPopup.AmountRow(self)])
         else:
@@ -255,7 +255,7 @@ class TransactionPopup(DataPopup):
             # Sync Transaction and Amounts
             self.trans.sync()
             for row in self.amount_rows:
-                row.get_amount().sync()
+                row.sync_row()
 
             self.run_event_loop = False
 
@@ -403,22 +403,23 @@ class TransactionPopup(DataPopup):
 
             self.outer.add_callback(self.event_loop_callback)
 
-        def get_amount(self) -> Amount:
+        def sync_row(self) -> None:
             """
-            Updates then gets the internal Amount.
-
-            :return: Internal Amount for this amount row
+            Syncs this amount row to the database.
             """
-            self._amount.description = self.outer.window[
-                ("-AMOUNT ROW DESCRIPTION-", self.amount_row_id)
-            ].get()
-            self._amount.amount = float(
-                self.outer.window[("-AMOUNT ROW AMOUNT-", self.amount_row_id)].get()
-            )
-            self._amount.sync()
-            self._amount.set_tags(list(tag.sqlid for tag in self.tag_list))
+            if self.visible:
+                self._amount.description = self.outer.window[
+                    ("-AMOUNT ROW DESCRIPTION-", self.amount_row_id)
+                ].get()
+                self._amount.amount = float(
+                    self.outer.window[("-AMOUNT ROW AMOUNT-", self.amount_row_id)].get()
+                )
 
-            return self._amount
+                self._amount.sync()
+                self._amount.set_tags(list(tag.sqlid for tag in self.tag_list))
+            else:
+                self._amount.delete()
+                del self  # This will cause trouble if the user calls sync on this row again
 
         def event_loop_callback(self, event: any, _) -> None:
             """
@@ -435,7 +436,6 @@ class TransactionPopup(DataPopup):
 
             if event == ("-AMOUNT ROW DELETE-", self.amount_row_id):
                 self.update(visible=False)
-                self.outer.amount_rows.remove(self)
 
             if event == ("-AMOUNT ROW TAG SELECTOR-", self.amount_row_id):
                 tag_selector: TagSelector = TagSelector(self.tag_list)
