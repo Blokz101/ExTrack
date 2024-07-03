@@ -28,18 +28,10 @@ class TransactionPopup(DataPopup):
         if trans is not None:
             self.trans = trans
         else:
-            self.trans = Transaction()
+            self.trans = Transaction(reconciled=False)
 
         super().__init__(
             f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else 'New'}",
-            [
-                "-ACCOUNT SELECTOR-",
-                "-DESCRIPTION INPUT-",
-                "-MERCHANT SELECTOR-",
-                "-COORD INPUT-",
-                "-DATE INPUT-",
-                "-AMOUNT TAG SELECTOR-",
-            ],
         )
 
         self.window.read(timeout=0)
@@ -48,7 +40,7 @@ class TransactionPopup(DataPopup):
         self.amount_rows: list[TransactionPopup.AmountRow] = []
         """Amount rows elements that this popup has."""
         if trans is None:
-            self._set_amount_rows([TransactionPopup.AmountRow(self)])
+            self._set_amount_rows([])
         else:
             self._set_amount_rows(
                 list(
@@ -73,6 +65,8 @@ class TransactionPopup(DataPopup):
         for key in self.validated_input_keys:
             validated_input: ValidatedInput = cast(ValidatedInput, self.window[key])
             self.add_callback(validated_input.update_validation_appearance)
+
+        self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
 
     def _fields_generator(self) -> list[list[Element]]:
         labels: list[Element] = list(
@@ -149,12 +143,12 @@ class TransactionPopup(DataPopup):
                 expand_x=True,
             ),
             Text(
-                "False" if self.trans.reconciled is None else self.trans.reconciled,
+                self.trans.reconciled,
                 key="-RECONCILED TEXT-",
             ),
             Text(
                 (
-                    self.trans.statement().date.strftime(full_date_format)
+                    self.trans.statement().date.strftime(short_date_format)
                     if self.trans.statement_id is not None
                     else "None"
                 ),
@@ -219,6 +213,12 @@ class TransactionPopup(DataPopup):
     def check_event(self, event: any, values: dict) -> None:
         super().check_event(event, values)
 
+        if event == "-CREATE BUTTON-":
+            self.run_event_loop = False
+            self.window.close()
+            TransactionPopup(None).event_loop()
+            return
+
         if event == "-ACCOUNT SELECTOR-":
             self.account = values["-ACCOUNT SELECTOR-"]
 
@@ -264,6 +264,7 @@ class TransactionPopup(DataPopup):
             # Sync Transaction and Amounts
             self.trans.sync()
             for row in self.amount_rows:
+                row.amount.transaction_id = self.trans.sqlid
                 row.sync_row()
 
             self.run_event_loop = False
@@ -282,8 +283,8 @@ class TransactionPopup(DataPopup):
                 self.window["-AMOUNTS FRAME-"], [[pin(new_amount_row, expand_x=True)]]
             )
 
-            # Update done button after new amount is created
-            self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
+        # Update done button to be enabled/disabled based on input validity
+        self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
 
         # Update create new amount button to show the total amount vs sum of row amounts difference
         if self._total_row_amount_difference() is not None:
@@ -364,31 +365,27 @@ class TransactionPopup(DataPopup):
 
             self.outer: TransactionPopup = outer
             """Instance of outer class."""
-            self._amount: Amount = Amount() if not default_amount else default_amount
+            self.amount: Amount = Amount() if not default_amount else default_amount
             """Underlying SqlObject used to communicate with the database."""
             self.amount_row_id: int = self.outer._next_amount_row_id
             """Internal ID of this amount row, used make unique amount rows despite potentially hidden rows."""
             self.outer._next_amount_row_id += 1
 
-            self.tag_list: list[Tag] = self._amount.tags()
+            self.tag_list: list[Tag] = self.amount.tags()
             """List of selected tags for this amount."""
-
-            self._amount.transaction_id = self.outer.trans.sqlid
 
             super().__init__(
                 [
                     [
                         Input(
-                            self._amount.description,
+                            self.amount.description,
                             key=("-AMOUNT ROW DESCRIPTION-", self.amount_row_id),
                             size=TransactionPopup.AmountRow.DESCRIPTION_INPUT_WIDTH,
                         ),
                         Text(" $", pad=0),
                         AmountInput(
                             default_text=(
-                                ""
-                                if self._amount.amount is None
-                                else self._amount.amount
+                                "" if self.amount.amount is None else self.amount.amount
                             ),
                             key=("-AMOUNT ROW AMOUNT-", self.amount_row_id),
                             size=TransactionPopup.AmountRow.AMOUNT_INPUT_WIDTH,
@@ -417,17 +414,17 @@ class TransactionPopup(DataPopup):
             Syncs this amount row to the database.
             """
             if self.visible:
-                self._amount.description = self.outer.window[
+                self.amount.description = self.outer.window[
                     ("-AMOUNT ROW DESCRIPTION-", self.amount_row_id)
                 ].get()
-                self._amount.amount = float(
+                self.amount.amount = float(
                     self.outer.window[("-AMOUNT ROW AMOUNT-", self.amount_row_id)].get()
                 )
 
-                self._amount.sync()
-                self._amount.set_tags(list(tag.sqlid for tag in self.tag_list))
-            else:
-                self._amount.delete()
+                self.amount.sync()
+                self.amount.set_tags(list(tag.sqlid for tag in self.tag_list))
+            elif self.amount.exists():
+                self.amount.delete()
                 del self  # This will cause trouble if the user calls sync on this row again
 
         def event_loop_callback(self, event: any, _) -> None:

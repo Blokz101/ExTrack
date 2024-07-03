@@ -9,9 +9,13 @@ class DataPopup(Popup, ABC):
     Base class for popups that deal with editing any of the main SqlObjects.
     """
 
-    def __init__(self, title: str, editable_widget_keys: list[str]) -> None:
+    def __init__(self, title: str, delete_supported: bool = False) -> None:
+        """
+        :param title: Title of popup
+        :param delete_supported: True if the delete button should be enabled, false otherwise
+        """
+        self._delete_supported: bool = delete_supported
         super().__init__(title)
-        self.editable_widget_keys: list[str] = editable_widget_keys
 
     def _layout_generator(self) -> list[list[Element]]:
         """
@@ -25,7 +29,12 @@ class DataPopup(Popup, ABC):
             ],
             [
                 Button("Create", key="-CREATE BUTTON-", expand_x=True),
-                Button("Delete", key="-DELETE BUTTON-", expand_x=True),
+                Button(
+                    "Delete",
+                    key="-DELETE BUTTON-",
+                    expand_x=True,
+                    disabled=not self._delete_supported,
+                ),
             ],
         ]
         body: list[list[Element]] = [
