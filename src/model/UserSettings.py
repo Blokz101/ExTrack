@@ -9,24 +9,21 @@ class UserSettings:
     DEFAULT_SETTINGS: dict[str, str] = {"database_path": ""}
     """Default settings for the application."""
 
-    def __init__(self, settings_file_path: Path) -> None:
-        self.settings_file_path: Path = settings_file_path
-        """Path to the settings file."""
-
+    def __init__(self) -> None:
         self.settings: Optional[dict[str, str]] = None
         """Settings for the application."""
 
-        self.load_settings()
-
-    def load_settings(self) -> None:
+    def load_settings(self, settings_file_path: Path) -> None:
         """
         Load settings from the settings file.
+
+        :param settings_file_path: Path to the settings file
         """
-        if not self.settings_file_path.exists():
-            with open(self.settings_file_path, "w", encoding="utf-8") as file:
+        if not settings_file_path.exists():
+            with open(settings_file_path, "w", encoding="utf-8") as file:
                 json.dump(UserSettings.DEFAULT_SETTINGS, file)
 
-        with open(self.settings_file_path, "r", encoding="utf-8") as file:
+        with open(settings_file_path, "r", encoding="utf-8") as file:
             self.settings = json.load(file)
 
     def _get_setting(

@@ -14,5 +14,5 @@ database: Database = Database()
 settings_file_path: Path = root_dir / "settings.json"
 """Path to the settings file."""
 
-user_settings: UserSettings = UserSettings(settings_file_path)
+user_settings: UserSettings = UserSettings()
 """User settings for the application."""

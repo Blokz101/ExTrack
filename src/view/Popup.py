@@ -8,7 +8,7 @@ class Popup(ABC):
     Basic popup with an event loop and layout.
     """
 
-    def __init__(self, title: str) -> None:
+    def __init__(self, title: str, modal: bool = True) -> None:
         theme(gui_theme)
 
         self.title: str = title
@@ -18,7 +18,11 @@ class Popup(ABC):
         """Allows the event loop to run while set to true. Should not be set to True again after this point."""
 
         self.window: Window = Window(
-            self.title, self._layout_generator(), resizable=True
+            self.title,
+            self._layout_generator(),
+            resizable=True,
+            finalize=True,
+            modal=modal,
         )
         """Window for this popup."""
 
