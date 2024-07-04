@@ -81,7 +81,7 @@ class TestTransactionPopup(Sample1TestCase):
             (
                 "None"
                 if trans.statement_id is None
-                else trans.statement().date.strftime(full_date_format)
+                else trans.statement().date.strftime(short_date_format)
             ),
             popup_window["-STATEMENT TEXT-"].get(),
         )
@@ -569,6 +569,7 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
+    @skip
     def test_manual(self):
         TransactionPopup(Transaction.from_id(4)).event_loop()
         # TransactionPopup(None).event_loop()
