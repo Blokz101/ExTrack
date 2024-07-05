@@ -282,7 +282,18 @@ class TransactionPopup(DataPopup):
 
             # Sync Transaction and Amounts
             self.trans.sync()
+
+            # Sync the existing and new rows first
             for row in self.amount_rows:
+                if not row.visible:
+                    continue
+                row.amount.transaction_id = self.trans.sqlid
+                row.sync_row()
+
+            # Sync the deleted rows last
+            for row in self.amount_rows:
+                if row.visible:
+                    continue
                 row.amount.transaction_id = self.trans.sqlid
                 row.sync_row()
 

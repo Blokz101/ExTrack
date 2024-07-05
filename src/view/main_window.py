@@ -19,6 +19,7 @@ from src.model import user_settings, database
 from src.model.transaction import Transaction
 from src.view import full_date_format
 from src.view.popup import Popup
+from src.view.transaction_popup import TransactionPopup
 
 
 class MainWindow(Popup):
@@ -37,6 +38,10 @@ class MainWindow(Popup):
         database_path: Optional[Path] = user_settings.database_path()
         if database_path is not None:
             database.connect(database_path)
+
+        self._row_id_list: list[int] = []
+        """List of transaction sql IDs in the order they appear in the table."""
+
         self.update_table()
 
     @staticmethod
@@ -59,6 +64,7 @@ class MainWindow(Popup):
                         "Date",
                     ],
                     key="-TRANSACTIONS TABLE-",
+                    enable_events=True,
                     expand_x=True,
                     expand_y=True,
                     auto_size_columns=True,
@@ -153,6 +159,7 @@ class MainWindow(Popup):
         new_values: list[list[str]]
         if user_settings.database_path() is None:
             new_values = [["", "", "No database connected", "", ""]]
+            self._row_id_list = []
         else:
             new_values = [
                 [
@@ -169,6 +176,7 @@ class MainWindow(Popup):
                 ]
                 for trans in Transaction.get_all()
             ]
+            self._row_id_list = [int(row[0]) for row in new_values]
 
         self.window["-TRANSACTIONS TABLE-"].update(values=new_values)
 
@@ -200,4 +208,22 @@ class MainWindow(Popup):
         if event == "Disconnect":
             user_settings.set_database_path(None)
             database.close()
+            self.update_table()
+
+        if event == "-TRANSACTIONS TABLE-":
+            selected_row_index_list: list[int] = values["-TRANSACTIONS TABLE-"]
+
+            # If the row is deselected then ignore the event.
+            if len(selected_row_index_list) <= 0:
+                return
+
+            # If the row is out of bounds then ignore the event.
+            if not 0 <= selected_row_index_list[0] < len(self._row_id_list):
+                return
+
+            selected_transaction: Transaction = Transaction.from_id(
+                self._row_id_list[selected_row_index_list[0]]
+            )
+            TransactionPopup(selected_transaction).event_loop()
+
             self.update_table()

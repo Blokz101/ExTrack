@@ -241,7 +241,7 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    def test_edit_amounts_scenario(self):
+    def test_edit_amounts_scenario_1(self):
         """
         Tests popup behavior with the following steps:
         1. Opens transaction id = 4
@@ -320,6 +320,54 @@ class TestTransactionPopup(Sample1TestCase):
         for index, row_visible in enumerate([True, True, False, True]):
             self.assertEqual(row_visible, popup.window[("-AMOUNT ROW-", index)].visible)
         self.assertTrue(popup.inputs_valid())
+
+        popup.window.close()
+
+    def test_edit_amounts_scenario_2(self):
+        """
+        Tests Popup behavior with the following steps:
+        1. Opens transaction id = 2
+        2. Delete the first amount
+        3. Create a new amount
+        4. Submit the popup
+        """
+        expected_transactions: list[Transaction] = Transaction.get_all()
+        expected_amounts: list[Amount] = Amount.get_all()
+        edited_amount: Amount = expected_amounts.pop(1)
+        edited_amount.sqlid = 8
+        expected_amounts.append(edited_amount)
+
+        # Open transaction id = 2
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(2))
+        popup.window.read(timeout=0)
+
+        # Delete the first amount
+        popup.check_event(("-AMOUNT ROW DELETE-", 0), {})
+
+        self.assertEqual(
+            "Create New Amount ($1245.34 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertFalse(popup.inputs_valid())
+
+        # Create a new amount
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(
+            "Create New Amount ($0.0 left)",
+            popup.window["-NEW AMOUNT BUTTON-"].get_text(),
+        )
+        self.assertEqual(2, len(popup.amount_rows))
+        for index, row_visible in enumerate([False, True]):
+            self.assertEqual(row_visible, popup.window[("-AMOUNT ROW-", index)].visible)
+
+        self.assertTrue(popup.inputs_valid())
+
+        # Submit the popup
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
 
         popup.window.close()
 
@@ -579,5 +627,8 @@ class TestTransactionPopup(Sample1TestCase):
 
     @skip("Manual test")
     def test_manual(self):
+        """
+        Manual test for the TransactionPopup.
+        """
         TransactionPopup(Transaction.from_id(4)).event_loop()
         # TransactionPopup(None).event_loop()

@@ -38,12 +38,7 @@ class TagTestCase(Sample1TestCase):
 
         Prerequisite: test_get_all()
         """
-
-        # Test valid tags
-        expected_tags: list[Tag] = Tag.get_all()
-
-        for expected_tag in self.expected_tags:
-            self.assertEqual(expected_tag, Tag.from_id(expected_tag.sqlid))
+        self.assertSqlListEqual(TagTestCase.expected_tags, Tag.get_all())
 
         # Test invalid tags
         with self.assertRaises(ValueError) as msg:
@@ -196,10 +191,7 @@ class TagTestCase(Sample1TestCase):
         expected_amounts: list[Amount] = [Amount(4, 34.82, 4, "PC Parts")]
 
         actual_amounts: list[Amount] = Tag.from_id(3).amounts()
-        self.assertEqual(len(expected_amounts), len(actual_amounts))
-        for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
-            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
-            self.assertEqual(expected_amount, actual_amount)
+        self.assertSqlListEqual(expected_amounts, actual_amounts)
 
         # Test with Personal
         expected_amounts: list[Amount] = [
@@ -208,10 +200,7 @@ class TagTestCase(Sample1TestCase):
         ]
 
         actual_amounts: list[Amount] = Tag.from_id(10).amounts()
-        self.assertEqual(len(expected_amounts), len(actual_amounts))
-        for expected_amount, actual_amount in zip(expected_amounts, actual_amounts):
-            self.assertEqual(expected_amount.sqlid, actual_amount.sqlid)
-            self.assertEqual(expected_amount, actual_amount)
+        self.assertSqlListEqual(expected_amounts, actual_amounts)
 
         # Tset with new tag
         self.assertEqual([], Tag().amounts())
