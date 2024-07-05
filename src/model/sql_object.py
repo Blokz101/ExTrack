@@ -1,0 +1,94 @@
+"""
+This module contains the SqlObject class, which is an abstract class that represents a row in the
+SQL database.
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Optional, Any, TypeVar, Generic
+
+T = TypeVar("T", bound="SqlObject")
+
+
+class SqlObject(ABC, Generic[T]):
+    """
+    Representation of a row in the SQL database.
+    """
+
+    def __init__(self, sqlid: Optional[int]) -> None:
+        """
+        :param sqlid: ID of the corresponding row in the SQL database.
+        """
+        self.sqlid: Optional[int] = sqlid
+        """ID of the corresponding row in the SQL database."""
+
+    @classmethod
+    @abstractmethod
+    def from_id(cls, sqlid: int) -> T:
+        """
+        Creates an SqlObject instance from the database.
+
+        :param sqlid: ID of the SqlObject.
+        :return: SqlObject instance.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def sync(self) -> None:
+        """
+        Syncs this SqlObject to the database by updating the database. If the object is not in
+        the database it is added.
+
+        Syncing only updates edited instance variables. Sync does not need to be called after
+        another function that updates the database, that function will sync on its own.
+
+        :raises RuntimeError: If this SqlObject is not syncable
+        """
+        errors: Optional[list[str]] = self.syncable()
+        if errors is not None:
+            raise RuntimeError(errors[0])
+
+    @abstractmethod
+    def syncable(self) -> Optional[list[str]]:
+        """
+        Checks if this SqlObject has non-null values for all required fields.
+
+        :return: None if this SqlObject is syncable or a list of error messages if it is not.
+        """
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def get_all() -> list[T]:
+        """
+        Gets a list of SqlObjects from all rows in the database.
+
+        :return: List of SqlObjects from all rows in the database.
+        """
+        raise NotImplementedError()
+
+    def delete(self) -> None:
+        """
+        Deletes this SqlObject.
+        """
+        raise RuntimeWarning("This object can not be deleted.")
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        """
+        Checks if this object is equal to other object.
+
+        Two SqlObjects are equal if all their fields excluding ID are equal.
+
+        :param other: Object to compare this object to.
+        :return: True if the objects are equal, false if otherwise.
+        """
+
+    def exists(self) -> bool:
+        """
+        Checks if this object exists in the database.
+
+        :return: True if the object has a corresponding row, false otherwise.
+        """
+        return self.sqlid is not None

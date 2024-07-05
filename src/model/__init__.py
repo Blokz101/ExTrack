@@ -1,6 +1,10 @@
+"""
+Constants and global variables used in the model.
+"""
+
 from pathlib import Path
-from src.model.Database import Database
-from src.model.UserSettings import UserSettings
+from src.model.database import Database
+from src.model.user_settings import UserSettings
 
 date_format: str = "%Y-%m-%d %H:%M:%S"
 """SQL Database format for dates."""
