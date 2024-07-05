@@ -577,7 +577,7 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
-    @skip
+    @skip("Manual test")
     def test_manual(self):
         TransactionPopup(Transaction.from_id(4)).event_loop()
         # TransactionPopup(None).event_loop()

@@ -2,10 +2,20 @@
 Contains the MainWindow class which represents the main window for the application.
 """
 
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
 
-from PySimpleGUI import Table, TabGroup, Tab, Element, Text  # type: ignore
+from PySimpleGUI import (  # type: ignore
+    Table,
+    TabGroup,
+    Tab,
+    Element,
+    Text,
+    MenuBar,
+    popup_get_file,
+)
 
+from src.model import user_settings, database
 from src.model.transaction import Transaction
 from src.view import full_date_format
 from src.view.popup import Popup
@@ -16,8 +26,17 @@ class MainWindow(Popup):
     Main window for the application.
     """
 
+    MENU_DEFINITION: list = [
+        ["File", ["Connect", "Disconnect"]],
+        ["Reconcile", ["Start New Reconcile", "Continue Reconcile"]],
+    ]
+    """Menu bar definition."""
+
     def __init__(self) -> None:
         super().__init__("ExTract")
+        database_path: Optional[Path] = user_settings.database_path()
+        if database_path is not None:
+            database.connect(database_path)
         self.update_table()
 
     @staticmethod
@@ -104,6 +123,7 @@ class MainWindow(Popup):
 
     def _layout_generator(self) -> list[list[Element]]:
         return [
+            [MenuBar(MainWindow.MENU_DEFINITION)],
             [
                 TabGroup(
                     [
@@ -123,20 +143,23 @@ class MainWindow(Popup):
                     expand_x=True,
                     expand_y=True,
                 ),
-            ]
+            ],
         ]
 
     def update_table(self) -> None:
         """
         Updates the table with transactions from the database.
         """
-        self.window["-TRANSACTIONS TABLE-"].update(
-            values=[
+        new_values: list[list[str]]
+        if user_settings.database_path() is None:
+            new_values = [["", "", "No database connected", "", ""]]
+        else:
+            new_values = [
                 [
                     str(trans.sqlid),
                     "None" if trans.account_id is None else trans.account().name,  # type: ignore
-                    trans.description,
-                    trans.total_amount(),
+                    "None" if trans.description is None else trans.description,
+                    str(trans.total_amount()),
                     "None" if trans.merchant_id is None else trans.merchant().name,  # type: ignore
                     (
                         "None"
@@ -146,7 +169,8 @@ class MainWindow(Popup):
                 ]
                 for trans in Transaction.get_all()
             ]
-        )
+
+        self.window["-TRANSACTIONS TABLE-"].update(values=new_values)
 
     def check_event(self, event: Any, values: dict[Any, Any]) -> None:
         """
@@ -155,3 +179,25 @@ class MainWindow(Popup):
         :param event: Event to parse
         :param values: Values related to the event
         """
+
+        if event == "Connect":
+            str_new_path: Optional[str] = popup_get_file(
+                "",
+                no_window=True,
+                file_types=(("Database", "*.db"),),
+            )
+
+            if str_new_path is None:
+                return
+
+            user_settings.set_database_path(Path(str_new_path))
+
+            database_path: Optional[Path] = user_settings.database_path()
+            if database_path is not None:
+                database.connect(database_path)
+                self.update_table()
+
+        if event == "Disconnect":
+            user_settings.set_database_path(None)
+            database.close()
+            self.update_table()

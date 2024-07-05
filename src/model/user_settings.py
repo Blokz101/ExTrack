@@ -5,7 +5,7 @@ settings file.
 
 import json
 from pathlib import Path
-from typing import Optional, cast
+from typing import Optional, Any
 
 
 class UserSettings:
@@ -18,18 +18,46 @@ class UserSettings:
         self.settings: Optional[dict[str, str]] = None
         """Settings for the application."""
 
-    def load_settings(self, settings_file_path: Path) -> None:
+        self.settings_file_path: Optional[Path] = None
+        """Path to the settings file."""
+
+    def load_settings(self, settings_file_path: Optional[Path] = None) -> None:
         """
         Load settings from the settings file.
 
         :param settings_file_path: Path to the settings file
+        :raise RuntimeError: If the settings file path has not been set and settings_file_path is
+        None
         """
-        if not settings_file_path.exists():
-            with open(settings_file_path, "w", encoding="utf-8") as file:
-                json.dump(UserSettings.DEFAULT_SETTINGS, file)
+        # If the settings file path has not been set and settings_file_path is None, throw an error
+        if settings_file_path is None and self.settings_file_path is None:
+            raise RuntimeError("Settings file path has not been set.")
 
-        with open(settings_file_path, "r", encoding="utf-8") as file:
+        # If the settings file path has a value set it to the new path
+        if settings_file_path is not None:
+            self.settings_file_path = settings_file_path
+
+        # If the settings file path does not exist, dump the default settings to the file
+        if not self.settings_file_path.exists():  # type: ignore
+            self._dump_settings(self.DEFAULT_SETTINGS)
+
+        # Load the settings from the settings file
+        with open(self.settings_file_path, "r", encoding="utf-8") as file:  # type: ignore
             self.settings = json.load(file)
+
+    def _dump_settings(self, new_settings: Optional[dict[str, str]] = None) -> None:
+        """
+        Dump the settings to the settings file.
+
+        :param new_settings: New settings to dump, if left blank, the current settings will be
+        dumped.
+        :raise RuntimeError: If the settings file path has not been set.
+        """
+        if self.settings_file_path is None:
+            raise RuntimeError("Settings file path has not been set.")
+
+        with open(self.settings_file_path, "w", encoding="utf-8") as file:
+            json.dump(new_settings if new_settings is not None else self.settings, file)
 
     def _get_setting(
         self,
@@ -66,22 +94,30 @@ class UserSettings:
             return default
 
         # If VALUE does not exist in the settings file and a value is required, throw an error
-        if require_value and value == "":
-            raise RuntimeError(f"{key} must have a value in the settings file.")
+        if value == "":
+            if require_value:
+                raise RuntimeError(f"{key} must have a value in the settings file.")
+            return None
 
         return value
 
-    def database_path(self) -> Path:
+    def database_path(self) -> Optional[Path]:
         """
         Gets the path to the database file from the settings.
 
         :return: Path to database file
         """
-        return Path(
-            cast(
-                str,
-                self._get_setting(
-                    "database_path", require_existence=True, require_value=True
-                ),
-            )
-        )
+        database_path: Any = self._get_setting("database_path", require_existence=True)
+        return None if database_path is None else Path(str(database_path))
+
+    def set_database_path(self, new_path: Optional[Path]) -> None:
+        """
+        Sets the database path.
+
+        :param new_path: New path to the database file
+        """
+        if self.settings is None:
+            raise RuntimeError("Settings file has not been loaded.")
+
+        self.settings["database_path"] = "" if new_path is None else str(new_path)
+        self._dump_settings()

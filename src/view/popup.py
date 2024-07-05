@@ -62,7 +62,7 @@ class Popup(ABC):
         while self.run_event_loop:
             event, values = self.window.read()
 
-            if event in WINDOW_CLOSED or event == "Exit":
+            if event in [WINDOW_CLOSED, "Exit"]:
                 break
 
             self.check_event(event, values)
