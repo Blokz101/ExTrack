@@ -8,8 +8,9 @@ import os
 from pathlib import Path
 from unittest import TestCase
 
-from src.model import user_settings
-from tests.test_model import test_settings_file_path
+from src import model
+from src.model.user_settings import UserSettings
+from tests.test_model import test_database_path, test_settings_file_path
 
 
 class TestUserSettings(TestCase):
@@ -23,8 +24,7 @@ class TestUserSettings(TestCase):
         """
         if test_settings_file_path.exists():
             os.remove(test_settings_file_path)
-        user_settings.settings = None
-        user_settings.settings_file_path = None
+        model.app_settings = UserSettings(test_settings_file_path)
 
     def tearDown(self):
         """
@@ -32,91 +32,115 @@ class TestUserSettings(TestCase):
         """
         if test_settings_file_path.exists():
             os.remove(test_settings_file_path)
+        if test_database_path.exists():
+            os.remove(test_database_path)
 
     def test_create_new_settings(self):
         """
         Test creating a new file with no settings.
         """
         self.assertFalse(test_settings_file_path.exists())
-        self.assertIsNone(user_settings.settings_file_path)
 
-        user_settings.load_settings(test_settings_file_path)
+        model.app_settings.load_settings()
 
         self.assertTrue(test_settings_file_path.exists())
-        self.assertIsNotNone(user_settings.settings_file_path)
-        self.assertEqual(user_settings.settings, {"database_path": ""})
+        self.assertIsNotNone(model.app_settings.settings_file_path)
+        self.assertEqual(model.app_settings.settings, {"database_path": ""})
 
-    def test_load_settings(self):
+    def test_load_settings_without_file(self):
         """
-        Tests UserSettings.load_settings()
+        Tests UserSettings.load_settings() when a settings file does not exist.
         """
-        # Test without having loaded a file previously without a file
-        self.assertIsNone(user_settings.settings)
-        self.assertIsNone(user_settings.settings_file_path)
+        self.assertFalse(test_settings_file_path.exists())
+        self.assertIsNone(model.app_settings.settings)
 
-        with self.assertRaises(RuntimeError) as msg:
-            user_settings.load_settings()
-        self.assertEqual("Settings file path has not been set.", str(msg.exception))
+        model.app_settings.load_settings()
 
-        # Test having loaded a file previously
+        self.assertIsNotNone(model.app_settings.settings)
+        self.assertTrue(test_settings_file_path.exists())
+
+    def test_load_settings_with_file(self):
+        """
+        Tests User.settings.load_settings() when a settings file exists
+        """
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
-            json.dump({"database_path": "test.db"}, file)
-        user_settings.load_settings(test_settings_file_path)
+            json.dump({"database_path": ""}, file)
 
-        self.assertEqual({"database_path": "test.db"}, user_settings.settings)
+        self.assertTrue(test_settings_file_path.exists())
+        self.assertIsNone(model.app_settings.settings)
+
+        model.app_settings.load_settings()
+
+        self.assertTrue(test_settings_file_path.exists())
+        self.assertIsNotNone(model.app_settings.settings)
 
     def test_database_path(self):
         """
         Tests UserSettings.database_path()
         """
+        actual_database_path: Path
+
         # Test without a settings file
         self.assertFalse(test_settings_file_path.exists())
-        user_settings.load_settings(test_settings_file_path)
-        self.assertIsNone(user_settings.database_path())
 
-        # Test without a database_path
+        actual_database_path = model.app_settings.database_path()
+
+        self.assertTrue(test_settings_file_path.exists())
+        self.assertIsNone(actual_database_path)
+
+        # Test without a settings file which lacks a database_path
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
             file.write("{}")
-        user_settings.load_settings(test_settings_file_path)
+        model.app_settings.load_settings()
+
+        self.assertTrue(test_settings_file_path.exists())
 
         with self.assertRaises(RuntimeError) as msg:
-            user_settings.database_path()
+            model.app_settings.database_path()
         self.assertEqual(
-            "database_path must exist in the settings file.", str(msg.exception)
+            "database_path must have a value in settings.json.", str(msg.exception)
         )
 
-        # Test with an empty database_path
+        # Test with a valid settings file and empty database path
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
             json.dump({"database_path": ""}, file)
-        user_settings.load_settings(test_settings_file_path)
+        model.app_settings.load_settings()
 
-        self.assertIsNone(user_settings.database_path())
+        actual_database_path = model.app_settings.database_path()
 
-        # Test with a database_path
+        self.assertIsNone(actual_database_path)
+
+        # Test with valid settings file and database path
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
-            json.dump({"database_path": "test.db"}, file)
-        user_settings.load_settings(test_settings_file_path)
+            json.dump({"database_path": str(test_database_path.absolute())}, file)
+        model.app_settings.load_settings()
 
-        self.assertEqual(Path("test.db"), user_settings.database_path())
+        self.assertEqual(
+            test_database_path,
+            model.app_settings.database_path(),
+        )
 
     def test_set_database_path(self):
         """
         Tests UserSettings.set_database_path()
         """
+        # pylint: disable=consider-using-with
+        open(test_database_path, "w", encoding="utf-8").close()
+
         # Test without a settings file
         self.assertFalse(test_settings_file_path.exists())
         with self.assertRaises(RuntimeError) as msg:
-            user_settings.set_database_path(Path("test.db"))
+            model.app_settings.set_database_path(test_database_path)
         self.assertEqual("Settings file has not been loaded.", str(msg.exception))
 
         # Test with a settings file
-        user_settings.load_settings(test_settings_file_path)
-        self.assertEqual(None, user_settings.database_path())
-        user_settings.set_database_path(Path("test.db"))
-        user_settings.load_settings()
-        self.assertEqual(Path("test.db"), user_settings.database_path())
+        model.app_settings.load_settings()
+        self.assertEqual(None, model.app_settings.database_path())
+        model.app_settings.set_database_path(test_database_path)
+        model.app_settings.load_settings()
+        self.assertEqual(test_database_path, model.app_settings.database_path())
 
         # Test setting to None again
-        user_settings.set_database_path(None)
-        user_settings.load_settings()
-        self.assertIsNone(user_settings.database_path())
+        model.app_settings.set_database_path(None)
+        model.app_settings.load_settings()
+        self.assertIsNone(model.app_settings.database_path())

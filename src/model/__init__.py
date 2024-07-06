@@ -3,6 +3,7 @@ Constants and global variables used in the model.
 """
 
 from pathlib import Path
+
 from src.model.database import Database
 from src.model.user_settings import UserSettings
 
@@ -18,5 +19,5 @@ database: Database = Database()
 settings_file_path: Path = root_dir / "settings.json"
 """Path to the settings file."""
 
-user_settings: UserSettings = UserSettings()
+app_settings: UserSettings = UserSettings(settings_file_path)
 """User settings for the application."""

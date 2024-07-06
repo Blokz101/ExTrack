@@ -14,48 +14,32 @@ class UserSettings:
     DEFAULT_SETTINGS: dict[str, str] = {"database_path": ""}
     """Default settings for the application."""
 
-    def __init__(self) -> None:
+    def __init__(self, settings_file_path: Path) -> None:
         self.settings: Optional[dict[str, str]] = None
         """Settings for the application."""
 
-        self.settings_file_path: Optional[Path] = None
+        self.settings_file_path: Path = settings_file_path
         """Path to the settings file."""
 
-    def load_settings(self, settings_file_path: Optional[Path] = None) -> None:
+    def load_settings(self) -> None:
         """
         Load settings from the settings file.
-
-        :param settings_file_path: Path to the settings file
-        :raise RuntimeError: If the settings file path has not been set and settings_file_path is
-        None
         """
-        # If the settings file path has not been set and settings_file_path is None, throw an error
-        if settings_file_path is None and self.settings_file_path is None:
-            raise RuntimeError("Settings file path has not been set.")
-
-        # If the settings file path has a value set it to the new path
-        if settings_file_path is not None:
-            self.settings_file_path = settings_file_path
-
         # If the settings file path does not exist, dump the default settings to the file
         if not self.settings_file_path.exists():  # type: ignore
-            self._dump_settings(self.DEFAULT_SETTINGS)
+            self._set_settings(self.DEFAULT_SETTINGS)
 
         # Load the settings from the settings file
         with open(self.settings_file_path, "r", encoding="utf-8") as file:  # type: ignore
             self.settings = json.load(file)
 
-    def _dump_settings(self, new_settings: Optional[dict[str, str]] = None) -> None:
+    def _set_settings(self, new_settings: Optional[dict[str, str]] = None) -> None:
         """
         Dump the settings to the settings file.
 
         :param new_settings: New settings to dump, if left blank, the current settings will be
         dumped.
-        :raise RuntimeError: If the settings file path has not been set.
         """
-        if self.settings_file_path is None:
-            raise RuntimeError("Settings file path has not been set.")
-
         with open(self.settings_file_path, "w", encoding="utf-8") as file:
             json.dump(new_settings if new_settings is not None else self.settings, file)
 
@@ -77,17 +61,19 @@ class UserSettings:
         :return: Value of the key in the settings file
         """
         if self.settings is None:
-            raise RuntimeError("Settings file has not been loaded.")
+            self.load_settings()
 
         # Try to get the value from the settings file
         value: str
         try:
-            value = self.settings[key]
+            value = self.settings[key]  # type: ignore
         except KeyError as error:
             # If the KEY does not exist in the settings file and existence is required,
             # throw an error
             if require_existence or require_value:
-                raise RuntimeError(f"{key} must exist in the settings file.") from error
+                raise RuntimeError(
+                    f"{key} must have a value in settings.json."
+                ) from error
 
             # If the KEY does not exist in the settings file and existence is not required,
             # return the default
@@ -120,4 +106,4 @@ class UserSettings:
             raise RuntimeError("Settings file has not been loaded.")
 
         self.settings["database_path"] = "" if new_path is None else str(new_path)
-        self._dump_settings()
+        self._set_settings()

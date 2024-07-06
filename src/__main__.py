@@ -2,9 +2,8 @@
 Script that reads the settings file and starts the application.
 """
 
-from src.model import user_settings, settings_file_path
+from src.model import app_settings
 from src.view.main_window import MainWindow
 
-user_settings.load_settings(settings_file_path)
-
+app_settings.load_settings()
 MainWindow().event_loop()

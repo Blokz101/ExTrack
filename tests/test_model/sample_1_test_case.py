@@ -10,7 +10,7 @@ from unittest import TestCase
 
 from src.model import database
 from src.model.sql_object import SqlObject
-from tests.test_model import sample_database_1, test_database
+from tests.test_model import sample_database_1_path, test_database_path
 
 
 class Sample1TestCase(TestCase):
@@ -22,15 +22,15 @@ class Sample1TestCase(TestCase):
         """
         Copy sample database file and connect to it.
         """
-        shutil.copyfile(sample_database_1, test_database)
-        database.connect(test_database)
+        shutil.copyfile(sample_database_1_path, test_database_path)
+        database.connect(test_database_path)
 
     def tearDown(self):
         """
         Close database and delete test file.
         """
         database.close()
-        os.remove(test_database)
+        os.remove(test_database_path)
 
     # pylint: disable=invalid-name
     def assertSqlEqual(self, expected: SqlObject, actual: SqlObject) -> None:

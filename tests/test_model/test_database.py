@@ -8,7 +8,7 @@ from typing import List, Any
 from unittest import TestCase
 
 from src.model import Database
-from tests.test_model import test_database, root_dir
+from tests.test_model import test_database_path, root_dir
 
 
 class TestDatabase(TestCase):
@@ -21,8 +21,8 @@ class TestDatabase(TestCase):
         Deletes the test database if it exists.
         """
 
-        if test_database.exists():
-            os.remove(test_database)
+        if test_database_path.exists():
+            os.remove(test_database_path)
 
     def tearDown(self):
         """
@@ -31,8 +31,8 @@ class TestDatabase(TestCase):
         if Database().is_connected():
             Database().close()
 
-        if test_database.exists():
-            os.remove(test_database)
+        if test_database_path.exists():
+            os.remove(test_database_path)
 
     def test_database(self):
         """
@@ -50,10 +50,10 @@ class TestDatabase(TestCase):
 
         # Create database that is connected
         database = Database()
-        database.create_new(test_database)
+        database.create_new(test_database_path)
         self.assertTrue(database.is_connected())
 
-        self.assertTrue(Database(test_database).is_connected())
+        self.assertTrue(Database(test_database_path).is_connected())
 
     def test_create_new(self):
         """
@@ -62,16 +62,16 @@ class TestDatabase(TestCase):
         Prerequisite: None
         """
         # Database that does not exist
-        self.assertFalse(test_database.exists())
+        self.assertFalse(test_database_path.exists())
         with self.assertRaises(RuntimeError) as msg:
             Database().get_connection()
         self.assertEqual("Not connected to a database.", str(msg.exception))
 
         # Create database
         database: Database = Database()
-        database.create_new(test_database)
+        database.create_new(test_database_path)
 
-        self.assertTrue(test_database.exists())
+        self.assertTrue(test_database_path.exists())
         con, cur = database.get_connection()
         self.assertTrue(con is not None)
         self.assertTrue(cur is not None)
@@ -100,4 +100,4 @@ class TestDatabase(TestCase):
 
         # Attempt to create database that already exists
         with self.assertRaises(FileExistsError):
-            database.create_new(test_database)
+            database.create_new(test_database_path)
