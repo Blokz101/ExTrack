@@ -37,8 +37,7 @@ class MainWindow(Popup):
 
     def __init__(self) -> None:
         super().__init__("ExTract")
-        database_path: Optional[Path] = self._get_database_path()
-
+        database_path: Optional[Path] = self._get_database_path(notify_on_error=True)
         if database_path is not None and database_path.exists():
             database.connect(database_path)
 
@@ -47,25 +46,29 @@ class MainWindow(Popup):
 
         self.update_table()
 
-    def _get_database_path(self) -> Optional[Path]:
+    def _get_database_path(self, notify_on_error: bool = False) -> Optional[Path]:
         """
         Get the path to the database and throws an error if the path does not exist.
 
+        :param notify_on_error: True if a notification popup should be thrown on error
         :return: Path to the database
         """
-        database_path: Optional[Path] = None
+        database_path: Optional[Path]
         try:
             database_path = model.app_settings.database_path()
         except RuntimeError as error:
-            NotifyPopup(str(error)).event_loop()
+            if notify_on_error:
+                NotifyPopup(str(error)).event_loop()
+            return None
 
         if database_path is None:
             return None
 
         if not database_path.exists():
-            NotifyPopup(
-                f"Database file at path '{database_path}' does not exist."
-            ).event_loop()
+            if notify_on_error:
+                NotifyPopup(
+                    f"Database file at path '{str(database_path.absolute())}' does not exist."
+                ).event_loop()
             return None
 
         return database_path

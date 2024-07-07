@@ -38,8 +38,7 @@ class NotifyPopup(Popup):
         mode.
         """
         if view.testing_mode:
-            if self.message not in view.notification_message_queue.queue:
-                view.notification_message_queue.put(self.message)
+            view.notification_message_queue.put(self.message)
             return
 
         super().event_loop()
