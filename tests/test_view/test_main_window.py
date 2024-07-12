@@ -3,7 +3,6 @@ Tests the MainWindow class.
 """
 
 import json
-
 # mypy: ignore-errors
 import os
 import shutil
@@ -23,6 +22,55 @@ from tests.test_model import (
 
 class TestMainWindow(TestCase):
     """Tests the MainWindow class."""
+
+    EXPECTED_TRANSACTION_TAB_VALUES: list[list[str]] = [
+        [
+            "1",
+            "Checking",
+            "Date with Sara",
+            "20.54",
+            "Penn Station",
+            "08/27/2020 21:14:40",
+        ],
+        ["2", "Savings", "New Macbook", "1245.34", "Apple", "10/09/2020 19:01:21"],
+        ["3", "Checking", "DND Dice", "12.98", "Etsy", "05/04/2023 23:44:29"],
+        [
+            "4",
+            "Checking",
+            "Things from Amazon",
+            "47.45",
+            "Amazon",
+            "09/28/2020 19:26:10",
+        ],
+        [
+            "5",
+            "Savings",
+            "Transfer From Savings",
+            "-100.0",
+            "None",
+            "02/15/2021 02:32:18",
+        ],
+        [
+            "6",
+            "Checking",
+            "Transfer Into Checking",
+            "100.0",
+            "None",
+            "02/15/2021 02:33:05",
+        ],
+    ]
+
+    EXPECTED_MERCHANT_TAB_VALUES: list[list[str]] = [
+        ["1", "Penn Station", "False", "None"],
+        ["2", "Outback Steak House", "False", "None"],
+        ["3", "Amazon", "True", "None"],
+        ["4", "Apple", "False", "None"],
+        ["5", "Port City Java", "False", "None"],
+        ["6", "BJS", "False", "None"],
+        ["7", "Dollar General", "False", "None"],
+        ["8", "Bambu Labs", "True", "None"],
+        ["9", "Etsy", "True", "None"],
+    ]
 
     def setUp(self):
         """
@@ -54,10 +102,15 @@ class TestMainWindow(TestCase):
         _, _ = app.window.read(timeout=0)
 
         self.assertTrue(view.notification_message_queue.empty())
-        self.assertEqual([], app.row_id_list)
+        # TODO Add row id list verification for the rest of the tabs
+        self.assertEqual([], app.transaction_tab.row_id_list)
+        self.assertEqual([], app.merchant_tab.row_id_list)
+
         self.assertTrue(test_settings_file_path.exists())
 
         app.window.close()
+
+        self.fail("Test not fully implemented, but has succeeded so far.")
 
     def test_window_construction_with_invalid_settings_no_database_1(self):
         """
@@ -74,9 +127,13 @@ class TestMainWindow(TestCase):
             "database_path must have a value in settings.json.",
             view.notification_message_queue.get(),
         )
-        self.assertEqual([], app.row_id_list)
+        # TODO Add row id list verification for the rest of the tabs
+        self.assertEqual([], app.transaction_tab.row_id_list)
+        self.assertEqual([], app.merchant_tab.row_id_list)
 
         app.window.close()
+
+        self.fail("Test not fully implemented, but has succeeded so far.")
 
     def test_window_construction_with_invalid_settings_no_database_2(self):
         """
@@ -94,9 +151,13 @@ class TestMainWindow(TestCase):
             f"Database file at path '{str(test_database_path.absolute())}' does not exist.",
             view.notification_message_queue.get(),
         )
-        self.assertEqual([], app.row_id_list)
+        # TODO Add row id list verification for the rest of the tabs
+        self.assertEqual([], app.transaction_tab.row_id_list)
+        self.assertEqual([], app.merchant_tab.row_id_list)
 
         app.window.close()
+
+        self.fail("Test not fully implemented, but has succeeded so far.")
 
     def test_window_construction_with_settings_with_database(self):
         """
@@ -112,8 +173,18 @@ class TestMainWindow(TestCase):
         _, _ = app.window.read(timeout=0)
 
         self.assertTrue(view.notification_message_queue.empty())
-        self.assertEqual([1, 2, 3, 4, 5, 6], app.row_id_list)
+        # TODO Add row id list verification for the rest of the tabs
+        self.assertEqual(list(range(1, 7)), app.transaction_tab.row_id_list)
+        self.assertEqual(
+            TestMainWindow.EXPECTED_TRANSACTION_TAB_VALUES, app.transaction_tab.values
+        )
+        self.assertEqual(list(range(1, 10)), app.merchant_tab.row_id_list)
+        self.assertEqual(
+            TestMainWindow.EXPECTED_MERCHANT_TAB_VALUES, app.merchant_tab.values
+        )
 
         database.close()
         os.remove(test_database_path)
         app.window.close()
+
+        self.fail("Test not fully implemented, but has succeeded so far.")
