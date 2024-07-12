@@ -8,6 +8,7 @@ from src.model.merchant import Merchant
 from src.model.transaction import Transaction
 from src.view import full_date_format
 from src.view.data_popup import DataPopup
+from src.view.merchant_popup import MerchantPopup
 from src.view.transaction_popup import TransactionPopup
 
 T = TypeVar("T", bound=DataPopup)
@@ -154,7 +155,6 @@ class MerchantTab(DataTableTab):
             return
 
         sqlid: int = self.row_id_list[selected_row]
-        # TODO Uncomment this line when MerchantPopup is implemented
-        # MerchantPopup(Merchant.from_id(sqlid)).event_loop()
+        MerchantPopup(Merchant.from_id(sqlid)).event_loop()
 
         self.update_table()

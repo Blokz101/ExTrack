@@ -16,6 +16,10 @@ class DataPopup(Popup, ABC):
     Base class for popups that deal with editing any of the main SqlObjects.
     """
 
+    CREATE_BUTTON_KEY: str = "-CREATE BUTTON-"
+    DELETE_BUTTON_KEY: str = "-DELETE BUTTON-"
+    DONE_BUTTON_KEY: str = "-DONE BUTTON-"
+
     def __init__(self, title: str, delete_supported: bool = False) -> None:
         """
         :param title: Title of popup
@@ -35,10 +39,10 @@ class DataPopup(Popup, ABC):
                 Text(self.title),
             ],
             [
-                Button("Create", key="-CREATE BUTTON-", expand_x=True),
+                Button("Create", key=DataPopup.CREATE_BUTTON_KEY, expand_x=True),
                 Button(
                     "Delete",
-                    key="-DELETE BUTTON-",
+                    key=DataPopup.DELETE_BUTTON_KEY,
                     expand_x=True,
                     disabled=not self._delete_supported,
                 ),
@@ -48,7 +52,7 @@ class DataPopup(Popup, ABC):
             [Column(self._fields_generator(), expand_x=True, expand_y=True)]
         ]
         footer: list[list[Element]] = [
-            [Button("Done", key="-DONE BUTTON-", expand_x=True)],
+            [Button("Done", key=DataPopup.DONE_BUTTON_KEY, expand_x=True)],
         ]
         return header + body + footer
 
@@ -68,7 +72,7 @@ class DataPopup(Popup, ABC):
         :param values: Values correlated with the event
         """
         super().check_event(event, values)
-        self.window["-DONE BUTTON-"].update(disabled=True)
+        self.window[DataPopup.DONE_BUTTON_KEY].update(disabled=True)
 
     @abstractmethod
     def inputs_valid(self) -> bool:

@@ -225,7 +225,7 @@ class TransactionPopup(DataPopup):
     # pylint: disable=too-many-branches
     def check_event(self, event: Any, values: dict) -> None:
         """
-        Respond to events from the user or test.
+        Respond to events from the user.
 
         :param event: Event to parse
         :param values: Values related to the event

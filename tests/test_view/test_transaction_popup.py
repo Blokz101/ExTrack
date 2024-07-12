@@ -118,6 +118,8 @@ class TestTransactionPopup(Sample1TestCase):
                     popup_window[("-AMOUNT ROW TAG SELECTOR-", index)].get_text(),
                 )
 
+        self.assertTrue(popup.inputs_valid())
+
         popup_window.close()
 
     def test_create_amount_row(self):

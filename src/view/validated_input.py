@@ -97,3 +97,14 @@ class AmountInput(ValidatedInput):
             return round(float(super().get()), 2)
         except ValueError:
             return None
+
+
+class NonNoneInput(ValidatedInput):
+    """
+    Input widget that must have some kind of value.
+    """
+
+    def validation_status(self) -> Optional[str]:
+        if self.get().replace(" ", "") == "":
+            return "Input cannot be empty."
+        return None

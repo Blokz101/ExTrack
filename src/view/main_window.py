@@ -143,3 +143,6 @@ class MainWindow(Popup):
 
         if event == "-TRANSACTIONS TABLE-" and len(values["-TRANSACTIONS TABLE-"]) == 1:
             self.transaction_tab.open_edit_popup(values["-TRANSACTIONS TABLE-"][0])
+
+        if event == "-MERCHANTS TABLE-" and len(values["-MERCHANTS TABLE-"]) == 1:
+            self.merchant_tab.open_edit_popup(values["-MERCHANTS TABLE-"][0])
