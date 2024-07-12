@@ -40,7 +40,7 @@ class TransactionPopup(DataPopup):
             self.trans = Transaction(reconciled=False)
 
         super().__init__(
-            f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else 'New'}",
+            f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else "New"}",
         )
 
         self.window.read(timeout=0)

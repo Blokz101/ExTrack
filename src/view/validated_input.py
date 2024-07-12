@@ -9,7 +9,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional
 
-from PySimpleGUI import Input, theme_input_text_color  # type: ignore
+from PySimpleGUI import Input, theme_input_text_color, theme_input_background_color  # type: ignore
 
 from src.view import full_date_format, short_date_format
 

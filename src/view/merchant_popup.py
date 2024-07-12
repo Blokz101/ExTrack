@@ -31,7 +31,7 @@ class MerchantPopup(DataPopup):
         else:
             self.merchant = Merchant(online=False)
         super().__init__(
-            f"Merchant ID = {self.merchant.sqlid if self.merchant.sqlid is None else "New"}"
+            f"Merchant ID = {self.merchant.sqlid if self.merchant.sqlid is not None else "New"}"
         )
 
         self.window.read(timeout=0)
@@ -61,6 +61,7 @@ class MerchantPopup(DataPopup):
             NonNoneInput(
                 default_text=("" if self.merchant.name is None else self.merchant.name),
                 key=MerchantPopup.NAME_INPUT_KEY,
+                enable_events=True,
             ),
             Checkbox(
                 text="",
@@ -110,6 +111,8 @@ class MerchantPopup(DataPopup):
 
             # Sync Merchant
             self.merchant.sync()
+
+            self.run_event_loop = False
 
         # Update done button to be enabled/disabled based on input validity
         self.window[MerchantPopup.DONE_BUTTON_KEY].update(
