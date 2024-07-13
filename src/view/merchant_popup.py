@@ -4,7 +4,7 @@ Contains the MerchantPopup class which allows the user to create or edit a merch
 
 from __future__ import annotations
 
-from typing import Optional, cast
+from typing import Optional, cast, Any
 
 from PySimpleGUI import Element, Text, Input, Checkbox  # type: ignore
 
@@ -76,7 +76,7 @@ class MerchantPopup(DataPopup):
 
         return [list(row) for row in zip(labels, fields)]
 
-    def check_event(self, event: str, values: dict[str, str]) -> None:
+    def check_event(self, event: str, values: dict[str, Any]) -> None:
         """
         Responds to events from the user.
 

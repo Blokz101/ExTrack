@@ -3,6 +3,7 @@ Tests the MainWindow class.
 """
 
 import json
+
 # mypy: ignore-errors
 import os
 import shutil

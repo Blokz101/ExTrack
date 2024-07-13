@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 from PySimpleGUI import (  # type: ignore
-    Table,
     TabGroup,
     Tab,
     Element,
@@ -17,7 +16,7 @@ from PySimpleGUI import (  # type: ignore
 
 from src import model
 from src.model import database
-from src.view.data_table_tab import TransactionTab, MerchantTab
+from src.view.data_table_tab import TransactionTab, MerchantTab, AccountTab
 from src.view.notify_popup import NotifyPopup
 from src.view.popup import Popup
 
@@ -34,7 +33,9 @@ class MainWindow(Popup):
     """Menu bar definition."""
 
     def __init__(self) -> None:
+        # TODO Add other tabs then remove this comment
         self.transaction_tab: TransactionTab
+        self.account_tab: AccountTab
         self.merchant_tab: MerchantTab
 
         super().__init__("ExTract")
@@ -72,7 +73,9 @@ class MainWindow(Popup):
         return database_path
 
     def _layout_generator(self) -> list[list[Element]]:
+        # TODO Add other tabs then remove this comment
         self.transaction_tab = TransactionTab()
+        self.account_tab = AccountTab()
         self.merchant_tab = MerchantTab()
         return [
             [MenuBar(MainWindow.MENU_DEFINITION)],
@@ -80,10 +83,11 @@ class MainWindow(Popup):
                 TabGroup(
                     [
                         [
+                            # TODO Add other tabs then remove this comment
                             self.transaction_tab,
                             Tab("Budgets", [[Text("Coming Soon!")]]),
                             Tab("Statements", [[Text("Coming Soon!")]]),
-                            Tab("Accounts", [[Text("Coming Soon!")]]),
+                            self.account_tab,
                             self.merchant_tab,
                             Tab("Locations", [[Text("Coming Soon!")]]),
                             Tab("Tags", [[Text("Coming Soon!")]]),
@@ -99,7 +103,9 @@ class MainWindow(Popup):
         """
         Updates the table with transactions from the database.
         """
+        # TODO Add other tabs then remove this comment
         self.transaction_tab.update_table()
+        self.account_tab.update_table()
         self.merchant_tab.update_table()
 
     def check_event(self, event: Any, values: dict[Any, Any]) -> None:
@@ -141,8 +147,12 @@ class MainWindow(Popup):
             database.close()
             self.update_table()
 
+        # TODO Add other tabs then remove this comment
         if event == "-TRANSACTIONS TABLE-" and len(values["-TRANSACTIONS TABLE-"]) == 1:
             self.transaction_tab.open_edit_popup(values["-TRANSACTIONS TABLE-"][0])
+
+        if event == "-ACCOUNTS TABLE-" and len(values["-ACCOUNTS TABLE-"]) == 1:
+            self.account_tab.open_edit_popup(values["-ACCOUNTS TABLE-"][0])
 
         if event == "-MERCHANTS TABLE-" and len(values["-MERCHANTS TABLE-"]) == 1:
             self.merchant_tab.open_edit_popup(values["-MERCHANTS TABLE-"][0])

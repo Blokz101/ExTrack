@@ -108,3 +108,22 @@ class NonNoneInput(ValidatedInput):
         if self.get().replace(" ", "") == "":
             return "Input cannot be empty."
         return None
+
+
+class PositiveIntInput(ValidatedInput):
+    """
+    Input widget that may have a positive integer value or no value.
+    """
+
+    def validation_status(self) -> Optional[str]:
+        if self.get() == "":
+            return None
+
+        try:
+            str_as_int: int = int(super().get())
+            if str_as_int > 0:
+                return None
+        except ValueError:
+            pass
+
+        return "Input must be a positive integer or empty."

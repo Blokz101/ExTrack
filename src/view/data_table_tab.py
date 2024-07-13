@@ -4,9 +4,11 @@ from typing import TypeVar, Generic
 from PySimpleGUI import Element, Table, Tab
 
 from src.model import database
+from src.model.account import Account
 from src.model.merchant import Merchant
 from src.model.transaction import Transaction
 from src.view import full_date_format
+from src.view.account_popup import AccountPopup
 from src.view.data_popup import DataPopup
 from src.view.merchant_popup import MerchantPopup
 from src.view.transaction_popup import TransactionPopup
@@ -105,7 +107,7 @@ class TransactionTab(DataTableTab):
         """
         Opens the edit popup for the selected row.
 
-        :param selected_row: Index of the selected row.
+        :param selected_row: Index of the selected row
         """
         if not 0 <= selected_row < len(self.row_id_list):
             return
@@ -156,5 +158,52 @@ class MerchantTab(DataTableTab):
 
         sqlid: int = self.row_id_list[selected_row]
         MerchantPopup(Merchant.from_id(sqlid)).event_loop()
+
+        self.update_table()
+
+
+class AccountTab(DataTableTab):
+    """
+    Tab with table and DataPopup for the Accounts table.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Accounts", ["ID", "Name", "Amount Idx", "Desc Idx", "Date Idx"]
+        )
+
+    def update_table(self) -> None:
+        """
+        Updates the table from the database and updates the row id list.
+        """
+        if database.is_connected():
+            self.values = [
+                [
+                    str(account.sqlid),
+                    str(account.name),
+                    str(account.amount_idx),
+                    str(account.description_idx),
+                    str(account.date_idx),
+                ]
+                for account in Account.get_all()
+            ]
+            self.row_id_list = [int(row[0]) for row in self.values]
+        else:
+            self.values = [["", "No database connected", "", "", ""]]
+            self.row_id_list = []
+
+        self._table.update(values=self.values)
+
+    def open_edit_popup(self, selected_row: int) -> None:
+        """
+        Opens the edit popup for the selected row.
+
+        :param selected_row: Index of the selected row
+        """
+        if not 0 <= selected_row < len(self.row_id_list):
+            return
+
+        sqlid: int = self.row_id_list[selected_row]
+        AccountPopup(Account.from_id(sqlid)).event_loop()
 
         self.update_table()
