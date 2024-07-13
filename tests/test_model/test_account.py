@@ -141,7 +141,7 @@ class TestAccount(Sample1TestCase):
                 False,
                 datetime.strptime("2020-08-27 21:14:40", date_format),
                 None,
-                None,
+                "IMAGE4.jpeg",
                 35.868317424041166,
                 -78.62154243252625,
                 1,
@@ -154,7 +154,7 @@ class TestAccount(Sample1TestCase):
                 True,
                 datetime.strptime("2023-05-04 23:44:29", date_format),
                 1,
-                None,
+                "IMAGE22.png",
                 None,
                 None,
                 1,
@@ -199,7 +199,7 @@ class TestAccount(Sample1TestCase):
                 True,
                 datetime.strptime("2020-10-09 19:01:21", date_format),
                 5,
-                None,
+                "IMAGE8932.png",
                 35.840809717971595,
                 -78.68013948171635,
                 2,
@@ -234,20 +234,41 @@ class TestAccount(Sample1TestCase):
         """
 
         expected_statements_1: list[Statement] = [
-            Statement(1, "2019-02-14 17:48:20", None, 1),
-            Statement(2, "2020-07-08 07:12:34", None, 1),
-            Statement(3, "2023-07-20 05:46:37", None, 1),
+            Statement(
+                1,
+                datetime.strptime("2019-02-14 00:00:00", date_format),
+                "BOA.csv",
+                1,
+                3235.45,
+                True,
+            ),
+            Statement(
+                2,
+                datetime.strptime("2020-07-08 00:00:00", date_format),
+                "BOA1.csv",
+                1,
+                66.45,
+                True,
+            ),
+            Statement(
+                3,
+                datetime.strptime("2023-07-20 05:46:37", date_format),
+                "NEWBOA.csv",
+                1,
+                3825.01,
+                False,
+            ),
         ]
 
         expected_statements_2: list[Statement] = [
-            Statement(4, "2018-12-21 08:21:34", None, 2),
-            Statement(5, "2019-08-25 12:58:05", None, 2),
-            Statement(6, "2021-04-22 09:01:52", None, 2),
+            Statement(4, "2018-12-21 00:00:00", "DISCOVER.csv", 2, 517.01, True),
+            Statement(5, "2019-08-25 00:00:00", None, 2, 320.93, True),
+            Statement(6, "2021-04-22 09:01:52", "NEWDISCOVER.csv", 2, 500.33, False),
         ]
 
-        self.assertEqual(expected_statements_1, Account.from_id(1).statements())
+        self.assertSqlListEqual(expected_statements_1, Account.from_id(1).statements())
 
-        self.assertEqual(expected_statements_2, Account.from_id(2).statements())
+        self.assertSqlListEqual(expected_statements_2, Account.from_id(2).statements())
 
         # Test with new Account
         self.assertEqual([], Account().statements())

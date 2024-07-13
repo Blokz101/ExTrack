@@ -3,7 +3,6 @@ Tests the MainWindow class.
 """
 
 import json
-
 # mypy: ignore-errors
 import os
 import shutil
@@ -62,15 +61,15 @@ class TestMainWindow(TestCase):
     ]
 
     EXPECTED_MERCHANT_TAB_VALUES: list[list[str]] = [
-        ["1", "Penn Station", "False", "None"],
-        ["2", "Outback Steak House", "False", "None"],
-        ["3", "Amazon", "True", "None"],
+        ["1", "Penn Station", "False", "pennstation"],
+        ["2", "Outback Steak House", "False", "outbackhouse"],
+        ["3", "Amazon", "True", "amazon"],
         ["4", "Apple", "False", "None"],
         ["5", "Port City Java", "False", "None"],
-        ["6", "BJS", "False", "None"],
-        ["7", "Dollar General", "False", "None"],
-        ["8", "Bambu Labs", "True", "None"],
-        ["9", "Etsy", "True", "None"],
+        ["6", "BJS", "False", "bjsrewards"],
+        ["7", "Dollar General", "False", "dollar_general"],
+        ["8", "Bambu Labs", "True", "bambu"],
+        ["9", "Etsy", "True", "etsy"],
     ]
 
     def setUp(self):

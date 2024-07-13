@@ -140,7 +140,7 @@ class TestAmount(Sample1TestCase):
                 True,
                 datetime.strptime("2020-10-09 19:01:21", date_format),
                 5,
-                None,
+                "IMAGE8932.png",
                 35.840809717971595,
                 -78.68013948171635,
                 2,
@@ -225,41 +225,29 @@ class TestAmount(Sample1TestCase):
 
         # Test with amount 1
         expected_tags: list[Tag] = [
-            Tag(5, "Dating", False),
-            Tag(7, "Eating Out", False),
+            Tag(5, "Dating", False, "date"),
+            Tag(7, "Eating Out", False, "eatout"),
         ]
-
         actual_tags: list[Tag] = Amount.from_id(1).tags()
 
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(expected_tags, actual_tags)
 
         # Test with amount 2
         expected_tags: list[Tag] = [
-            Tag(4, "University", False),
-            Tag(10, "Personal", False),
+            Tag(4, "University", False, "uni"),
+            Tag(10, "Personal", False, "personal"),
         ]
-
         actual_tags: list[Tag] = Amount.from_id(2).tags()
 
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(actual_tags, expected_tags)
 
         # Test with amount 4
         expected_tags: list[Tag] = [
-            Tag(3, "Anarack", True),
+            Tag(3, "Anarack", True, None),
         ]
-
         actual_tags: list[Tag] = Amount.from_id(4).tags()
 
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(expected_tags, actual_tags)
 
         # Test with new amount
         self.assertEqual([], Amount().tags())

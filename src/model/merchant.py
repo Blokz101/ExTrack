@@ -56,8 +56,7 @@ class Merchant(SqlObject):
 
         if data is None:
             raise ValueError(f"No merchant with id = {sqlid}.")
-        sqlid, name, online, rule = cast(list, data)
-        return Merchant(sqlid, name, online, rule)
+        return Merchant(*cast(list, data))
 
     def sync(self) -> None:
         """
@@ -92,6 +91,9 @@ class Merchant(SqlObject):
         """
         if self.name == "":
             self.name = None
+
+        if self.rule == "":
+            self.rule = None
 
         errors: list[str] = []
 
@@ -173,7 +175,7 @@ class Merchant(SqlObject):
 
         cur.execute(
             """
-            SELECT tags.id, tags.name, tags.occasional
+            SELECT tags.id, tags.name, tags.occasional, tags.rule
             FROM merchants
             INNER JOIN mer_tag_defaults ON merchants.id = mer_tag_defaults.merchant_id
             INNER JOIN tags ON mer_tag_defaults.tag_id = tags.id

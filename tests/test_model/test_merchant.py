@@ -19,15 +19,15 @@ class TestMerchant(Sample1TestCase):
     """
 
     expected_merchants: list[Merchant] = [
-        Merchant(1, "Penn Station", False, None),
-        Merchant(2, "Outback Steak House", False, None),
-        Merchant(3, "Amazon", True, None),
+        Merchant(1, "Penn Station", False, "pennstation"),
+        Merchant(2, "Outback Steak House", False, "outbackhouse"),
+        Merchant(3, "Amazon", True, "amazon"),
         Merchant(4, "Apple", False, None),
         Merchant(5, "Port City Java", False, None),
-        Merchant(6, "BJS", False, None),
-        Merchant(7, "Dollar General", False, None),
-        Merchant(8, "Bambu Labs", True, None),
-        Merchant(9, "Etsy", True, None),
+        Merchant(6, "BJS", False, "bjsrewards"),
+        Merchant(7, "Dollar General", False, "dollar_general"),
+        Merchant(8, "Bambu Labs", True, "bambu"),
+        Merchant(9, "Etsy", True, "etsy"),
     ]
 
     def test_from_id(self):
@@ -60,12 +60,13 @@ class TestMerchant(Sample1TestCase):
 
         Prerequisite: test_get_all() and test_from_id()
         """
-
-        expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
-        expected_merchants.append(Merchant(10, "Wolf Pack Outfitters", False, None))
-
         # Test create new Merchant
-        merchant: Merchant = Merchant(None, "Wolf Pack Outfitters", False, None)
+        expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
+        expected_merchants.append(
+            Merchant(10, "Wolf Pack Outfitters", False, "wolfPACK")
+        )
+
+        merchant: Merchant = Merchant(None, "Wolf Pack Outfitters", False, "wolfPACK")
         merchant.sync()
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())
@@ -90,13 +91,19 @@ class TestMerchant(Sample1TestCase):
         with self.assertRaises(RuntimeError):
             merchant.sync()
 
+        merchant = Merchant.from_id(3)
+        merchant.rule = ""
+        merchant.sync()
+
+        self.assertIsNone(Merchant.from_id(3).rule)
+
     def test_syncable(self):
         """
         Tests Merchant.syncable() and Merchant.sync()
 
         Prerequisite: test_get_all() and test_sync()
         """
-        merchant: Merchant = Merchant(None, None, None, None)
+        merchant: Merchant = Merchant(None, None, None, "new")
 
         # Try to sync without required fields
         self.assertEqual(
@@ -198,26 +205,18 @@ class TestMerchant(Sample1TestCase):
 
         # Test with Penn Station
         expected_tags: list[Tag] = [
-            Tag(5, "Dating", False),
-            Tag(7, "Eating Out", False),
+            Tag(5, "Dating", False, "date"),
+            Tag(7, "Eating Out", False, "eatout"),
         ]
-
         actual_tags: list[Tag] = Merchant.from_id(1).default_tags()
 
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(expected_tags, actual_tags)
 
         # Test with BJS
-        expected_tags = [Tag(1, "Groceries", False)]
-
+        expected_tags = [Tag(1, "Groceries", False, "groc")]
         actual_tags = Merchant.from_id(6).default_tags()
 
-        self.assertEqual(len(expected_tags), len(actual_tags))
-        for expected_tag, actual_tag in zip(expected_tags, actual_tags):
-            self.assertEqual(expected_tag.sqlid, actual_tag.sqlid)
-            self.assertEqual(expected_tag, actual_tag)
+        self.assertSqlListEqual(expected_tags, actual_tags)
 
         # Test with new merchant
         self.assertEqual([], Merchant().default_tags())

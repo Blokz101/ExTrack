@@ -184,7 +184,8 @@ class Account(SqlObject):
         _, cur = database.get_connection()
 
         cur.execute(
-            "SELECT id, date, path, account_id FROM statements WHERE account_id = ?",
+            "SELECT id, date, file_name, account_id, starting_balance, reconciled FROM statements "
+            "WHERE account_id = ?",
             (self.sqlid,),
         )
         return list(statement.Statement(*data) for data in cur.fetchall())

@@ -5,7 +5,6 @@ Contains the Statement class which represents a statement in the SQL database.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 from typing import Optional, Union, cast, Any
 
 from src.model import database, date_format, transaction, account
@@ -21,14 +20,18 @@ class Statement(SqlObject):
         self,
         sqlid: Optional[int] = None,
         date: Optional[Union[str, datetime]] = None,
-        path: Optional[Path] = None,
+        file_name: Optional[str] = None,
         account_id: Optional[int] = None,
+        starting_balance: Optional[float] = None,
+        reconciled: Optional[Union[bool, int]] = None,
     ) -> None:
         """
         :param sqlid: ID of SQL row that this statement belongs to.
         :param date: Start date of billing period of statement.
-        :param path: Path to statement CSV.
+        :param file_name: Name of statement CSV file.
         :param account_id: ID of account of this statement.
+        :param starting_balance: Balance of the account at the beginning of this statement.
+        :param reconciled: True if this statement has been reconciled, false otherwise.
         """
         super().__init__(sqlid)
         self.date: Optional[datetime]
@@ -41,10 +44,20 @@ class Statement(SqlObject):
                 if isinstance(date, datetime)
                 else datetime.strptime(date, date_format)
             )
-        self.path: Optional[Path] = path
+        self.file_name: Optional[str] = file_name
         """Path to statement CSV."""
         self.account_id: Optional[int] = account_id
         """ID of account of this statement."""
+        self.starting_balance: Optional[float] = starting_balance
+        """Balance of the account at the beginning of this statement."""
+        self.reconciled: Optional[bool]
+        """True if this statement has been reconciled, false otherwise."""
+        if reconciled is None:
+            self.reconciled = None
+        else:
+            self.reconciled = (
+                reconciled if isinstance(reconciled, bool) else reconciled == 1
+            )
 
     @classmethod
     def from_id(cls, sqlid: int) -> Statement:
@@ -58,15 +71,16 @@ class Statement(SqlObject):
         _, cur = database.get_connection()
 
         cur.execute(
-            "SELECT id, date, path, account_id FROM statements WHERE id = ?", (sqlid,)
+            "SELECT id, date, file_name, account_id, starting_balance, reconciled FROM statements "
+            "WHERE id = ?",
+            (sqlid,),
         )
 
         data: object = cur.fetchone()
 
         if data is None:
             raise ValueError(f"No statement with id = {sqlid}.")
-        sqlid, date, path, account_id = cast(list, data)
-        return Statement(sqlid, date, path, account_id)
+        return Statement(*cast(list, data))
 
     def sync(self) -> None:
         """
@@ -81,21 +95,32 @@ class Statement(SqlObject):
 
         if self.exists():
             cur.execute(
-                "UPDATE statements SET date = ?, path = ?, account_id = ? WHERE id = ?",
+                """
+                UPDATE statements 
+                SET date = ?, file_name = ?, account_id = ?, starting_balance = ?, reconciled = ?
+                WHERE id = ?
+                """,
                 (
                     None if self.date is None else self.date.strftime(date_format),
-                    self.path,
+                    self.file_name,
                     self.account_id,
+                    self.starting_balance,
+                    self.reconciled,
                     self.sqlid,
                 ),
             )
         else:
             cur.execute(
-                "INSERT INTO statements (date, path, account_id) VALUES (?, ?, ?)",
+                """
+                INSERT INTO statements (date, file_name, account_id, starting_balance, reconciled)
+                VALUES (?, ?, ?, ?, ?)
+                """,
                 (
                     None if self.date is None else self.date.strftime(date_format),
-                    self.path,
+                    self.file_name,
                     self.account_id,
+                    self.starting_balance,
+                    self.reconciled,
                 ),
             )
             self.sqlid = cur.lastrowid
@@ -116,6 +141,12 @@ class Statement(SqlObject):
         if self.account_id is None:
             errors.append("account_id cannot be None.")
 
+        if self.starting_balance is None:
+            errors.append("starting_balance cannot be None.")
+
+        if self.reconciled is None:
+            errors.append("reconciled cannot be None.")
+
         return None if len(errors) == 0 else errors
 
     @staticmethod
@@ -127,7 +158,12 @@ class Statement(SqlObject):
         """
         _, cur = database.get_connection()
 
-        cur.execute("SELECT id, date, path, account_id FROM statements")
+        cur.execute(
+            """
+            SELECT id, date, file_name, account_id, starting_balance, reconciled
+            FROM statements
+            """
+        )
         return list(Statement(*data) for data in cur.fetchall())
 
     def __eq__(self, other: Any) -> bool:
@@ -141,8 +177,10 @@ class Statement(SqlObject):
         """
         return (
             self.date == other.date
-            and self.path == other.path
+            and self.file_name == other.file_name
             and self.account_id == other.account_id
+            and self.file_name == other.file_name
+            and self.reconciled == other.reconciled
         )
 
     def transactions(self) -> list[transaction.Transaction]:

@@ -35,8 +35,10 @@ CREATE TABLE accounts (
 CREATE TABLE statements (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     date TEXT NOT NULL,
-    path TEXT,
+    file_name TEXT,
     account_id INTEGER NOT NULL,
+    starting_balance FLOAT NOT NULL,
+    reconciled BOOLEAN NOT NULL,
     FOREIGN KEY (account_id) REFERENCES accounts (id)
 );
 
@@ -59,7 +61,8 @@ CREATE TABLE locations (
 CREATE TABLE tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name TEXT NOT NULL,
-    occasional BOOLEAN NOT NULL
+    occasional BOOLEAN NOT NULL,
+    rule TEXT
 );
 
 CREATE TABLE amount_tags (

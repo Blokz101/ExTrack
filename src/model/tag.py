@@ -20,17 +20,31 @@ class Tag(SqlObject):
         sqlid: Optional[int] = None,
         name: Optional[str] = None,
         occasional: Optional[bool] = None,
+        rule: Optional[str] = None,
     ) -> None:
         """
         :param sqlid: ID of the SQL row this tag belongs to.
         :param name: Name of the tag.
         :param occasional: True if this tag will not have long term use, false if otherwise.
+        :param rule: RegEx string used to identify transactions that should be labeled with this
+        tag.
         """
         super().__init__(sqlid)
         self.name: Optional[str] = name
         """Name of Tag."""
-        self.occasional: Optional[bool] = occasional
+        self.occasional: Optional[bool]
         """True if this tag is only used for an occasion, False if it is recurring."""
+        if occasional is None:
+            self.occasional = None
+        else:
+            self.occasional = (
+                occasional if isinstance(occasional, bool) else occasional == 1
+            )
+        self.rule: Optional[str] = rule
+        """
+        RegEx string used to identify transactions that should be labeled with this tag. 
+        Searches for tags in the description of a transaction.
+        """
 
     @classmethod
     def from_id(cls, sqlid: int) -> Tag:
@@ -43,14 +57,15 @@ class Tag(SqlObject):
         """
         _, cur = database.get_connection()
 
-        cur.execute("SELECT id, name, occasional FROM tags WHERE id = ?", (sqlid,))
+        cur.execute(
+            "SELECT id, name, occasional, rule FROM tags WHERE id = ?", (sqlid,)
+        )
 
         data: object = cur.fetchone()
 
         if data is None:
             raise ValueError(f"No tag with id = {sqlid}.")
-        sqlid, name, occasional = cast(list, data)
-        return Tag(sqlid, name, occasional)
+        return Tag(*cast(list, data))
 
     def sync(self) -> None:
         """
@@ -67,17 +82,18 @@ class Tag(SqlObject):
 
         if self.exists():
             cur.execute(
-                "UPDATE tags SET name = ?, occasional = ? WHERE id = ?",
+                "UPDATE tags SET name = ?, occasional = ?, rule = ? WHERE id = ?",
                 (
                     self.name,
                     self.occasional,
+                    self.rule,
                     self.sqlid,
                 ),
             )
         else:
             cur.execute(
-                "INSERT INTO tags (name, occasional) VALUES (?, ?)",
-                (self.name, self.occasional),
+                "INSERT INTO tags (name, occasional, rule) VALUES (?, ?, ?)",
+                (self.name, self.occasional, self.rule),
             )
             self.sqlid = cur.lastrowid
 
@@ -111,7 +127,7 @@ class Tag(SqlObject):
         """
         _, cur = database.get_connection()
 
-        cur.execute("SELECT id, name, occasional FROM tags")
+        cur.execute("SELECT id, name, occasional, rule FROM tags")
         return list(Tag(*data) for data in cur.fetchall())
 
     def __eq__(self, other: Any) -> bool:
@@ -123,7 +139,11 @@ class Tag(SqlObject):
         :param other: The other Tag to compare against this one.
         :return: True if the Tags are equal, false if otherwise.
         """
-        return self.name == other.name and self.occasional == other.occasional
+        return (
+            self.name == other.name
+            and self.occasional == other.occasional
+            and self.rule == other.rule
+        )
 
     def default_merchants(self) -> list[merchant.Merchant]:
         """

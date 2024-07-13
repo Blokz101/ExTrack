@@ -180,7 +180,7 @@ class Amount(SqlObject):
 
         cur.execute(
             """
-            SELECT tags.id, tags.name, tags.occasional
+            SELECT tags.id, tags.name, tags.occasional, tags.rule
             FROM amounts
             INNER JOIN amount_tags ON amounts.id = amount_tags.amount_id
             INNER JOIN tags ON amount_tags.tag_id = tags.id

@@ -19,17 +19,17 @@ class TagTestCase(Sample1TestCase):
     """
 
     expected_tags: list[Tag] = [
-        Tag(1, "Groceries", False),
-        Tag(2, "Gas", False),
-        Tag(3, "Anarack", True),
-        Tag(4, "University", False),
-        Tag(5, "Dating", False),
-        Tag(6, "Third Party Transaction", False),
-        Tag(7, "Eating Out", False),
-        Tag(8, "Winter Park Trip", True),
-        Tag(9, "The Maze Trip", True),
-        Tag(10, "Personal", False),
-        Tag(11, "Coffee", False),
+        Tag(1, "Groceries", False, "groc"),
+        Tag(2, "Gas", False, "gas"),
+        Tag(3, "Anarack", True, None),
+        Tag(4, "University", False, "uni"),
+        Tag(5, "Dating", False, "date"),
+        Tag(6, "Third Party Transaction", False, "paid for by parents"),
+        Tag(7, "Eating Out", False, "eatout"),
+        Tag(8, "Winter Park Trip", True, None),
+        Tag(9, "The Maze Trip", True, None),
+        Tag(10, "Personal", False, "personal"),
+        Tag(11, "Coffee", False, "coffee"),
     ]
 
     def test_from_id(self):
@@ -55,23 +55,23 @@ class TagTestCase(Sample1TestCase):
 
         Prerequisite: test_get_all() and test_from_id()
         """
-
-        expected_tags: list[Tag] = TagTestCase.expected_tags.copy()
-        expected_tags.append(Tag(12, "Other", False))
-
         # Test create new Tag
-        tag: Tag = Tag(None, "Other", False)
+        expected_tags: list[Tag] = TagTestCase.expected_tags.copy()
+        expected_tags.append(Tag(12, "Other", False, "other"))
+
+        tag: Tag = Tag(None, "Other", False, "other")
         tag.sync()
 
         self.assertSqlListEqual(expected_tags, Tag.get_all())
         self.assertEqual(12, tag.sqlid)
 
         # Update existing Merchant
-        expected_tags[5] = Tag(6, "Christmas Gifts", True)
+        expected_tags[5] = Tag(6, "Christmas Gifts", True, None)
 
         tag = Tag.from_id(6)
         tag.name = "Christmas Gifts"
         tag.occasional = True
+        tag.rule = None
 
         tag.sync()
 
@@ -91,7 +91,7 @@ class TagTestCase(Sample1TestCase):
 
         Prerequisite: test_get_all() and test_sync()
         """
-        tag: Tag = Tag(None, None, None)
+        tag: Tag = Tag(None, None, None, "other")
 
         # Try to sync without required fields
         self.assertEqual(
@@ -135,8 +135,8 @@ class TagTestCase(Sample1TestCase):
         # Test with Personal
         expected_merchants: list[Merchant] = [
             Merchant(4, "Apple", False, None),
-            Merchant(8, "Bambu Labs", True, None),
-            Merchant(9, "Etsy", True, None),
+            Merchant(8, "Bambu Labs", True, "bambu"),
+            Merchant(9, "Etsy", True, "etsy"),
         ]
 
         actual_merchants: list[Merchant] = Tag.from_id(10).default_merchants()
@@ -150,8 +150,8 @@ class TagTestCase(Sample1TestCase):
 
         # Test with Eating Out
         expected_merchants = [
-            Merchant(1, "Penn Station", False, None),
-            Merchant(2, "Outback Steak House", False, None),
+            Merchant(1, "Penn Station", False, "pennstation"),
+            Merchant(2, "Outback Steak House", False, "outbackhouse"),
         ]
 
         actual_merchants = Tag.from_id(7).default_merchants()
@@ -221,7 +221,7 @@ class TagTestCase(Sample1TestCase):
                 True,
                 datetime.strptime("2020-10-09 19:01:21", date_format),
                 5,
-                None,
+                "IMAGE8932.png",
                 35.840809717971595,
                 -78.68013948171635,
                 2,
@@ -234,7 +234,7 @@ class TagTestCase(Sample1TestCase):
                 True,
                 datetime.strptime("2023-05-04 23:44:29", date_format),
                 1,
-                None,
+                "IMAGE22.png",
                 None,
                 None,
                 1,
@@ -253,7 +253,7 @@ class TagTestCase(Sample1TestCase):
                 True,
                 datetime.strptime("2020-10-09 19:01:21", date_format),
                 5,
-                None,
+                "IMAGE8932.png",
                 35.840809717971595,
                 -78.68013948171635,
                 2,
@@ -285,7 +285,7 @@ class TagTestCase(Sample1TestCase):
                 False,
                 datetime.strptime("2020-08-27 21:14:40", date_format),
                 None,
-                None,
+                "IMAGE4.jpeg",
                 35.868317424041166,
                 -78.62154243252625,
                 1,

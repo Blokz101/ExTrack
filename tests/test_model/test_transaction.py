@@ -28,7 +28,7 @@ class TestTransaction(Sample1TestCase):
             False,
             datetime.strptime("2020-08-27 21:14:40", date_format),
             None,
-            None,
+            "IMAGE4.jpeg",
             35.868317424041166,
             -78.62154243252625,
             1,
@@ -41,7 +41,7 @@ class TestTransaction(Sample1TestCase):
             True,
             datetime.strptime("2020-10-09 19:01:21", date_format),
             5,
-            None,
+            "IMAGE8932.png",
             35.840809717971595,
             -78.68013948171635,
             2,
@@ -54,7 +54,7 @@ class TestTransaction(Sample1TestCase):
             True,
             datetime.strptime("2023-05-04 23:44:29", date_format),
             1,
-            None,
+            "IMAGE22.png",
             None,
             None,
             1,
@@ -188,7 +188,7 @@ class TestTransaction(Sample1TestCase):
             True,
             datetime.strptime("2022-02-03 18:45:17", date_format),
             2,
-            None,
+            "CHANGEDIMG.png",
             35.90644784758162,
             -78.59026491389089,
             2,
@@ -201,6 +201,7 @@ class TestTransaction(Sample1TestCase):
         transaction.reconciled = True
         transaction.date = datetime.strptime("2022-02-03 18:45:17", date_format)
         transaction.statement_id = 2
+        transaction.receipt_file_name = "CHANGEDIMG.png"
         transaction.lat = 35.90644784758162
         transaction.long = -78.59026491389089
         transaction.account_id = 2
@@ -289,7 +290,7 @@ class TestTransaction(Sample1TestCase):
         )
 
         self.assertEqual(
-            Merchant(9, "Etsy", True, None), Transaction.from_id(3).merchant()
+            Merchant(9, "Etsy", True, "etsy"), Transaction.from_id(3).merchant()
         )
 
         self.assertEqual(
@@ -308,13 +309,18 @@ class TestTransaction(Sample1TestCase):
         """
 
         self.assertEqual(
-            Statement(5, "2019-08-25 12:58:05", None, 2),
+            Statement(5, "2019-08-25 00:00:00", None, 2, 320.93, True),
             Transaction.from_id(2).statement(),
         )
 
         self.assertEqual(
             Statement(
-                1, datetime.strptime("2019-02-14 17:48:20", date_format), None, 1
+                1,
+                datetime.strptime("2019-02-14 00:00:00", date_format),
+                "BOA.csv",
+                1,
+                3235.45,
+                True,
             ),
             Transaction.from_id(4).statement(),
         )
