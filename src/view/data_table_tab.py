@@ -138,6 +138,15 @@ class MerchantTab(DataTableTab):
                     str(merchant.sqlid),
                     "None" if merchant.name is None else merchant.name,
                     {None: "Error", True: "True", False: "False"}[merchant.online],
+                    (
+                        "No Tags"
+                        if merchant.default_tags() == []
+                        else ", ".join(
+                            tag.name
+                            for tag in merchant.default_tags()
+                            if tag.name is not None
+                        )
+                    ),
                     "None" if merchant.rule is None else merchant.rule,
                 ]
                 for merchant in Merchant.get_all()

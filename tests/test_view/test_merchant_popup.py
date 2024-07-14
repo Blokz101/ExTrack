@@ -7,6 +7,7 @@ from PySimpleGUI import Window
 from ddt import ddt, data
 
 from src.model.merchant import Merchant
+from src.model.tag import Tag
 from src.view.merchant_popup import MerchantPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
 
@@ -28,6 +29,9 @@ class TestMerchantPopup(Sample1TestCase):
         # Validate basic fields and inputs
         self.assertEqual("", popup_window[MerchantPopup.NAME_INPUT_KEY].get())
         self.assertFalse(popup_window[MerchantPopup.ONLINE_CHECKBOX_KEY].get())
+        self.assertEqual(
+            "No Tags", popup_window[MerchantPopup.TAGS_BUTTON_KEY].get_text()
+        )
         self.assertEqual("", popup_window[MerchantPopup.RULE_INPUT_KEY].get())
 
         self.assertFalse(popup.inputs_valid())
@@ -50,6 +54,14 @@ class TestMerchantPopup(Sample1TestCase):
         )
         self.assertEqual(
             merchant.online, popup_window[MerchantPopup.ONLINE_CHECKBOX_KEY].get()
+        )
+        self.assertEqual(
+            (
+                "No Tags"
+                if merchant.default_tags() == []
+                else ", ".join(tag.name for tag in merchant.default_tags())
+            ),
+            popup_window[MerchantPopup.TAGS_BUTTON_KEY].get_text(),
         )
         self.assertEqual(
             "" if merchant.rule is None else merchant.rule,
@@ -97,6 +109,10 @@ class TestMerchantPopup(Sample1TestCase):
             {MerchantPopup.ONLINE_CHECKBOX_KEY: new_online_status},
         )
 
+        new_tags: list[Tag] = [Tag.from_id(4), Tag.from_id(6)]
+        popup.default_tags = new_tags
+        popup.check_event(None, {})
+
         new_rule: str = "ANDROID STORE"
         popup.window[MerchantPopup.RULE_INPUT_KEY].update(new_rule)
         popup.check_event(
@@ -106,6 +122,7 @@ class TestMerchantPopup(Sample1TestCase):
         popup.check_event("Exit", {})
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())
+        self.assertSqlListEqual([Tag.from_id(10)], Merchant.from_id(4).default_tags())
 
         popup.window.close()
 
@@ -134,6 +151,10 @@ class TestMerchantPopup(Sample1TestCase):
             {MerchantPopup.ONLINE_CHECKBOX_KEY: True},
         )
 
+        new_tags: list[Tag] = [Tag.from_id(4), Tag.from_id(6)]
+        popup.default_tags = new_tags
+        popup.check_event(None, {})
+
         popup.window[MerchantPopup.RULE_INPUT_KEY].update(value="DOLLAR TREE ONLINE")
         popup.check_event(
             MerchantPopup.RULE_INPUT_KEY,
@@ -143,5 +164,6 @@ class TestMerchantPopup(Sample1TestCase):
         popup.check_event(MerchantPopup.DONE_BUTTON_KEY, {})
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())
+        self.assertSqlListEqual(new_tags, Merchant.from_id(7).default_tags())
 
         popup.window.close()

@@ -62,15 +62,20 @@ class TestMainWindow(TestCase):
     ]
 
     EXPECTED_MERCHANT_TAB_VALUES: list[list[str]] = [
-        ["1", "Penn Station", "False", "pennstation"],
-        ["2", "Outback Steak House", "False", "outbackhouse"],
-        ["3", "Amazon", "True", "amazon"],
-        ["4", "Apple", "False", "None"],
-        ["5", "Port City Java", "False", "None"],
-        ["6", "BJS", "False", "bjsrewards"],
-        ["7", "Dollar General", "False", "dollar_general"],
-        ["8", "Bambu Labs", "True", "bambu"],
-        ["9", "Etsy", "True", "etsy"],
+        ["1", "Penn Station", "False", "Dating, Eating Out", "pennstation"],
+        ["2", "Outback Steak House", "False", "Eating Out", "outbackhouse"],
+        ["3", "Amazon", "True", "No Tags", "amazon"],
+        ["4", "Apple", "False", "Personal", "None"],
+        ["5", "Port City Java", "False", "Coffee", "None"],
+        ["6", "BJS", "False", "Groceries", "bjsrewards"],
+        ["7", "Dollar General", "False", "No Tags", "dollar_general"],
+        ["8", "Bambu Labs", "True", "Personal", "bambu"],
+        ["9", "Etsy", "True", "Personal", "etsy"],
+    ]
+
+    EXPECTED_ACCOUNTS_TAG_VALUES: list[list[str]] = [
+        ["1", "Checking", "2", "3", "7"],
+        ["2", "Savings", "3", "1", "5"],
     ]
 
     def setUp(self):
@@ -182,6 +187,10 @@ class TestMainWindow(TestCase):
         self.assertEqual(list(range(1, 10)), app.merchant_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_MERCHANT_TAB_VALUES, app.merchant_tab.values
+        )
+        self.assertEqual(list(range(1, 3)), app.account_tab.row_id_list)
+        self.assertEqual(
+            TestMainWindow.EXPECTED_ACCOUNTS_TAG_VALUES, app.account_tab.values
         )
 
         database.close()

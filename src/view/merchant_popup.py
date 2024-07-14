@@ -6,10 +6,12 @@ from __future__ import annotations
 
 from typing import Optional, cast, Any
 
-from PySimpleGUI import Element, Text, Input, Checkbox  # type: ignore
+from PySimpleGUI import Element, Text, Input, Checkbox, Button  # type: ignore
 
 from src.model.merchant import Merchant
+from src.model.tag import Tag
 from src.view.data_popup import DataPopup
+from src.view.tag_selector import TagSelector
 from src.view.validated_input import ValidatedInput, NonNoneInput
 
 
@@ -21,6 +23,7 @@ class MerchantPopup(DataPopup):
     MERCHANT_ID_TEXT_KEY: str = "-MERCHANT ID TEXT-"
     NAME_INPUT_KEY: str = "-NAME INPUT-"
     ONLINE_CHECKBOX_KEY: str = "-ONLINE CHECKBOX-"
+    TAGS_BUTTON_KEY: str = "-TAGS BUTTON-"
     RULE_INPUT_KEY: str = "-RULE INPUT-"
 
     def __init__(self, merchant: Optional[Merchant] = None) -> None:
@@ -30,6 +33,10 @@ class MerchantPopup(DataPopup):
             self.merchant = merchant
         else:
             self.merchant = Merchant(online=False)
+
+        self.default_tags: list[Tag] = self.merchant.default_tags()
+        """List of default tags for the merchant."""
+
         super().__init__(
             f"Merchant ID = {self.merchant.sqlid if self.merchant.sqlid is not None else "New"}"
         )
@@ -53,7 +60,7 @@ class MerchantPopup(DataPopup):
     def _fields_generator(self) -> list[list[Element]]:
         labels: list[Element] = [
             Text(str_label, size=(15, None))
-            for str_label in ["Merchant ID:", "Name", "Online", "Rule"]
+            for str_label in ["Merchant ID:", "Name", "Online", "Default Tags", "Rule"]
         ]
 
         fields: list[Element] = [
@@ -66,6 +73,16 @@ class MerchantPopup(DataPopup):
                 text="",
                 default=self.merchant.online,
                 key=MerchantPopup.ONLINE_CHECKBOX_KEY,
+            ),
+            Button(
+                (
+                    "No Tags"
+                    if self.default_tags == []
+                    else ", ".join(
+                        tag.name for tag in self.default_tags if tag.name is not None
+                    )
+                ),
+                key=MerchantPopup.TAGS_BUTTON_KEY,
             ),
             Input(
                 default_text=("" if self.merchant.rule is None else self.merchant.rule),
@@ -90,6 +107,18 @@ class MerchantPopup(DataPopup):
             MerchantPopup(None).event_loop()
             return
 
+        if event == MerchantPopup.TAGS_BUTTON_KEY:
+            TagSelector(self.default_tags).event_loop()
+            self.window[MerchantPopup.TAGS_BUTTON_KEY].update(
+                (
+                    "No Tags"
+                    if self.default_tags == []
+                    else ", ".join(
+                        tag.name for tag in self.default_tags if tag.name is not None
+                    )
+                )
+            )
+
         if event == MerchantPopup.DONE_BUTTON_KEY:
 
             if not self.inputs_valid():
@@ -110,6 +139,9 @@ class MerchantPopup(DataPopup):
 
             # Sync Merchant
             self.merchant.sync()
+            self.merchant.set_default_tags(
+                list(tag.sqlid for tag in self.default_tags if tag.sqlid is not None)
+            )
 
             self.run_event_loop = False
 
