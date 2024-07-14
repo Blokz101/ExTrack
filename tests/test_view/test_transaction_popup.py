@@ -71,7 +71,8 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertEqual(
             trans.total_amount(), popup_window["-TOTAL AMOUNT INPUT-"].get()
         )
-        # Test merchant differently for the case where the transaction has a merchant and the case where it does not.
+        # Test merchant differently for the case where the transaction has a merchant and the
+        # case where it does not.
         if trans.merchant_id is None:
             self.assertEqual("", popup_window["-MERCHANT SELECTOR-"].get())
         else:
@@ -492,6 +493,23 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
+    def test_clear_coordinates(self):
+        """
+        Tests clearing the coordinates from a transaction that has coordinates.
+        """
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(2))
+        _, _ = popup.window.read(timeout=0)
+
+        popup.window["-COORDINATE INPUT-"].update(value="None, None")
+        popup.check_event("-COORDINATE INPUT-", {"-COORDINATE INPUT-": "None, None"})
+
+        popup.check_event("-DONE BUTTON-", {})
+
+        self.assertIsNone(Transaction.from_id(2).lat)
+        self.assertIsNone(Transaction.from_id(2).long)
+
+        popup.window.close()
+
     def test_submit_single_amount_edit(self):
         """
         Tests editing the database by editing a single amount of a transaction.
@@ -527,7 +545,8 @@ class TestTransactionPopup(Sample1TestCase):
 
     def test_submit_edit_multiple_amounts(self):
         """
-        Tests editing the database by editing, creating, or destroying many amounts of a transaction.
+        Tests editing the database by editing, creating, or destroying many amounts of a
+        transaction.
         """
         expected_transactions: list[Transaction] = Transaction.get_all()
         expected_amounts: list[Amount] = Amount.get_all()

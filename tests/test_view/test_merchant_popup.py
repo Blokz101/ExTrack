@@ -68,7 +68,7 @@ class TestMerchantPopup(Sample1TestCase):
         expected_merchants: list[Merchant] = Merchant.get_all()
 
         popup: MerchantPopup = MerchantPopup(Merchant.from_id(merchant_id))
-        popup.window.read(timeout=0)
+        _, _ = popup.window.read(timeout=0)
         popup.check_event(MerchantPopup.DONE_BUTTON_KEY, {})
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())

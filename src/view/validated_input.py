@@ -9,7 +9,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional
 
-from PySimpleGUI import Input, theme_input_text_color, theme_input_background_color  # type: ignore
+from PySimpleGUI import Input, theme_input_text_color  # type: ignore
 
 from src.view import full_date_format, short_date_format
 
@@ -18,6 +18,75 @@ class ValidatedInput(Input, ABC):
     """
     Base class for input widgets that have validation.
     """
+
+    def __init__(
+        self,
+        default_text="",
+        size=(None, None),
+        s=(None, None),
+        disabled=False,
+        password_char="",
+        setting=None,
+        justification=None,
+        background_color=None,
+        text_color=None,
+        font=None,
+        tooltip=None,
+        border_width=None,
+        change_submits=False,
+        do_not_clear=True,
+        key=None,
+        k=None,
+        focus=False,
+        pad=None,
+        p=None,
+        use_readonly_for_disable=True,
+        readonly=False,
+        disabled_readonly_background_color=None,
+        disabled_readonly_text_color=None,
+        selected_text_color=None,
+        selected_background_color=None,
+        expand_x=False,
+        expand_y=False,
+        right_click_menu=None,
+        visible=True,
+        metadata=None,
+        allow_no_input: bool = True,
+    ):
+        super().__init__(
+            default_text,
+            size,
+            s,
+            disabled,
+            password_char,
+            setting,
+            justification,
+            background_color,
+            text_color,
+            font,
+            tooltip,
+            border_width,
+            change_submits,
+            True,  # Enable events should always be true
+            do_not_clear,
+            key,
+            k,
+            focus,
+            pad,
+            p,
+            use_readonly_for_disable,
+            readonly,
+            disabled_readonly_background_color,
+            disabled_readonly_text_color,
+            selected_text_color,
+            selected_background_color,
+            expand_x,
+            expand_y,
+            right_click_menu,
+            visible,
+            metadata,
+        )
+        self.allow_no_input: bool = allow_no_input
 
     @abstractmethod
     def validation_status(self) -> Optional[str]:
@@ -48,11 +117,15 @@ class CoordinateInput(ValidatedInput):
 
     def validation_status(self) -> Optional[str]:
         if (
-            re.fullmatch(CoordinateInput.valid_coordinate_pattern, self.get()) is None
-            and re.fullmatch(r"None, ?None", self.get()) is None
+            re.fullmatch(CoordinateInput.valid_coordinate_pattern, self.get())
+            is not None
         ):
-            return "Invalid coordinates."
-        return None
+            return None
+
+        if self.get() == "None, None" and self.allow_no_input:
+            return None
+
+        return "Invalid coordinates."
 
 
 class DateInput(ValidatedInput):

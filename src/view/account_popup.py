@@ -73,7 +73,6 @@ class AccountPopup(DataPopup):
             NonNoneInput(
                 default_text="" if self.account.name is None else self.account.name,
                 key=AccountPopup.NAME_INPUT_KEY,
-                enable_events=True,
             ),
             PositiveIntInput(
                 default_text=(
@@ -82,7 +81,6 @@ class AccountPopup(DataPopup):
                     else str(self.account.amount_idx)
                 ),
                 key=AccountPopup.AMOUNT_IDX_INPUT_KEY,
-                enable_events=True,
             ),
             PositiveIntInput(
                 default_text=(
@@ -91,7 +89,6 @@ class AccountPopup(DataPopup):
                     else ""
                 ),
                 key=AccountPopup.DESCRIPTION_IDX_INPUT_KEY,
-                enable_events=True,
             ),
             PositiveIntInput(
                 default_text=(
@@ -100,7 +97,6 @@ class AccountPopup(DataPopup):
                     else ""
                 ),
                 key=AccountPopup.DATE_IDX_INPUT_KEY,
-                enable_events=True,
             ),
         ]
 

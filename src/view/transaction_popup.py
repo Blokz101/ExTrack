@@ -116,7 +116,6 @@ class TransactionPopup(DataPopup):
                     "" if self.trans.amounts() == [] else self.trans.total_amount()
                 ),
                 key="-TOTAL AMOUNT INPUT-",
-                enable_events=True,
                 expand_x=True,
             ),
             Combo(
@@ -137,7 +136,6 @@ class TransactionPopup(DataPopup):
             CoordinateInput(
                 default_text=f"{self.trans.lat}, {self.trans.long}",
                 key="-COORDINATE INPUT-",
-                enable_events=True,
                 expand_x=True,
             ),
             DateInput(
@@ -151,7 +149,6 @@ class TransactionPopup(DataPopup):
                     )
                 ),
                 key="-DATE INPUT-",
-                enable_events=True,
                 expand_x=True,
             ),
             Text(
@@ -223,6 +220,7 @@ class TransactionPopup(DataPopup):
             )
 
     # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
     def check_event(self, event: Any, values: dict) -> None:
         """
         Respond to events from the user.
@@ -264,6 +262,9 @@ class TransactionPopup(DataPopup):
             if len(coords) == 2:
                 self.trans.lat = float(coords[0])
                 self.trans.long = float(coords[1])
+            elif self.window["-COORDINATE INPUT-"].get() == "None, None":
+                self.trans.lat = None
+                self.trans.long = None
 
             user_input_date: str = self.window["-DATE INPUT-"].get()
             date: Optional[datetime] = None
@@ -429,7 +430,6 @@ class TransactionPopup(DataPopup):
                             ),
                             key=("-AMOUNT ROW AMOUNT-", self.amount_row_id),
                             size=TransactionPopup.AmountRow.AMOUNT_INPUT_WIDTH,
-                            enable_events=True,
                         ),
                         Button(
                             self.tags_as_string(),

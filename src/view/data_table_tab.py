@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
-from PySimpleGUI import Element, Table, Tab
+from PySimpleGUI import Element, Table, Tab  # type: ignore
 
 from src.model import database
 from src.model.account import Account
+from src.model.location import Location
 from src.model.merchant import Merchant
 from src.model.transaction import Transaction
 from src.view import full_date_format
 from src.view.account_popup import AccountPopup
 from src.view.data_popup import DataPopup
+from src.view.location_popup import LocationPopup
 from src.view.merchant_popup import MerchantPopup
 from src.view.transaction_popup import TransactionPopup
 
@@ -205,5 +207,52 @@ class AccountTab(DataTableTab):
 
         sqlid: int = self.row_id_list[selected_row]
         AccountPopup(Account.from_id(sqlid)).event_loop()
+
+        self.update_table()
+
+
+class LocationTab(DataTableTab):
+    """
+    Tab with table and DataPopup for the Locations table.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Locations", ["ID", "Description", "Merchant", "Latitude", "Longitude"]
+        )
+
+    def update_table(self) -> None:
+        """
+        Updates the table from the database and updates the row id list.
+        """
+        if database.is_connected():
+            self.values = [
+                [
+                    str(location.sqlid),
+                    "None" if location.description is None else location.description,
+                    location.merchant().name,  # type: ignore
+                    str(location.lat),
+                    str(location.long),
+                ]
+                for location in Location.get_all()
+            ]
+            self.row_id_list = [int(row[0]) for row in self.values]
+        else:
+            self.values = [["", "No database connected", "", "", ""]]
+            self.row_id_list = []
+
+        self._table.update(values=self.values)
+
+    def open_edit_popup(self, selected_row: int) -> None:
+        """
+        Opens the edit popup for the selected row.
+
+        :param selected_row: Index of the selected row
+        """
+        if not 0 <= selected_row < len(self.row_id_list):
+            return
+
+        sqlid: int = self.row_id_list[selected_row]
+        LocationPopup(Location.from_id(sqlid)).event_loop()
 
         self.update_table()

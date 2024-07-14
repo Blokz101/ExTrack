@@ -18,7 +18,7 @@ class MerchantPopup(DataPopup):
     Popup that allows the user to create or edit a merchant.
     """
 
-    MERCHANT_ID_TET_KEY: str = "-MERCHANT ID TEXT-"
+    MERCHANT_ID_TEXT_KEY: str = "-MERCHANT ID TEXT-"
     NAME_INPUT_KEY: str = "-NAME INPUT-"
     ONLINE_CHECKBOX_KEY: str = "-ONLINE CHECKBOX-"
     RULE_INPUT_KEY: str = "-RULE INPUT-"
@@ -57,11 +57,10 @@ class MerchantPopup(DataPopup):
         ]
 
         fields: list[Element] = [
-            Text(self.merchant.sqlid, key=MerchantPopup.MERCHANT_ID_TET_KEY),
+            Text(self.merchant.sqlid, key=MerchantPopup.MERCHANT_ID_TEXT_KEY),
             NonNoneInput(
                 default_text=("" if self.merchant.name is None else self.merchant.name),
                 key=MerchantPopup.NAME_INPUT_KEY,
-                enable_events=True,
             ),
             Checkbox(
                 text="",
