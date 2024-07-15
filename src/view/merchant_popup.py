@@ -83,6 +83,7 @@ class MerchantPopup(DataPopup):
                     )
                 ),
                 key=MerchantPopup.TAGS_BUTTON_KEY,
+                expand_x=True,
             ),
             Input(
                 default_text=("" if self.merchant.rule is None else self.merchant.rule),

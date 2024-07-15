@@ -33,8 +33,22 @@ class TestMainWindow(TestCase):
             "Penn Station",
             "08/27/2020 21:14:40",
         ],
-        ["2", "Savings", "New Macbook", "1245.34", "Apple", "10/09/2020 19:01:21"],
-        ["3", "Checking", "DND Dice", "12.98", "Etsy", "05/04/2023 23:44:29"],
+        [
+            "2",
+            "Savings",
+            "New Macbook",
+            "1245.34",
+            "Apple",
+            "10/09/2020 19:01:21",
+        ],
+        [
+            "3",
+            "Checking",
+            "DND Dice",
+            "12.98",
+            "Etsy",
+            "05/04/2023 23:44:29",
+        ],
         [
             "4",
             "Checking",
@@ -61,6 +75,20 @@ class TestMainWindow(TestCase):
         ],
     ]
 
+    EXPECTED_STATEMENTS_TAB_VALUES: list[list[str]] = [
+        ["1", "02/14/2019", "Checking", "3235.45", "True"],
+        ["2", "07/08/2020", "Checking", "664.45", "True"],
+        ["3", "07/20/2023", "Checking", "3825.01", "False"],
+        ["4", "12/21/2018", "Savings", "517.01", "True"],
+        ["5", "08/25/2019", "Savings", "320.93", "True"],
+        ["6", "04/22/2021", "Savings", "500.33", "False"],
+    ]
+
+    EXPECTED_ACCOUNTS_TAB_VALUES: list[list[str]] = [
+        ["1", "Checking", "2", "3", "7"],
+        ["2", "Savings", "3", "1", "5"],
+    ]
+
     EXPECTED_MERCHANT_TAB_VALUES: list[list[str]] = [
         ["1", "Penn Station", "False", "Dating, Eating Out", "pennstation"],
         ["2", "Outback Steak House", "False", "Eating Out", "outbackhouse"],
@@ -73,9 +101,63 @@ class TestMainWindow(TestCase):
         ["9", "Etsy", "True", "Personal", "etsy"],
     ]
 
-    EXPECTED_ACCOUNTS_TAB_VALUES: list[list[str]] = [
-        ["1", "Checking", "2", "3", "7"],
-        ["2", "Savings", "3", "1", "5"],
+    EXPECTED_LOCATION_TAB_VALUES: list[list[str]] = [
+        [
+            "1",
+            "Falls of Neuse",
+            "Penn Station",
+            "35.86837825457926",
+            "-78.62150981593383",
+        ],
+        [
+            "2",
+            "Capital",
+            "Outback Steak House",
+            "35.85665622223983",
+            "-78.58032796673776",
+        ],
+        [
+            "3",
+            "Crabtree Mall",
+            "Apple",
+            "35.8408590921226",
+            "-78.68011850195218",
+        ],
+        [
+            "4",
+            "EB2",
+            "Port City Java",
+            "35.77184197261896",
+            "-78.67356047898443",
+        ],
+        [
+            "5",
+            "Park Shops",
+            "Port City Java",
+            "35.78546665319359",
+            "-78.66708463594044",
+        ],
+        [
+            "6",
+            "Talley",
+            "Port City Java",
+            "35.78392567533286",
+            "-78.67092696947988",
+        ],
+        [
+            "7",
+            "Walnut",
+            "BJS",
+            "35.753166119681715",
+            "-78.74569648479638",
+        ],
+        [
+            "8",
+            "Falls River",
+            "Dollar General",
+            "35.906477682429525",
+            "-78.59029227485301",
+        ],
     ]
 
     EXPECTED_TAGS_TAB_VALUES: list[list[str]] = [
@@ -122,15 +204,17 @@ class TestMainWindow(TestCase):
         _, _ = app.window.read(timeout=0)
 
         self.assertTrue(view.notification_message_queue.empty())
-        # TODO Add row id list verification for the rest of the tabs
+
         self.assertEqual([], app.transaction_tab.row_id_list)
+        self.assertEqual([], app.statement_tab.row_id_list)
+        self.assertEqual([], app.account_tab.row_id_list)
         self.assertEqual([], app.merchant_tab.row_id_list)
+        self.assertEqual([], app.location_tab.row_id_list)
+        self.assertEqual([], app.tag_tab.row_id_list)
 
         self.assertTrue(test_settings_file_path.exists())
 
         app.window.close()
-
-        self.fail("Test not fully implemented, but has succeeded so far.")
 
     def test_window_construction_with_invalid_settings_no_database_1(self):
         """
@@ -147,13 +231,15 @@ class TestMainWindow(TestCase):
             "database_path must have a value in settings.json.",
             view.notification_message_queue.get(),
         )
-        # TODO Add row id list verification for the rest of the tabs
+
         self.assertEqual([], app.transaction_tab.row_id_list)
+        self.assertEqual([], app.statement_tab.row_id_list)
+        self.assertEqual([], app.account_tab.row_id_list)
         self.assertEqual([], app.merchant_tab.row_id_list)
+        self.assertEqual([], app.location_tab.row_id_list)
+        self.assertEqual([], app.tag_tab.row_id_list)
 
         app.window.close()
-
-        self.fail("Test not fully implemented, but has succeeded so far.")
 
     def test_window_construction_with_invalid_settings_no_database_2(self):
         """
@@ -171,13 +257,14 @@ class TestMainWindow(TestCase):
             f"Database file at path '{str(test_database_path.absolute())}' does not exist.",
             view.notification_message_queue.get(),
         )
-        # TODO Add row id list verification for the rest of the tabs
         self.assertEqual([], app.transaction_tab.row_id_list)
+        self.assertEqual([], app.statement_tab.row_id_list)
+        self.assertEqual([], app.account_tab.row_id_list)
         self.assertEqual([], app.merchant_tab.row_id_list)
+        self.assertEqual([], app.location_tab.row_id_list)
+        self.assertEqual([], app.tag_tab.row_id_list)
 
         app.window.close()
-
-        self.fail("Test not fully implemented, but has succeeded so far.")
 
     def test_window_construction_with_settings_with_database(self):
         """
@@ -193,24 +280,36 @@ class TestMainWindow(TestCase):
         _, _ = app.window.read(timeout=0)
 
         self.assertTrue(view.notification_message_queue.empty())
-        # TODO Add row id list verification for the rest of the tabs
+
+        # Check that each tab has the correct values
         self.assertEqual(list(range(1, 7)), app.transaction_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_TRANSACTION_TAB_VALUES, app.transaction_tab.values
         )
-        self.assertEqual(list(range(1, 10)), app.merchant_tab.row_id_list)
+
+        self.assertEqual(list(range(1, 7)), app.statement_tab.row_id_list)
         self.assertEqual(
-            TestMainWindow.EXPECTED_MERCHANT_TAB_VALUES, app.merchant_tab.values
+            TestMainWindow.EXPECTED_STATEMENTS_TAB_VALUES, app.statement_tab.values
         )
+
         self.assertEqual(list(range(1, 3)), app.account_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_ACCOUNTS_TAB_VALUES, app.account_tab.values
         )
+
+        self.assertEqual(list(range(1, 10)), app.merchant_tab.row_id_list)
+        self.assertEqual(
+            TestMainWindow.EXPECTED_MERCHANT_TAB_VALUES, app.merchant_tab.values
+        )
+
+        self.assertEqual(list(range(1, 9)), app.location_tab.row_id_list)
+        self.assertEqual(
+            TestMainWindow.EXPECTED_LOCATION_TAB_VALUES, app.location_tab.values
+        )
+
         self.assertEqual(list(range(1, 12)), app.tag_tab.row_id_list)
         self.assertEqual(TestMainWindow.EXPECTED_TAGS_TAB_VALUES, app.tag_tab.values)
 
         database.close()
         os.remove(test_database_path)
         app.window.close()
-
-        self.fail("Test not fully implemented, but has succeeded so far.")

@@ -107,7 +107,8 @@ class TestTransactionPopup(Sample1TestCase):
                 trans_amount.amount,
                 popup_window[("-AMOUNT ROW AMOUNT-", index)].get(),
             )
-            # Test tags differently for the case where the amount has tags and the case where it does not.
+            # Test tags differently for the case where the amount has tags and the case where it
+            # does not.
             if len(trans_amount.tags()) == 0:
                 self.assertEqual(
                     "No Tags",

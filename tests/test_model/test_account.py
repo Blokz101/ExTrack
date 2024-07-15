@@ -252,7 +252,7 @@ class TestAccount(Sample1TestCase):
             ),
             Statement(
                 3,
-                datetime.strptime("2023-07-20 05:46:37", date_format),
+                datetime.strptime("2023-07-20 00:00:00", date_format),
                 "NEWBOA.csv",
                 1,
                 3825.01,
@@ -263,7 +263,7 @@ class TestAccount(Sample1TestCase):
         expected_statements_2: list[Statement] = [
             Statement(4, "2018-12-21 00:00:00", "DISCOVER.csv", 2, 517.01, True),
             Statement(5, "2019-08-25 00:00:00", None, 2, 320.93, True),
-            Statement(6, "2021-04-22 09:01:52", "NEWDISCOVER.csv", 2, 500.33, False),
+            Statement(6, "2021-04-22 00:00:00", "NEWDISCOVER.csv", 2, 500.33, False),
         ]
 
         self.assertSqlListEqual(expected_statements_1, Account.from_id(1).statements())

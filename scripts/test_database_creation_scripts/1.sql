@@ -34,10 +34,10 @@ INSERT INTO accounts (id, name, amount_index, description_index, date_index) VAL
 
 INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (1, '2019-02-14 00:00:00', 'BOA.csv', 1, 3235.45, 1);
 INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (2, '2020-07-08 00:00:00', 'BOA1.csv', 1, 664.45, 1);
-INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (3, '2023-07-20 05:46:37', 'NEWBOA.csv', 1, 3825.01, 0);
+INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (3, '2023-07-20 00:00:00', 'NEWBOA.csv', 1, 3825.01, 0);
 INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (4, '2018-12-21 00:00:00', 'DISCOVER.csv', 2, 517.01, 1);
 INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (5, '2019-08-25 00:00:00', null, 2, 320.93, 1);
-INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (6, '2021-04-22 09:01:52', 'NEWDISCOVER.csv', 2, 500.33, 0);
+INSERT INTO statements (id, date, file_name, account_id, starting_balance, reconciled) VALUES (6, '2021-04-22 00:00:00', 'NEWDISCOVER.csv', 2, 500.33, 0);
 
 INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (1, 5);
 INSERT INTO mer_tag_defaults (merchant_id, tag_id) VALUES (1, 7);

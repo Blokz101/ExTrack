@@ -17,6 +17,7 @@ from PySimpleGUI import (  # type: ignore
 from src import model
 from src.model import database
 from src.view.data_table_tab import (
+    StatementTab,
     TransactionTab,
     MerchantTab,
     AccountTab,
@@ -40,6 +41,7 @@ class MainWindow(Popup):
 
     def __init__(self) -> None:
         # TODO Add other tabs then remove this comment
+        self.statement_tab: StatementTab
         self.transaction_tab: TransactionTab
         self.account_tab: AccountTab
         self.merchant_tab: MerchantTab
@@ -82,6 +84,7 @@ class MainWindow(Popup):
 
     def _layout_generator(self) -> list[list[Element]]:
         # TODO Add other tabs then remove this comment
+        self.statement_tab = StatementTab()
         self.transaction_tab = TransactionTab()
         self.account_tab = AccountTab()
         self.merchant_tab = MerchantTab()
@@ -96,7 +99,7 @@ class MainWindow(Popup):
                             # TODO Add other tabs then remove this comment
                             self.transaction_tab,
                             Tab("Budgets", [[Text("Coming Soon!")]]),
-                            Tab("Statements", [[Text("Coming Soon!")]]),
+                            self.statement_tab,
                             self.account_tab,
                             self.merchant_tab,
                             self.location_tab,
@@ -114,6 +117,7 @@ class MainWindow(Popup):
         Updates the table with transactions from the database.
         """
         # TODO Add other tabs then remove this comment
+        self.statement_tab.update_table()
         self.transaction_tab.update_table()
         self.account_tab.update_table()
         self.merchant_tab.update_table()
@@ -161,6 +165,7 @@ class MainWindow(Popup):
 
         # TODO Add other tabs then remove this comment
         for tab_key, tab in [
+            ("-STATEMENTS TABLE-", self.statement_tab),
             ("-TRANSACTIONS TABLE-", self.transaction_tab),
             ("-ACCOUNTS TABLE-", self.account_tab),
             ("-MERCHANTS TABLE-", self.merchant_tab),
