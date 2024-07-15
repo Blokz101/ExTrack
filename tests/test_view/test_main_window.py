@@ -73,9 +73,23 @@ class TestMainWindow(TestCase):
         ["9", "Etsy", "True", "Personal", "etsy"],
     ]
 
-    EXPECTED_ACCOUNTS_TAG_VALUES: list[list[str]] = [
+    EXPECTED_ACCOUNTS_TAB_VALUES: list[list[str]] = [
         ["1", "Checking", "2", "3", "7"],
         ["2", "Savings", "3", "1", "5"],
+    ]
+
+    EXPECTED_TAGS_TAB_VALUES: list[list[str]] = [
+        ["1", "Groceries", "False", "groc"],
+        ["2", "Gas", "False", "gas"],
+        ["3", "Anarack", "True", "None"],
+        ["4", "University", "False", "uni"],
+        ["5", "Dating", "False", "date"],
+        ["6", "Third Party Transaction", "False", "paid for by parents"],
+        ["7", "Eating Out", "False", "eatout"],
+        ["8", "Winter Park Trip", "True", "None"],
+        ["9", "The Maze Trip", "True", "None"],
+        ["10", "Personal", "False", "personal"],
+        ["11", "Coffee", "False", "coffee"],
     ]
 
     def setUp(self):
@@ -190,8 +204,10 @@ class TestMainWindow(TestCase):
         )
         self.assertEqual(list(range(1, 3)), app.account_tab.row_id_list)
         self.assertEqual(
-            TestMainWindow.EXPECTED_ACCOUNTS_TAG_VALUES, app.account_tab.values
+            TestMainWindow.EXPECTED_ACCOUNTS_TAB_VALUES, app.account_tab.values
         )
+        self.assertEqual(list(range(1, 12)), app.tag_tab.row_id_list)
+        self.assertEqual(TestMainWindow.EXPECTED_TAGS_TAB_VALUES, app.tag_tab.values)
 
         database.close()
         os.remove(test_database_path)

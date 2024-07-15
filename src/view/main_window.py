@@ -16,7 +16,13 @@ from PySimpleGUI import (  # type: ignore
 
 from src import model
 from src.model import database
-from src.view.data_table_tab import TransactionTab, MerchantTab, AccountTab, LocationTab
+from src.view.data_table_tab import (
+    TransactionTab,
+    MerchantTab,
+    AccountTab,
+    LocationTab,
+    TagTab,
+)
 from src.view.notify_popup import NotifyPopup
 from src.view.popup import Popup
 
@@ -38,6 +44,7 @@ class MainWindow(Popup):
         self.account_tab: AccountTab
         self.merchant_tab: MerchantTab
         self.location_tab: LocationTab
+        self.tag_tab: TagTab
 
         super().__init__("ExTract")
         database_path: Optional[Path] = self._get_database_path(notify_on_error=True)
@@ -79,6 +86,7 @@ class MainWindow(Popup):
         self.account_tab = AccountTab()
         self.merchant_tab = MerchantTab()
         self.location_tab = LocationTab()
+        self.tag_tab = TagTab()
         return [
             [MenuBar(MainWindow.MENU_DEFINITION)],
             [
@@ -92,7 +100,7 @@ class MainWindow(Popup):
                             self.account_tab,
                             self.merchant_tab,
                             self.location_tab,
-                            Tab("Tags", [[Text("Coming Soon!")]]),
+                            self.tag_tab,
                         ]
                     ],
                     expand_x=True,
@@ -110,6 +118,7 @@ class MainWindow(Popup):
         self.account_tab.update_table()
         self.merchant_tab.update_table()
         self.location_tab.update_table()
+        self.tag_tab.update_table()
 
     def check_event(self, event: Any, values: dict[Any, Any]) -> None:
         """
@@ -156,6 +165,7 @@ class MainWindow(Popup):
             ("-ACCOUNTS TABLE-", self.account_tab),
             ("-MERCHANTS TABLE-", self.merchant_tab),
             ("-LOCATIONS TABLE-", self.location_tab),
+            ("-TAGS TABLE-", self.tag_tab),
         ]:
             if event == tab_key and len(values[tab_key]) == 1:
                 tab.open_edit_popup(values[tab_key][0])
