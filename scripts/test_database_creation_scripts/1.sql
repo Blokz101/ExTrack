@@ -7,6 +7,24 @@ INSERT INTO merchants (id, name, online, rule) VALUES (6, 'BJS', 0, 'bjsrewards'
 INSERT INTO merchants (id, name, online, rule) VALUES (7, 'Dollar General', 0, 'dollar_general');
 INSERT INTO merchants (id, name, online, rule) VALUES (8, 'Bambu Labs', 1, 'bambu');
 INSERT INTO merchants (id, name, online, rule) VALUES (9, 'Etsy', 1, 'etsy');
+INSERT INTO merchants (id, name, online, rule) VALUES (10, 'Food Lion', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (11, 'Poke Burri', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (12, 'Quiznos', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (13, 'Cookout', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (14, 'Wolfpack Outfitters', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (15, 'Starbucks', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (16, 'Bojangles', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (17, 'CSV', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (18, 'Kabobi', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (19, 'Jimmy Johns', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (20, 'Papa Johns', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (21, 'Target', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (22, 'Sheetz', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (23, 'Sake House', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (24, 'The Daily Grind', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (25, 'Hiberian', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (26, 'Burger King', 0, null);
+INSERT INTO merchants (id, name, online, rule) VALUES (27, 'Lake Gaston Pizza', 0, null);
 
 INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (1, 'Falls of Neuse', 1, 35.86837825457926, -78.62150981593383);
 INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (2, 'Capital', 2, 35.85665622223983, -78.58032796673776);
