@@ -4,25 +4,17 @@ Tests the Location class.
 
 # mypy: ignore-errors
 from src.model.location import Location
-from src.model.merchant import Merchant
-from tests.test_model.sample_1_test_case import Sample1TestCase
+from tests.test_model.sample_1_test_case import (
+    Sample1TestCase,
+    EXPECTED_LOCATIONS,
+    EXPECTED_MERCHANTS,
+)
 
 
 class TestLocation(Sample1TestCase):
     """
     Tests the Location class.
     """
-
-    expected_locations: list[Location] = [
-        Location(1, "Falls of Neuse", 1, 35.86837825457926, -78.62150981593383),
-        Location(2, "Capital", 2, 35.85665622223983, -78.58032796673776),
-        Location(3, "Crabtree Mall", 4, 35.8408590921226, -78.68011850195218),
-        Location(4, "EB2", 5, 35.77184197261896, -78.67356047898443),
-        Location(5, "Park Shops", 5, 35.78546665319359, -78.66708463594044),
-        Location(6, "Talley", 5, 35.78392567533286, -78.67092696947988),
-        Location(7, "Walnut", 6, 35.753166119681715, -78.74569648479638),
-        Location(8, "Falls River", 7, 35.906477682429525, -78.59029227485301),
-    ]
 
     def test_from_id(self):
         """
@@ -55,7 +47,7 @@ class TestLocation(Sample1TestCase):
         Prerequisite: test_get_all() and from_id(sqlid: int)
         """
 
-        expected_locations: list[Location] = TestLocation.expected_locations.copy()
+        expected_locations: list[Location] = EXPECTED_LOCATIONS.copy()
         expected_locations.append(
             Location(9, "Nelson Hall", 5, 35.78828200046954, -78.67396105203677)
         )
@@ -113,7 +105,7 @@ class TestLocation(Sample1TestCase):
         with self.assertRaises(RuntimeError) as msg:
             location.sync()
         self.assertEqual("merchant_id cannot be None.", str(msg.exception))
-        self.assertSqlListEqual(TestLocation.expected_locations, Location.get_all())
+        self.assertSqlListEqual(EXPECTED_LOCATIONS, Location.get_all())
 
         # Try to sync with required fields
         location = Location(merchant_id=5, lat=10, long=-10)
@@ -121,9 +113,7 @@ class TestLocation(Sample1TestCase):
         self.assertIsNone(location.syncable())
 
         location.sync()
-        self.assertSqlListEqual(
-            TestLocation.expected_locations + [location], Location.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_LOCATIONS + [location], Location.get_all())
 
     def test_get_all(self):
         """
@@ -134,12 +124,7 @@ class TestLocation(Sample1TestCase):
 
         actual_locations: list[Location] = Location.get_all()
 
-        self.assertEqual(len(TestLocation.expected_locations), len(actual_locations))
-        for expected_location, actual_location in zip(
-            TestLocation.expected_locations, actual_locations
-        ):
-            self.assertEqual(expected_location.sqlid, actual_location.sqlid)
-            self.assertEqual(expected_location, actual_location)
+        self.assertSqlListEqual(EXPECTED_LOCATIONS, actual_locations)
 
     def test_merchant(self):
         """
@@ -148,17 +133,11 @@ class TestLocation(Sample1TestCase):
         Prerequisite: test_from_id()
         """
 
-        self.assertEqual(
-            Merchant(5, "Port City Java", False, None), Location.from_id(5).merchant()
-        )
+        self.assertEqual(EXPECTED_MERCHANTS[5 - 1], Location.from_id(5).merchant())
 
-        self.assertEqual(
-            Merchant(5, "Port City Java", False, None), Location.from_id(4).merchant()
-        )
+        self.assertEqual(EXPECTED_MERCHANTS[5 - 1], Location.from_id(4).merchant())
 
-        self.assertEqual(
-            Merchant(4, "Apple", False, None), Location.from_id(3).merchant()
-        )
+        self.assertEqual(EXPECTED_MERCHANTS[4 - 1], Location.from_id(3).merchant())
 
         # Test with new location
         self.assertEqual(None, Location().merchant())

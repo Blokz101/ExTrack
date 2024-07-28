@@ -6,110 +6,24 @@ Tests the Transaction class.
 from datetime import datetime
 
 from src.model import date_format
-from src.model.account import Account
 from src.model.amount import Amount
-from src.model.merchant import Merchant
-from src.model.statement import Statement
 from src.model.tag import Tag
 from src.model.transaction import Transaction
-from tests.test_model.sample_1_test_case import Sample1TestCase
+from tests.test_model.sample_1_test_case import (
+    Sample1TestCase,
+    EXPECTED_TRANSACTIONS,
+    EXPECTED_STATEMENTS,
+    EXPECTED_ACCOUNTS,
+    EXPECTED_MERCHANTS,
+    EXPECTED_AMOUNTS,
+    EXPECTED_TAGS,
+)
 
 
 class TestTransaction(Sample1TestCase):
     """
     Tests the Transaction class.
     """
-
-    expected_transactions: list[Transaction] = [
-        Transaction(
-            1,
-            "Date with Sara",
-            1,
-            False,
-            datetime.strptime("2020-08-27 21:14:40", date_format),
-            None,
-            "IMAGE4.jpeg",
-            35.868317424041166,
-            -78.62154243252625,
-            1,
-            None,
-        ),
-        Transaction(
-            2,
-            "New Macbook",
-            4,
-            True,
-            datetime.strptime("2020-10-09 19:01:21", date_format),
-            5,
-            "IMAGE8932.png",
-            35.840809717971595,
-            -78.68013948171635,
-            2,
-            None,
-        ),
-        Transaction(
-            3,
-            "DND Dice",
-            9,
-            True,
-            datetime.strptime("2023-05-04 23:44:29", date_format),
-            1,
-            "IMAGE22.png",
-            None,
-            None,
-            1,
-            None,
-        ),
-        Transaction(
-            4,
-            "Things from Amazon",
-            3,
-            True,
-            datetime.strptime("2020-09-28 19:26:10", date_format),
-            1,
-            None,
-            None,
-            None,
-            1,
-            None,
-        ),
-        Transaction(
-            5,
-            "Transfer From Savings",
-            None,
-            False,
-            datetime.strptime("2021-02-15 02:32:18", date_format),
-            None,
-            None,
-            None,
-            None,
-            2,
-            6,
-        ),
-        Transaction(
-            6,
-            "Transfer Into Checking",
-            None,
-            False,
-            datetime.strptime("2021-02-15 02:33:05", date_format),
-            None,
-            None,
-            None,
-            None,
-            1,
-            5,
-        ),
-    ]
-
-    expected_amounts: list[Amount] = [
-        Amount(1, 20.54, 1, None),
-        Amount(2, 1245.34, 2, None),
-        Amount(3, 12.98, 3, None),
-        Amount(4, 34.82, 4, "PC Parts"),
-        Amount(5, 12.63, 4, "Textbook"),
-        Amount(6, -100, 5, None),
-        Amount(7, 100, 6, None),
-    ]
 
     def test_from_id(self):
         """
@@ -142,9 +56,7 @@ class TestTransaction(Sample1TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_transactions: list[Transaction] = (
-            TestTransaction.expected_transactions.copy()
-        )
+        expected_transactions: list[Transaction] = EXPECTED_TRANSACTIONS.copy()
         expected_transactions.append(
             Transaction(
                 7,
@@ -253,9 +165,7 @@ class TestTransaction(Sample1TestCase):
         with self.assertRaises(RuntimeError) as msg:
             trans.sync()
         self.assertEqual("reconciled cannot be None.", str(msg.exception))
-        self.assertSqlListEqual(
-            TestTransaction.expected_transactions, Transaction.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_TRANSACTIONS, Transaction.get_all())
 
         # Try to sync with required fields
         trans = Transaction(reconciled=True, account_id=1)
@@ -263,9 +173,7 @@ class TestTransaction(Sample1TestCase):
         self.assertIsNone(trans.syncable())
 
         trans.sync()
-        self.assertSqlListEqual(
-            TestTransaction.expected_transactions + [trans], Transaction.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_TRANSACTIONS + [trans], Transaction.get_all())
 
     def test_get_all(self):
         """
@@ -274,9 +182,7 @@ class TestTransaction(Sample1TestCase):
         Prerequisite: None
         """
 
-        self.assertSqlListEqual(
-            TestTransaction.expected_transactions, Transaction.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_TRANSACTIONS, Transaction.get_all())
 
     def test_merchant(self):
         """
@@ -285,13 +191,9 @@ class TestTransaction(Sample1TestCase):
         Prerequisite: test_from_id()
         """
 
-        self.assertEqual(
-            Merchant(4, "Apple", False, None), Transaction.from_id(2).merchant()
-        )
+        self.assertEqual(EXPECTED_MERCHANTS[4 - 1], Transaction.from_id(2).merchant())
 
-        self.assertEqual(
-            Merchant(9, "Etsy", True, "etsy"), Transaction.from_id(3).merchant()
-        )
+        self.assertEqual(EXPECTED_MERCHANTS[9 - 1], Transaction.from_id(3).merchant())
 
         self.assertEqual(
             None,
@@ -309,19 +211,12 @@ class TestTransaction(Sample1TestCase):
         """
 
         self.assertEqual(
-            Statement(5, "2019-08-25 00:00:00", None, 2, 320.93, True),
+            EXPECTED_STATEMENTS[5 - 1],
             Transaction.from_id(2).statement(),
         )
 
         self.assertEqual(
-            Statement(
-                1,
-                datetime.strptime("2019-02-14 00:00:00", date_format),
-                "BOA.csv",
-                1,
-                3235.45,
-                True,
-            ),
+            EXPECTED_STATEMENTS[1 - 1],
             Transaction.from_id(4).statement(),
         )
 
@@ -340,13 +235,8 @@ class TestTransaction(Sample1TestCase):
         Prerequisite: test_from_id()
         """
 
-        self.assertEqual(
-            Account(1, "Checking", 2, 3, 7), Transaction.from_id(1).account()
-        )
-
-        self.assertEqual(
-            Account(2, "Savings", 3, 1, 5), Transaction.from_id(5).account()
-        )
+        self.assertEqual(EXPECTED_ACCOUNTS[1 - 1], Transaction.from_id(1).account())
+        self.assertEqual(EXPECTED_ACCOUNTS[2 - 1], Transaction.from_id(5).account())
 
         # Test with new Transaction
         self.assertEqual(None, Transaction().account())
@@ -359,36 +249,12 @@ class TestTransaction(Sample1TestCase):
         """
 
         self.assertEqual(
-            Transaction(
-                6,
-                "Transfer Into Checking",
-                None,
-                False,
-                datetime.strptime("2021-02-15 02:33:05", date_format),
-                None,
-                None,
-                None,
-                None,
-                1,
-                5,
-            ),
+            EXPECTED_TRANSACTIONS[6 - 1],
             Transaction.from_id(5).transfer_trans(),
         )
 
         self.assertEqual(
-            Transaction(
-                5,
-                "Transfer From Savings",
-                None,
-                False,
-                datetime.strptime("2021-02-15 02:32:18", date_format),
-                None,
-                None,
-                None,
-                None,
-                2,
-                6,
-            ),
+            EXPECTED_TRANSACTIONS[5 - 1],
             Transaction.from_id(6).transfer_trans(),
         )
 
@@ -419,13 +285,13 @@ class TestTransaction(Sample1TestCase):
         """
 
         expected_amounts: list[Amount] = [
-            Amount(4, 34.82, 4, "PC Parts"),
-            Amount(5, 12.63, 4, "Textbook"),
+            EXPECTED_AMOUNTS[4 - 1],
+            EXPECTED_AMOUNTS[5 - 1],
         ]
 
         self.assertSqlListEqual(expected_amounts, Transaction.from_id(4).amounts())
 
-        expected_amounts = [Amount(2, 1245.34, 2, None)]
+        expected_amounts = [EXPECTED_AMOUNTS[2 - 1]]
 
         self.assertEqual(expected_amounts, Transaction.from_id(2).amounts())
 
@@ -434,7 +300,8 @@ class TestTransaction(Sample1TestCase):
 
     def test_split_amount(self):
         """
-        Tests Transaction.split_amount(existing_amount_id: int, new_amount: float, description: str = "")
+        Tests Transaction.split_amount(existing_amount_id: int, new_amount: float, description: str
+        = "")
 
         Prerequisite: test_from_id() and test_total_amount() and test_amounts()
         """
@@ -462,7 +329,7 @@ class TestTransaction(Sample1TestCase):
         with self.assertRaises(ValueError) as msg:
             Transaction.from_id(6).split_amount(3, 2.41, "illegal split")
         self.assertEqual(
-            f"This transaction does not have an amount with id = 3.", str(msg.exception)
+            "This transaction does not have an amount with id = 3.", str(msg.exception)
         )
 
     def test_combine_amounts(self):
@@ -504,23 +371,21 @@ class TestTransaction(Sample1TestCase):
 
         # Test with transaction 1
         expected_tags: list[Tag] = [
-            Tag(5, "Dating", False),
-            Tag(7, "Eating Out", False),
+            EXPECTED_TAGS[5 - 1],
+            EXPECTED_TAGS[7 - 1],
         ]
 
         self.assertSqlListEqual(expected_tags, Transaction.from_id(1).tags())
 
         # Test with transaction 3
-        expected_tags = [
-            Tag(10, "Personal", False),
-        ]
+        expected_tags = [EXPECTED_TAGS[10 - 1]]
 
         self.assertSqlListEqual(expected_tags, Transaction.from_id(3).tags())
 
         # Test with transaction 2
         expected_tags = [
-            Tag(4, "University", False),
-            Tag(10, "Personal", False),
+            EXPECTED_TAGS[4 - 1],
+            EXPECTED_TAGS[10 - 1],
         ]
 
         self.assertSqlListEqual(expected_tags, Transaction.from_id(2).tags())

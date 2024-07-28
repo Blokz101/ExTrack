@@ -3,29 +3,22 @@ Test the Amount class.
 """
 
 # mypy: ignore-errors
-from datetime import datetime
 
-from src.model import date_format, database
+from src.model import database
 from src.model.amount import Amount
 from src.model.tag import Tag
-from src.model.transaction import Transaction
-from tests.test_model.sample_1_test_case import Sample1TestCase
+from tests.test_model.sample_1_test_case import (
+    Sample1TestCase,
+    EXPECTED_AMOUNTS,
+    EXPECTED_TRANSACTIONS,
+    EXPECTED_TAGS,
+)
 
 
 class TestAmount(Sample1TestCase):
     """
     Tests the Amount class.
     """
-
-    expected_amounts: list[Amount] = [
-        Amount(1, 20.54, 1, None),
-        Amount(2, 1245.34, 2, None),
-        Amount(3, 12.98, 3, None),
-        Amount(4, 34.82, 4, "PC Parts"),
-        Amount(5, 12.63, 4, "Textbook"),
-        Amount(6, -100, 5, None),
-        Amount(7, 100, 6, None),
-    ]
 
     def test_from_id(self):
         """
@@ -56,7 +49,7 @@ class TestAmount(Sample1TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
 
-        expected_amounts: list[Amount] = TestAmount.expected_amounts.copy()
+        expected_amounts: list[Amount] = EXPECTED_AMOUNTS.copy()
         expected_amounts.append(Amount(8, 65.48, 4, "Box Fan"))
 
         # Test create new Amount
@@ -103,7 +96,7 @@ class TestAmount(Sample1TestCase):
         with self.assertRaises(RuntimeError) as msg:
             amount.sync()
         self.assertEqual("amount cannot be None.", str(msg.exception))
-        self.assertSqlListEqual(TestAmount.expected_amounts, Amount.get_all())
+        self.assertSqlListEqual(EXPECTED_AMOUNTS, Amount.get_all())
 
         # Try to sync with the required fields
         amount = Amount(amount=57.34, transaction_id=3)
@@ -111,9 +104,7 @@ class TestAmount(Sample1TestCase):
         self.assertIsNone(amount.syncable())
 
         amount.sync()
-        self.assertSqlListEqual(
-            TestAmount.expected_amounts + [amount], Amount.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_AMOUNTS + [amount], Amount.get_all())
 
     def test_get_all(self):
         """
@@ -122,7 +113,7 @@ class TestAmount(Sample1TestCase):
         Prerequisite: None
         """
 
-        self.assertSqlListEqual(TestAmount.expected_amounts, Amount.get_all())
+        self.assertSqlListEqual(EXPECTED_AMOUNTS, Amount.get_all())
 
     def test_transaction(self):
         """
@@ -133,55 +124,16 @@ class TestAmount(Sample1TestCase):
 
         # Test with amount 2
         self.assertSqlEqual(
-            Transaction(
-                2,
-                "New Macbook",
-                4,
-                True,
-                datetime.strptime("2020-10-09 19:01:21", date_format),
-                5,
-                "IMAGE8932.png",
-                35.840809717971595,
-                -78.68013948171635,
-                2,
-                None,
-            ),
-            Amount.from_id(2).transaction(),
+            EXPECTED_TRANSACTIONS[2 - 1], Amount.from_id(2).transaction()
         )
 
         # Test with amount 4 and 5
         self.assertSqlEqual(
-            Transaction(
-                4,
-                "Things from Amazon",
-                3,
-                True,
-                datetime.strptime("2020-09-28 19:26:10", date_format),
-                1,
-                None,
-                None,
-                None,
-                1,
-                None,
-            ),
-            Amount.from_id(4).transaction(),
+            EXPECTED_TRANSACTIONS[4 - 1], Amount.from_id(4).transaction()
         )
 
         self.assertSqlEqual(
-            Transaction(
-                4,
-                "Things from Amazon",
-                3,
-                True,
-                datetime.strptime("2020-09-28 19:26:10", date_format),
-                1,
-                None,
-                None,
-                None,
-                1,
-                None,
-            ),
-            Amount.from_id(5).transaction(),
+            EXPECTED_TRANSACTIONS[4 - 1], Amount.from_id(5).transaction()
         )
 
         # Test with new Amount
@@ -195,7 +147,7 @@ class TestAmount(Sample1TestCase):
         """
 
         # Test with valid amounts
-        expected_amounts: list[Amount] = TestAmount.expected_amounts.copy()
+        expected_amounts: list[Amount] = EXPECTED_AMOUNTS.copy()
         expected_amounts.pop(3)
 
         Amount.from_id(4).delete()
@@ -224,27 +176,19 @@ class TestAmount(Sample1TestCase):
         """
 
         # Test with amount 1
-        expected_tags: list[Tag] = [
-            Tag(5, "Dating", False, "date"),
-            Tag(7, "Eating Out", False, "eatout"),
-        ]
+        expected_tags: list[Tag] = [EXPECTED_TAGS[5 - 1], EXPECTED_TAGS[7 - 1]]
         actual_tags: list[Tag] = Amount.from_id(1).tags()
 
         self.assertSqlListEqual(expected_tags, actual_tags)
 
         # Test with amount 2
-        expected_tags: list[Tag] = [
-            Tag(4, "University", False, "uni"),
-            Tag(10, "Personal", False, "personal"),
-        ]
+        expected_tags: list[Tag] = [EXPECTED_TAGS[4 - 1], EXPECTED_TAGS[10 - 1]]
         actual_tags: list[Tag] = Amount.from_id(2).tags()
 
         self.assertSqlListEqual(actual_tags, expected_tags)
 
         # Test with amount 4
-        expected_tags: list[Tag] = [
-            Tag(3, "Anarack", True, None),
-        ]
+        expected_tags: list[Tag] = [EXPECTED_TAGS[3 - 1]]
         actual_tags: list[Tag] = Amount.from_id(4).tags()
 
         self.assertSqlListEqual(expected_tags, actual_tags)

@@ -408,7 +408,7 @@ class Transaction(SqlObject):
 
         cur.execute(
             """
-            SELECT tags.id, tags.name, tags.occasional
+            SELECT tags.id, tags.name, tags.occasional, tags.rule
             FROM tags
             INNER JOIN amount_tags ON tags.id = amount_tags.tag_id
             INNER JOIN amounts ON amount_tags.amount_id = amounts.id

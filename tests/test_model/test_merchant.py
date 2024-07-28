@@ -3,32 +3,24 @@ Tests the Merchant class.
 """
 
 # mypy: ignore-errors
-from datetime import datetime
 
-from src.model import date_format
 from src.model.location import Location
 from src.model.merchant import Merchant
 from src.model.tag import Tag
 from src.model.transaction import Transaction
-from tests.test_model.sample_1_test_case import Sample1TestCase
+from tests.test_model.sample_1_test_case import (
+    Sample1TestCase,
+    EXPECTED_MERCHANTS,
+    EXPECTED_TRANSACTIONS,
+    EXPECTED_LOCATIONS,
+    EXPECTED_TAGS,
+)
 
 
 class TestMerchant(Sample1TestCase):
     """
     Tests the Merchant class.
     """
-
-    expected_merchants: list[Merchant] = [
-        Merchant(1, "Penn Station", False, "pennstation"),
-        Merchant(2, "Outback Steak House", False, "outbackhouse"),
-        Merchant(3, "Amazon", True, "amazon"),
-        Merchant(4, "Apple", False, None),
-        Merchant(5, "Port City Java", False, None),
-        Merchant(6, "BJS", False, "bjsrewards"),
-        Merchant(7, "Dollar General", False, "dollar_general"),
-        Merchant(8, "Bambu Labs", True, "bambu"),
-        Merchant(9, "Etsy", True, "etsy"),
-    ]
 
     def test_from_id(self):
         """
@@ -61,7 +53,7 @@ class TestMerchant(Sample1TestCase):
         Prerequisite: test_get_all() and test_from_id()
         """
         # Test create new Merchant
-        expected_merchants: list[Merchant] = TestMerchant.expected_merchants.copy()
+        expected_merchants: list[Merchant] = EXPECTED_MERCHANTS.copy()
         expected_merchants.append(
             Merchant(10, "Wolf Pack Outfitters", False, "wolfPACK")
         )
@@ -113,7 +105,7 @@ class TestMerchant(Sample1TestCase):
         with self.assertRaises(RuntimeError) as msg:
             merchant.sync()
         self.assertEqual("name cannot be None.", str(msg.exception))
-        self.assertSqlListEqual(TestMerchant.expected_merchants, Merchant.get_all())
+        self.assertSqlListEqual(EXPECTED_MERCHANTS, Merchant.get_all())
 
         # Try to sync with required fields
         merchant = Merchant(name="Smash Burger", online=False)
@@ -121,9 +113,7 @@ class TestMerchant(Sample1TestCase):
         self.assertIsNone(merchant.syncable())
 
         merchant.sync()
-        self.assertSqlListEqual(
-            TestMerchant.expected_merchants + [merchant], Merchant.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_MERCHANTS + [merchant], Merchant.get_all())
 
     def test_get_all(self):
         """
@@ -134,12 +124,7 @@ class TestMerchant(Sample1TestCase):
 
         actual_merchants: list[Merchant] = Merchant.get_all()
 
-        self.assertEqual(len(TestMerchant.expected_merchants), len(actual_merchants))
-        for expected_merchant, actual_merchant in zip(
-            TestMerchant.expected_merchants, actual_merchants
-        ):
-            self.assertEqual(expected_merchant.sqlid, actual_merchant.sqlid)
-            self.assertEqual(expected_merchant, actual_merchant)
+        self.assertSqlListEqual(EXPECTED_MERCHANTS, actual_merchants)
 
     def test_transactions(self):
         """
@@ -148,21 +133,7 @@ class TestMerchant(Sample1TestCase):
         Prerequisite: test_from_id()
         """
 
-        expected_transactions: list[Transaction] = [
-            Transaction(
-                4,
-                "Things from Amazon",
-                3,
-                True,
-                datetime.strptime("2020-09-28 19:26:10", date_format),
-                1,
-                None,
-                None,
-                None,
-                1,
-                None,
-            ),
-        ]
+        expected_transactions: list[Transaction] = [EXPECTED_TRANSACTIONS[4 - 1]]
 
         self.assertSqlListEqual(
             expected_transactions, Merchant.from_id(3).transactions()
@@ -179,19 +150,14 @@ class TestMerchant(Sample1TestCase):
         """
 
         expected_locations: list[Location] = [
-            Location(4, "EB2", 5, 35.77184197261896, -78.67356047898443),
-            Location(5, "Park Shops", 5, 35.78546665319359, -78.66708463594044),
-            Location(6, "Talley", 5, 35.78392567533286, -78.67092696947988),
+            EXPECTED_LOCATIONS[4 - 1],
+            EXPECTED_LOCATIONS[5 - 1],
+            EXPECTED_LOCATIONS[6 - 1],
         ]
 
         actual_locations: list[Location] = Merchant.from_id(5).locations()
 
-        self.assertEqual(len(expected_locations), len(actual_locations))
-        for expected_location, actual_location in zip(
-            expected_locations, actual_locations
-        ):
-            self.assertEqual(expected_location.sqlid, actual_location.sqlid)
-            self.assertEqual(expected_location, actual_location)
+        self.assertSqlListEqual(expected_locations, actual_locations)
 
         # Test with new merchant
         self.assertEqual([], Merchant().locations())
@@ -205,8 +171,8 @@ class TestMerchant(Sample1TestCase):
 
         # Test with Penn Station
         expected_tags: list[Tag] = [
-            Tag(5, "Dating", False, "date"),
-            Tag(7, "Eating Out", False, "eatout"),
+            EXPECTED_TAGS[5 - 1],
+            EXPECTED_TAGS[7 - 1],
         ]
         actual_tags: list[Tag] = Merchant.from_id(1).default_tags()
 

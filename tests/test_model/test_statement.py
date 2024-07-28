@@ -6,46 +6,20 @@ Tests the Statement class.
 from datetime import datetime
 
 from src.model import date_format
-from src.model.account import Account
 from src.model.statement import Statement
 from src.model.transaction import Transaction
-from tests.test_model.sample_1_test_case import Sample1TestCase
+from tests.test_model.sample_1_test_case import (
+    Sample1TestCase,
+    EXPECTED_STATEMENTS,
+    EXPECTED_TRANSACTIONS,
+    EXPECTED_ACCOUNTS,
+)
 
 
 class TestStatement(Sample1TestCase):
     """
     Tests the Statement class.
     """
-
-    expected_statements: list[Statement] = [
-        Statement(
-            1,
-            datetime.strptime("2019-02-14 00:00:00", date_format),
-            "BOA.csv",
-            1,
-            3235.45,
-            True,
-        ),
-        Statement(
-            2,
-            datetime.strptime("2020-07-08 00:00:00", date_format),
-            "BOA1.csv",
-            1,
-            66.45,
-            True,
-        ),
-        Statement(
-            3,
-            datetime.strptime("2023-07-20 00:00:00", date_format),
-            "NEWBOA.csv",
-            1,
-            3825.01,
-            False,
-        ),
-        Statement(4, "2018-12-21 00:00:00", "DISCOVER.csv", 2, 517.01, True),
-        Statement(5, "2019-08-25 00:00:00", None, 2, 320.93, True),
-        Statement(6, "2021-04-22 00:00:00", "NEWDISCOVER.csv", 2, 500.33, False),
-    ]
 
     def test_from_id(self):
         """
@@ -78,7 +52,7 @@ class TestStatement(Sample1TestCase):
         Prerequisite: test_get_all() and from_id(sqlid: int)
         """
 
-        expected_statements: list[Statement] = TestStatement.expected_statements.copy()
+        expected_statements: list[Statement] = EXPECTED_STATEMENTS.copy()
         expected_statements.append(
             Statement(
                 7,
@@ -149,7 +123,7 @@ class TestStatement(Sample1TestCase):
         with self.assertRaises(RuntimeError) as msg:
             statement.sync()
         self.assertEqual("date cannot be None.", str(msg.exception))
-        self.assertSqlListEqual(TestStatement.expected_statements, Statement.get_all())
+        self.assertSqlListEqual(EXPECTED_STATEMENTS, Statement.get_all())
 
         # Try to sync with required fields
         statement = Statement(
@@ -162,9 +136,7 @@ class TestStatement(Sample1TestCase):
         self.assertIsNone(statement.syncable())
 
         statement.sync()
-        self.assertSqlListEqual(
-            TestStatement.expected_statements + [statement], Statement.get_all()
-        )
+        self.assertSqlListEqual(EXPECTED_STATEMENTS + [statement], Statement.get_all())
 
     def test_get_all(self):
         """
@@ -175,12 +147,7 @@ class TestStatement(Sample1TestCase):
 
         actual_statements: list[Statement] = Statement.get_all()
 
-        self.assertEqual(len(TestStatement.expected_statements), len(actual_statements))
-        for expected_statement, actual_statement in zip(
-            TestStatement.expected_statements, actual_statements
-        ):
-            self.assertEqual(expected_statement.sqlid, actual_statement.sqlid)
-            self.assertEqual(expected_statement, actual_statement)
+        self.assertSqlListEqual(EXPECTED_STATEMENTS, actual_statements)
 
     def test_transactions(self):
         """
@@ -191,32 +158,8 @@ class TestStatement(Sample1TestCase):
 
         # Test with statement 1
         expected_transactions: list[Transaction] = [
-            Transaction(
-                3,
-                "DND Dice",
-                9,
-                True,
-                datetime.strptime("2023-05-04 23:44:29", date_format),
-                1,
-                "IMAGE22.png",
-                None,
-                None,
-                1,
-                None,
-            ),
-            Transaction(
-                4,
-                "Things from Amazon",
-                3,
-                True,
-                datetime.strptime("2020-09-28 19:26:10", date_format),
-                1,
-                None,
-                None,
-                None,
-                1,
-                None,
-            ),
+            EXPECTED_TRANSACTIONS[3 - 1],
+            EXPECTED_TRANSACTIONS[4 - 1],
         ]
         self.assertSqlListEqual(
             expected_transactions, Statement.from_id(1).transactions()
@@ -232,11 +175,9 @@ class TestStatement(Sample1TestCase):
         Prerequisite:
         """
 
-        self.assertEqual(
-            Account(1, "Checking", 2, 3, 7), Statement.from_id(2).account()
-        )
+        self.assertEqual(EXPECTED_ACCOUNTS[1 - 1], Statement.from_id(2).account())
 
-        self.assertEqual(Account(2, "Savings", 3, 1, 5), Statement.from_id(5).account())
+        self.assertEqual(EXPECTED_ACCOUNTS[2 - 1], Statement.from_id(5).account())
 
         # Test with new Statement
         self.assertEqual(None, Statement().account())
