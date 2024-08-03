@@ -12,8 +12,123 @@ from src.model.transaction import Transaction
 
 
 class ReceiptImporter:
+    """
+    Class that manages the import process of a receipt photo.
+    """
+
+    SUPPORTED_FILE_TYPES: list[str] = [".jpg", ".jpeg", ".png"]
+    """List of file extensions that are supported for receipt photos."""
 
     merchant_locations: Optional[list[Location]] = None
+    """List of all merchant locations so they are not queried multiple times."""
+
+    def __init__(self, receipt_path: Path) -> None:
+
+        self.receipt_path = receipt_path
+        """Location the receipt photo is stored."""
+
+        self.lat: Optional[float] = None
+        self.long: Optional[float] = None
+        self.description: Optional[str] = None
+        self.date: Optional[datetime] = None
+        self.possible_locations: Optional[list[tuple[Location, float]]] = None
+
+        self._read_exif_data()
+
+    def _read_exif_data(self) -> None:
+        """
+        Reads the exif data from the receipt photo and stores it in instance variables.
+        """
+        if not app_settings.receipts_folder().exists():
+            app_settings.receipts_folder().mkdir()
+
+        if not self.receipt_path.exists():
+            return
+
+        # Parse each receipt photo
+        with Image.open(self.receipt_path) as img:
+            exif_data: Image.Exif = img.getexif()
+
+            # Get data ids
+            gps_id: int = next(tag for tag, name in TAGS.items() if name == "GPSInfo")
+            img_desc_id: int = next(
+                tag for tag, name in TAGS.items() if name == "ImageDescription"
+            )
+            date_id: int = next(tag for tag, name in TAGS.items() if name == "DateTime")
+
+            # Get list of possible locations and set merchant id
+            try:
+                gps_info: dict = exif_data.get_ifd(gps_id)
+                self.lat = ReceiptImporter._decimal_coords(gps_info[2], gps_info[1])
+                self.long = ReceiptImporter._decimal_coords(gps_info[4], gps_info[3])
+
+                self.possible_locations = ReceiptImporter.nearby_locations(
+                    self.lat, self.long  # type: ignore
+                )
+            except KeyError:
+                pass
+
+            # Get date data
+            try:
+                self.date = datetime.strptime(exif_data[date_id], "%Y:%m:%d %H:%M:%S")
+            except KeyError:
+                pass
+
+            # Get description data
+            try:
+                self.description = (
+                    exif_data[img_desc_id].strip()
+                    if img_desc_id in exif_data.keys()
+                    else None
+                )
+            except KeyError:
+                pass
+
+    def create_transaction(self) -> Transaction:
+        """
+        Creates a transaction from the receipt data.
+
+        :return: Transaction created from the receipt data
+        """
+        return Transaction(
+            sqlid=None,
+            description=self.description,
+            merchant_id=(
+                None
+                if self.possible_locations is None or len(self.possible_locations) == 0
+                else self.possible_locations[0][0].merchant_id
+            ),
+            reconciled=False,
+            date=self.date,
+            statement_id=None,
+            receipt_file_name=self.receipt_path.name,
+            lat=self.lat,
+            long=self.long,
+            account_id=None,
+            transfer_trans_id=None,
+        )
+
+    def move_photo(self) -> None:
+        """
+        Moves the receipt photo to the ExTract storage folder.
+        """
+        new_path: Path = app_settings.receipts_folder() / self.receipt_path.name
+        self.receipt_path.rename(new_path)
+        self.receipt_path = new_path
+
+    @staticmethod
+    def get_importable_photos(folder: Path) -> list[Path]:
+        """
+        Gets all importable photos from a folder.
+
+        :param folder: Folder to get importable photos from
+        :return: List of importable photos
+        """
+        return [
+            file
+            for file in folder.iterdir()
+            if file.suffix in ReceiptImporter.SUPPORTED_FILE_TYPES
+        ]
 
     @staticmethod
     def get_merchant_locations() -> list[Location]:
@@ -77,87 +192,6 @@ class ReceiptImporter:
         rad: float = 3958.8
         c: float = 2 * math.asin(math.sqrt(a))
         return rad * c
-
-    @staticmethod
-    def import_receipt(
-        receipt_path: Path,
-    ) -> Optional[tuple[Transaction, list[Optional[int]]]]:
-        """
-        Creates a transaction object from a photo of a receipt.
-
-        :param receipt_path: Path to the receipt photo
-        :return: Transaction representation of the receipt and a list of ids for possible location
-        """
-        if not app_settings.receipts_folder().exists():
-            app_settings.receipts_folder().mkdir()
-
-        if not receipt_path.exists():
-            return None
-
-        # Parse each receipt photo
-        with Image.open(receipt_path) as img:
-            exif_data: Image.Exif = img.getexif()
-
-            # Get data ids
-            gps_id: int = next(tag for tag, name in TAGS.items() if name == "GPSInfo")
-            img_desc_id: int = next(
-                tag for tag, name in TAGS.items() if name == "ImageDescription"
-            )
-            date_id: int = next(tag for tag, name in TAGS.items() if name == "DateTime")
-
-            # Get list of possible locations and set merchant id
-            merchant_id: Optional[int] = None
-            locations: Optional[list[tuple[Location, float]]] = None
-            try:
-                gps_info: dict = exif_data.get_ifd(gps_id)
-                lat: float = ReceiptImporter._decimal_coords(gps_info[2], gps_info[1])
-                long: float = ReceiptImporter._decimal_coords(gps_info[4], gps_info[3])
-
-                locations = ReceiptImporter.nearby_locations(lat, long)
-                if len(locations) > 0:
-                    merchant_id = locations[0][0].merchant_id
-            except KeyError:
-                pass
-
-            # Get date
-            date: Optional[datetime] = None
-            try:
-                date = datetime.strptime(exif_data[date_id], "%Y:%m:%d %H:%M:%S")
-            except KeyError:
-                pass
-
-            # Get description
-            desc: Optional[str] = None
-            try:
-                desc = (
-                    exif_data[img_desc_id].strip()
-                    if img_desc_id in exif_data.keys()
-                    else None
-                )
-            except KeyError:
-                pass
-
-            # Create and return transaction
-            return (
-                Transaction(
-                    None,
-                    desc,
-                    merchant_id,
-                    False,
-                    date,
-                    None,
-                    receipt_path.name,
-                    lat,
-                    long,
-                    None,
-                    None,
-                ),
-                (
-                    []
-                    if locations is None
-                    else [loc_data[0].merchant_id for loc_data in locations]
-                ),
-            )
 
     @staticmethod
     def _decimal_coords(coords, ref):

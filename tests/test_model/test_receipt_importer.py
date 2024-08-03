@@ -2,6 +2,7 @@
 Tests the ReceiptImporter class.
 """
 
+# mypy: ignore-errors
 import os
 import shutil
 from pathlib import Path
@@ -13,8 +14,8 @@ from src import model
 from src.model.receipt_importer import ReceiptImporter
 from tests.test_model import (
     root_dir,
-    test_receipt_folder_path,
     sample_receipt_folder_1_path,
+    test_receipt_folder_path,
 )
 from tests.test_model.sample_1_test_case import (
     Sample1TestCase,
@@ -63,9 +64,24 @@ class TestReceiptImporter(Sample1TestCase):
             ],
         )
 
-    def test_import_receipt(self):
+    def test_create_transaction(self):
         """
-        Tests ReceiptImporter.import_receipt
+        Tests ReceiptImporter.create_transaction
+        """
+        model.app_settings.settings["receipts_folder"] = str(
+            sample_receipt_folder_1_path.absolute()
+        )
+
+        for expected_transaction, receipt_path in zip(
+            EXPECTED_IMPORTED_TRANSACTIONS, sample_receipt_folder_1_path.iterdir()
+        ):
+            self.assertSqlEqual(
+                expected_transaction, ReceiptImporter(receipt_path).create_transaction()
+            )
+
+    def test_move_photo(self):
+        """
+        Tests ReceiptImporter.create_transaction
         """
         # Setup
         if test_receipt_folder_path.exists():
@@ -80,14 +96,26 @@ class TestReceiptImporter(Sample1TestCase):
         for file in sample_receipt_folder_1_path.iterdir():
             shutil.copyfile(file, TestReceiptImporter.IMPORT_FOLDER_PATH / file.name)
 
+        # Test each receipt photo
         try:
-            for index, receipt in enumerate(
-                TestReceiptImporter.IMPORT_FOLDER_PATH.iterdir()
-            ):
-                self.assertSqlEqual(
-                    EXPECTED_IMPORTED_TRANSACTIONS[index],
-                    ReceiptImporter.import_receipt(receipt)[0],
+            for receipt in TestReceiptImporter.IMPORT_FOLDER_PATH.iterdir():
+
+                # Move the photo
+                importer: ReceiptImporter = ReceiptImporter(receipt)
+                previous_path: Path = importer.receipt_path
+                importer.move_photo()
+
+                # Check each photo was moved
+                self.assertEqual(
+                    model.app_settings.receipts_folder() / previous_path.name,
+                    importer.receipt_path,
                 )
+                self.assertTrue(
+                    (model.app_settings.receipts_folder() / previous_path.name).exists()
+                )
+                self.assertFalse(previous_path.exists())
+
+        # Clean up
         finally:
             shutil.rmtree(TestReceiptImporter.IMPORT_FOLDER_PATH)
             shutil.rmtree(test_receipt_folder_path)
