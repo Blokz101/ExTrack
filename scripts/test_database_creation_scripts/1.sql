@@ -33,7 +33,27 @@ INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (4, 'EB2'
 INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (5, 'Park Shops', 5, 35.78546665319359, -78.66708463594044);
 INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (6, 'Talley', 5, 35.78392567533286, -78.67092696947988);
 INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (7, 'Walnut', 6, 35.753166119681715, -78.74569648479638);
-INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (8, 'Falls River', 7, 35.906477682429525, -78.59029227485301);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (8, 'Durant', 7, 35.906477682429525, -78.59029227485301);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (9, 'Falls of the Neuse', 10, 35.89337371246719, -78.62682070349958);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (10, 'Falls Village', 11, 35.87316059117457, -78.62387896318373);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (11, 'Falls Village', 12, 35.87266509701044, -78.62377404808242);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (12, 'NCSU location', 1, 35.78961969483434, -78.67744821984563);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (13, 'NCSU location', 14, 35.78371200824164, -78.67068259230206);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (14, 'Six forks', 17, 35.86444584516455, -78.63808411691662);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (15, 'Falls of the neuse', 15, 35.90488523480609, -78.60189635156124);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (16, 'Durant', 16, 35.90587402814305, -78.59124502510124);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (17, 'NCSU location', 13, 35.78483093184499, -78.69310522708847);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (18, 'Crabtree', 18, 35.840705654273584, -78.68139611810646);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (19, 'Hope valley commons', 19, 35.91815724307745, -78.96090395401171);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (20, 'Strickland', 20, 35.90119175054282, -78.65620646798338);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (21, 'Hillsborough', 21, 35.78822882724383, -78.66875186876884);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (22, 'Lake gaston', 10, 36.53356305834947, -77.93897122255822);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (23, 'Lake gaston', 27, 36.533861832817294, -77.93855413228337);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (24, 'Durant', 23, 35.90689391700105, -78.58924633168667);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (25, 'Falls of the neuse', 10, 35.893427441044764, -78.62685981286576);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (26, 'Falls of the neuse', 25, 35.893861556979274, -78.62447705549985);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (27, 'Work', 26, 35.87550745065946, -78.85141266359875);
+INSERT INTO locations (id, description, merchant_id, lat, long) VALUES (28, 'Work', 16, 35.87821312322193, -78.85020094835637);
 
 INSERT INTO tags (id, name, occasional, rule) VALUES (1, 'Groceries', 0, 'groc');
 INSERT INTO tags (id, name, occasional, rule) VALUES (2, 'Gas', 0, 'gas');

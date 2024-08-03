@@ -45,7 +45,14 @@ class TestUserSettings(TestCase):
 
         self.assertTrue(test_settings_file_path.exists())
         self.assertIsNotNone(model.app_settings.settings_file_path)
-        self.assertEqual(model.app_settings.settings, {"database_path": ""})
+        self.assertEqual(
+            model.app_settings.settings,
+            {
+                "database_path": "",
+                "receipts_folder": "~/Documents/ExTrackReceipts",
+                "location_scan_radius": "0.2",
+            },
+        )
 
     def test_load_settings_without_file(self):
         """

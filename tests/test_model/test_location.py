@@ -37,8 +37,8 @@ class TestLocation(Sample1TestCase):
         self.assertEqual("No location with id = -1.", str(msg.exception))
 
         with self.assertRaises(ValueError) as msg:
-            Location.from_id(9)
-        self.assertEqual("No location with id = 9.", str(msg.exception))
+            Location.from_id(29)
+        self.assertEqual("No location with id = 29.", str(msg.exception))
 
     def test_sync(self):
         """
@@ -49,7 +49,7 @@ class TestLocation(Sample1TestCase):
 
         expected_locations: list[Location] = EXPECTED_LOCATIONS.copy()
         expected_locations.append(
-            Location(9, "Nelson Hall", 5, 35.78828200046954, -78.67396105203677)
+            Location(29, "Nelson Hall", 5, 35.78828200046954, -78.67396105203677)
         )
 
         # Test create new Location
@@ -59,7 +59,7 @@ class TestLocation(Sample1TestCase):
         location.sync()
 
         self.assertSqlListEqual(expected_locations, Location.get_all())
-        self.assertEqual(9, location.sqlid)
+        self.assertEqual(29, location.sqlid)
 
         # Update existing location
         expected_locations[1] = Location(

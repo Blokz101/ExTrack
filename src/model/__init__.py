@@ -21,3 +21,4 @@ settings_file_path: Path = root_dir / "settings.json"
 
 app_settings: UserSettings = UserSettings(settings_file_path)
 """User settings for the application."""
+app_settings.load_settings()

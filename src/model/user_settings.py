@@ -11,7 +11,11 @@ from typing import Optional, Any
 class UserSettings:
     """Gets user settings from the settings file or returns the default if no setting is found."""
 
-    DEFAULT_SETTINGS: dict[str, str] = {"database_path": ""}
+    DEFAULT_SETTINGS: dict[str, str] = {
+        "database_path": "",
+        "receipts_folder": "~/Documents/ExTrackReceipts",
+        "location_scan_radius": "0.2",
+    }
     """Default settings for the application."""
 
     def __init__(self, settings_file_path: Path) -> None:
@@ -54,7 +58,7 @@ class UserSettings:
         Get a setting from the settings file.
 
         :param key: Key to get from the settings file
-        :param require_existence: True if an error should be thrown if key is missing,
+        :param require_existence: True if an error should be thrown if key is missing
          false if default should be returned instead
         :param require_value: True if an error should be thrown if the value is empty
         :param default: Default value to return if the key is missing
@@ -95,6 +99,28 @@ class UserSettings:
         """
         database_path: Any = self._get_setting("database_path", require_existence=True)
         return None if database_path is None else Path(str(database_path))
+
+    def receipts_folder(self) -> Path:
+        """
+        Gets the path to the receipts folder from the settings.
+
+        :return: Path to receipts folder
+        """
+        receipts_folder: Any = self._get_setting(
+            "receipts_folder", require_existence=True
+        )
+        return Path(receipts_folder)
+
+    def location_scan_radius(self) -> float:
+        """
+        Gets the location scan radius from the settings.
+
+        :return: Radius in miles to scan for a merchant location match.
+        """
+        location: Any = self._get_setting(
+            "location_scan_radius", require_existence=True
+        )
+        return float(location)
 
     def set_database_path(self, new_path: Optional[Path]) -> None:
         """

@@ -99,6 +99,24 @@ class TestMainWindow(TestCase):
         ["7", "Dollar General", "False", "No Tags", "dollar_general"],
         ["8", "Bambu Labs", "True", "Personal", "bambu"],
         ["9", "Etsy", "True", "Personal", "etsy"],
+        ["10", "Food Lion", "False", "No Tags", "None"],
+        ["11", "Poke Burri", "False", "No Tags", "None"],
+        ["12", "Quiznos", "False", "No Tags", "None"],
+        ["13", "Cookout", "False", "No Tags", "None"],
+        ["14", "Wolfpack Outfitters", "False", "No Tags", "None"],
+        ["15", "Starbucks", "False", "No Tags", "None"],
+        ["16", "Bojangles", "False", "No Tags", "None"],
+        ["17", "CSV", "False", "No Tags", "None"],
+        ["18", "Kabobi", "False", "No Tags", "None"],
+        ["19", "Jimmy Johns", "False", "No Tags", "None"],
+        ["20", "Papa Johns", "False", "No Tags", "None"],
+        ["21", "Target", "False", "No Tags", "None"],
+        ["22", "Sheetz", "False", "No Tags", "None"],
+        ["23", "Sake House", "False", "No Tags", "None"],
+        ["24", "The Daily Grind", "False", "No Tags", "None"],
+        ["25", "Hiberian", "False", "No Tags", "None"],
+        ["26", "Burger King", "False", "No Tags", "None"],
+        ["27", "Lake Gaston Pizza", "False", "No Tags", "None"],
     ]
 
     EXPECTED_LOCATION_TAB_VALUES: list[list[str]] = [
@@ -116,20 +134,8 @@ class TestMainWindow(TestCase):
             "35.85665622223983",
             "-78.58032796673776",
         ],
-        [
-            "3",
-            "Crabtree Mall",
-            "Apple",
-            "35.8408590921226",
-            "-78.68011850195218",
-        ],
-        [
-            "4",
-            "EB2",
-            "Port City Java",
-            "35.77184197261896",
-            "-78.67356047898443",
-        ],
+        ["3", "Crabtree Mall", "Apple", "35.8408590921226", "-78.68011850195218"],
+        ["4", "EB2", "Port City Java", "35.77184197261896", "-78.67356047898443"],
         [
             "5",
             "Park Shops",
@@ -137,27 +143,83 @@ class TestMainWindow(TestCase):
             "35.78546665319359",
             "-78.66708463594044",
         ],
+        ["6", "Talley", "Port City Java", "35.78392567533286", "-78.67092696947988"],
+        ["7", "Walnut", "BJS", "35.753166119681715", "-78.74569648479638"],
+        ["8", "Durant", "Dollar General", "35.906477682429525", "-78.59029227485301"],
         [
-            "6",
-            "Talley",
-            "Port City Java",
-            "35.78392567533286",
-            "-78.67092696947988",
+            "9",
+            "Falls of the Neuse",
+            "Food Lion",
+            "35.89337371246719",
+            "-78.62682070349958",
         ],
         [
-            "7",
-            "Walnut",
-            "BJS",
-            "35.753166119681715",
-            "-78.74569648479638",
+            "10",
+            "Falls Village",
+            "Poke Burri",
+            "35.87316059117457",
+            "-78.62387896318373",
+        ],
+        ["11", "Falls Village", "Quiznos", "35.87266509701044", "-78.62377404808242"],
+        [
+            "12",
+            "NCSU location",
+            "Penn Station",
+            "35.78961969483434",
+            "-78.67744821984563",
         ],
         [
-            "8",
-            "Falls River",
-            "Dollar General",
-            "35.906477682429525",
-            "-78.59029227485301",
+            "13",
+            "NCSU location",
+            "Wolfpack Outfitters",
+            "35.78371200824164",
+            "-78.67068259230206",
         ],
+        ["14", "Six forks", "CSV", "35.86444584516455", "-78.63808411691662"],
+        [
+            "15",
+            "Falls of the neuse",
+            "Starbucks",
+            "35.90488523480609",
+            "-78.60189635156124",
+        ],
+        ["16", "Durant", "Bojangles", "35.90587402814305", "-78.59124502510124"],
+        ["17", "NCSU location", "Cookout", "35.78483093184499", "-78.69310522708847"],
+        ["18", "Crabtree", "Kabobi", "35.840705654273584", "-78.68139611810646"],
+        [
+            "19",
+            "Hope valley commons",
+            "Jimmy Johns",
+            "35.91815724307745",
+            "-78.96090395401171",
+        ],
+        ["20", "Strickland", "Papa Johns", "35.90119175054282", "-78.65620646798338"],
+        ["21", "Hillsborough", "Target", "35.78822882724383", "-78.66875186876884"],
+        ["22", "Lake gaston", "Food Lion", "36.53356305834947", "-77.93897122255822"],
+        [
+            "23",
+            "Lake gaston",
+            "Lake Gaston Pizza",
+            "36.533861832817294",
+            "-77.93855413228337",
+        ],
+        ["24", "Durant", "Sake House", "35.90689391700105", "-78.58924633168667"],
+        [
+            "25",
+            "Falls of the neuse",
+            "Food Lion",
+            "35.893427441044764",
+            "-78.62685981286576",
+        ],
+        [
+            "26",
+            "Falls of the neuse",
+            "Hiberian",
+            "35.893861556979274",
+            "-78.62447705549985",
+        ],
+        ["27", "Work", "Burger King", "35.87550745065946", "-78.85141266359875"],
+        ["28", "Work", "Bojangles", "35.87821312322193", "-78.85020094835637"],
     ]
 
     EXPECTED_TAGS_TAB_VALUES: list[list[str]] = [
@@ -297,12 +359,12 @@ class TestMainWindow(TestCase):
             TestMainWindow.EXPECTED_ACCOUNTS_TAB_VALUES, app.account_tab.values
         )
 
-        self.assertEqual(list(range(1, 10)), app.merchant_tab.row_id_list)
+        self.assertEqual(list(range(1, 28)), app.merchant_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_MERCHANT_TAB_VALUES, app.merchant_tab.values
         )
 
-        self.assertEqual(list(range(1, 9)), app.location_tab.row_id_list)
+        self.assertEqual(list(range(1, 29)), app.location_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_LOCATION_TAB_VALUES, app.location_tab.values
         )

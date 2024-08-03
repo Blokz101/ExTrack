@@ -43,8 +43,8 @@ class TestMerchant(Sample1TestCase):
         self.assertEqual("No merchant with id = -1.", str(msg.exception))
 
         with self.assertRaises(ValueError) as msg:
-            Merchant.from_id(10)
-        self.assertEqual("No merchant with id = 10.", str(msg.exception))
+            Merchant.from_id(28)
+        self.assertEqual("No merchant with id = 28.", str(msg.exception))
 
     def test_sync(self):
         """
@@ -55,14 +55,14 @@ class TestMerchant(Sample1TestCase):
         # Test create new Merchant
         expected_merchants: list[Merchant] = EXPECTED_MERCHANTS.copy()
         expected_merchants.append(
-            Merchant(10, "Wolf Pack Outfitters", False, "wolfPACK")
+            Merchant(28, "Wolf Pack Outfitters", False, "wolfPACK")
         )
 
         merchant: Merchant = Merchant(None, "Wolf Pack Outfitters", False, "wolfPACK")
         merchant.sync()
 
         self.assertSqlListEqual(expected_merchants, Merchant.get_all())
-        self.assertEqual(10, merchant.sqlid)
+        self.assertEqual(28, merchant.sqlid)
 
         # Update existing Merchant
         expected_merchants[3] = Merchant(4, "Apple Online Store", True, "Apple")
