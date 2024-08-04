@@ -21,10 +21,11 @@ class PhotoImportPopup(Popup):
     FILES_LISTBOX_KEY: str = "-FILES LISTBOX-"
     BEGIN_BUTTON_KEY: str = "-BEGIN BUTTON-"
 
-    previously_imported_folder: Optional[Path] = None
+    selected_folder: Optional[Path] = None
 
     def __init__(self, modal: bool = True) -> None:
         super().__init__("Import Photos", modal=modal)
+        self._select_folder(PhotoImportPopup.selected_folder)
 
     def _layout_generator(self) -> list[list[Element]]:
         """
@@ -35,6 +36,11 @@ class PhotoImportPopup(Popup):
         return [
             [
                 Input(
+                    default_text=(
+                        ""
+                        if PhotoImportPopup.selected_folder is None
+                        else str(PhotoImportPopup.selected_folder.absolute())
+                    ),
                     key=PhotoImportPopup.BROWSE_INPUT_KEY,
                     enable_events=True,
                     expand_x=True,
@@ -50,6 +56,7 @@ class PhotoImportPopup(Popup):
                     key=PhotoImportPopup.FILES_LISTBOX_KEY,
                     expand_x=True,
                     expand_y=True,
+                    size=(50, 20),
                 )
             ],
             [
@@ -67,19 +74,31 @@ class PhotoImportPopup(Popup):
         :param values: Values related to the event
         """
 
-        folder_path: Path = Path(values[PhotoImportPopup.BROWSE_INPUT_KEY])
-        if folder_path.exists() and folder_path.is_dir():
+        if event == PhotoImportPopup.BROWSE_INPUT_KEY:
+            self._select_folder(Path(values[PhotoImportPopup.BROWSE_INPUT_KEY]))
 
-            if event == PhotoImportPopup.BROWSE_INPUT_KEY:
-                self.window[PhotoImportPopup.FILES_LISTBOX_KEY].update(
-                    [
-                        str(path.absolute())
-                        for path in ReceiptImporter.get_importable_photos(folder_path)
-                    ]
-                )
-
-            if event == PhotoImportPopup.BEGIN_BUTTON_KEY:
-                self.window.close()
+        if event == PhotoImportPopup.BEGIN_BUTTON_KEY:
+            self.window.close()
+            if PhotoImportPopup.selected_folder is not None:
                 ReceiptImporter.batch_import(
-                    ReceiptImporter.get_importable_photos(folder_path)
+                    ReceiptImporter.get_importable_photos(
+                        PhotoImportPopup.selected_folder
+                    )
                 )
+
+    def _select_folder(self, folder_path: Optional[Path]) -> None:
+        """
+        Selects a folder for import.
+
+        :param folder_path: Path to the folder
+        """
+        if folder_path is None or not folder_path.exists() or not folder_path.is_dir():
+            return
+
+        self.window[PhotoImportPopup.FILES_LISTBOX_KEY].update(
+            [
+                str(path.absolute())
+                for path in ReceiptImporter.get_importable_photos(folder_path)
+            ]
+        )
+        PhotoImportPopup.selected_folder = folder_path

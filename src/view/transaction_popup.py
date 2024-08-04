@@ -384,12 +384,14 @@ class TransactionPopup(DataPopup):
             if validated_input.validation_status() is not None:
                 return False
 
+        if self.account is None:
+            return False
+
         if (
             self._total_amount() is None
             or self._amount_rows_total() is None
             or self._total_amount() != self._amount_rows_total()
         ):
-
             return False
 
         return True
