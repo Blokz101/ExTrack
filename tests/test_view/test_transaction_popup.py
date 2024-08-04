@@ -224,6 +224,60 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup.window.close()
 
+    def test_create_amount_row_default_tags(self):
+        """
+        Tests if the correct default tags are correctly set depending on the merchant selected.
+        """
+        popup: TransactionPopup = TransactionPopup(Transaction())
+        _, _ = popup.window.read(timeout=0)
+
+        self.assertEqual(0, len(popup.amount_rows))
+
+        # Create a new amount and check tags when the transaction has no merchant
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(1, len(popup.amount_rows))
+        self.assertEqual([], popup.amount_rows[0].tag_list)
+        self.assertEqual(
+            "No Tags", popup.window[("-AMOUNT ROW TAG SELECTOR-", 0)].get_text()
+        )
+
+        # Create a new amount and check tags when the transaction has a merchant
+        popup.check_event(
+            "-MERCHANT SELECTOR-", {"-MERCHANT SELECTOR-": Merchant.from_id(1)}
+        )
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(2, len(popup.amount_rows))
+        self.assertEqual(
+            [Tag.from_id(sqlid) for sqlid in [5, 7]], popup.amount_rows[1].tag_list
+        )
+        self.assertEqual(
+            "Dating, Eating Out",
+            popup.window[("-AMOUNT ROW TAG SELECTOR-", 1)].get_text(),
+        )
+
+        popup.close()
+
+    def test_create_amount_row_default_tags_1(self):
+        """
+        Tests if the correct default tags are correctly set depending on the merchant selected.
+        """
+        popup: TransactionPopup = TransactionPopup(Transaction.from_id(3))
+        _, _ = popup.window.read(timeout=0)
+
+        self.assertEqual(1, len(popup.amount_rows))
+
+        popup.check_event("-NEW AMOUNT BUTTON-", {})
+
+        self.assertEqual(2, len(popup.amount_rows))
+        self.assertEqual([Tag.from_id(10)], popup.amount_rows[1].tag_list)
+        self.assertEqual(
+            "Personal", popup.window[("-AMOUNT ROW TAG SELECTOR-", 1)].get_text()
+        )
+
+        popup.close()
+
     def test_edit_undo_submit(self):
         """
         Test a simple edit to an amount, undoing the edit, and submitting the transaction.

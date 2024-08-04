@@ -46,6 +46,12 @@ class TransactionPopup(DataPopup):
 
         self.window.read(timeout=0)
 
+        self.account: Optional[Account] = self.trans.account()
+        """Internal Account object updated by the account combo element."""
+
+        self.merchant: Optional[Merchant] = self.trans.merchant()
+        """Internal Merchant object updated by the merchant combo element."""
+
         self._next_amount_row_id: int = 0
         self.amount_rows: list[TransactionPopup.AmountRow] = []
         """Amount rows elements that this popup has."""
@@ -58,12 +64,6 @@ class TransactionPopup(DataPopup):
                     for amount in self.trans.amounts()
                 )
             )
-
-        self.account: Optional[Account] = self.trans.account()
-        """Internal Account object updated by the account combo element."""
-
-        self.merchant: Optional[Merchant] = self.trans.merchant()
-        """Internal Merchant object updated by the merchant combo element."""
 
         self.validated_input_keys: list[str] = [
             "-DATE INPUT-",
@@ -231,6 +231,7 @@ class TransactionPopup(DataPopup):
             )
 
     # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
     def check_event(self, event: Any, values: dict) -> None:
         """
         Respond to events from the user.
@@ -320,6 +321,7 @@ class TransactionPopup(DataPopup):
                     if self._total_row_amount_difference() is None
                     else Amount(amount=self._total_row_amount_difference())
                 ),
+                use_default_tags=True,
             )
             self.amount_rows.append(new_amount_row)
             self.window.extend_layout(
@@ -406,16 +408,19 @@ class TransactionPopup(DataPopup):
             self,
             outer: TransactionPopup,
             default_amount: Optional[Amount] = None,
+            use_default_tags: bool = False,
         ) -> None:
             """
             :param outer: Superclass instance
             :param default_amount: Default Amount for this amount row, if None a new Amount will
             be created
+            :param use_default_tags: True if the merchant default tags should be used,
+            false otherwise
             """
 
             self.outer: TransactionPopup = outer
             """Instance of outer class."""
-            self.amount: Amount = Amount() if not default_amount else default_amount
+            self.amount: Amount = Amount() if default_amount is None else default_amount
             """Underlying SqlObject used to communicate with the database."""
             self.amount_row_id: int = self.outer._next_amount_row_id
             """
@@ -426,6 +431,14 @@ class TransactionPopup(DataPopup):
 
             self.tag_list: list[Tag] = self.amount.tags()
             """List of selected tags for this amount."""
+            if use_default_tags:
+                merchant: Optional[Merchant] = self.outer.merchant
+                if merchant is None:
+                    self.tag_list = []
+                else:
+                    self.tag_list = merchant.default_tags()
+            else:
+                self.tag_list = self.amount.tags()
 
             super().__init__(
                 [
