@@ -73,6 +73,14 @@ class TestMainWindow(TestCase):
             "None",
             "02/15/2021 02:33:05",
         ],
+        [
+            "7",
+            "Checking",
+            "None",
+            "0",
+            "None",
+            "None",
+        ],
     ]
 
     EXPECTED_STATEMENTS_TAB_VALUES: list[list[str]] = [
@@ -134,8 +142,20 @@ class TestMainWindow(TestCase):
             "35.85665622223983",
             "-78.58032796673776",
         ],
-        ["3", "Crabtree Mall", "Apple", "35.8408590921226", "-78.68011850195218"],
-        ["4", "EB2", "Port City Java", "35.77184197261896", "-78.67356047898443"],
+        [
+            "3",
+            "Crabtree Mall",
+            "Apple",
+            "35.8408590921226",
+            "-78.68011850195218",
+        ],
+        [
+            "4",
+            "EB2",
+            "Port City Java",
+            "35.77184197261896",
+            "-78.67356047898443",
+        ],
         [
             "5",
             "Park Shops",
@@ -143,9 +163,27 @@ class TestMainWindow(TestCase):
             "35.78546665319359",
             "-78.66708463594044",
         ],
-        ["6", "Talley", "Port City Java", "35.78392567533286", "-78.67092696947988"],
-        ["7", "Walnut", "BJS", "35.753166119681715", "-78.74569648479638"],
-        ["8", "Durant", "Dollar General", "35.906477682429525", "-78.59029227485301"],
+        [
+            "6",
+            "Talley",
+            "Port City Java",
+            "35.78392567533286",
+            "-78.67092696947988",
+        ],
+        [
+            "7",
+            "Walnut",
+            "BJS",
+            "35.753166119681715",
+            "-78.74569648479638",
+        ],
+        [
+            "8",
+            "Durant",
+            "Dollar General",
+            "35.906477682429525",
+            "-78.59029227485301",
+        ],
         [
             "9",
             "Falls of the Neuse",
@@ -160,7 +198,13 @@ class TestMainWindow(TestCase):
             "35.87316059117457",
             "-78.62387896318373",
         ],
-        ["11", "Falls Village", "Quiznos", "35.87266509701044", "-78.62377404808242"],
+        [
+            "11",
+            "Falls Village",
+            "Quiznos",
+            "35.87266509701044",
+            "-78.62377404808242",
+        ],
         [
             "12",
             "NCSU location",
@@ -175,7 +219,13 @@ class TestMainWindow(TestCase):
             "35.78371200824164",
             "-78.67068259230206",
         ],
-        ["14", "Six forks", "CSV", "35.86444584516455", "-78.63808411691662"],
+        [
+            "14",
+            "Six forks",
+            "CSV",
+            "35.86444584516455",
+            "-78.63808411691662",
+        ],
         [
             "15",
             "Falls of the neuse",
@@ -183,9 +233,27 @@ class TestMainWindow(TestCase):
             "35.90488523480609",
             "-78.60189635156124",
         ],
-        ["16", "Durant", "Bojangles", "35.90587402814305", "-78.59124502510124"],
-        ["17", "NCSU location", "Cookout", "35.78483093184499", "-78.69310522708847"],
-        ["18", "Crabtree", "Kabobi", "35.840705654273584", "-78.68139611810646"],
+        [
+            "16",
+            "Durant",
+            "Bojangles",
+            "35.90587402814305",
+            "-78.59124502510124",
+        ],
+        [
+            "17",
+            "NCSU location",
+            "Cookout",
+            "35.78483093184499",
+            "-78.69310522708847",
+        ],
+        [
+            "18",
+            "Crabtree",
+            "Kabobi",
+            "35.840705654273584",
+            "-78.68139611810646",
+        ],
         [
             "19",
             "Hope valley commons",
@@ -193,9 +261,27 @@ class TestMainWindow(TestCase):
             "35.91815724307745",
             "-78.96090395401171",
         ],
-        ["20", "Strickland", "Papa Johns", "35.90119175054282", "-78.65620646798338"],
-        ["21", "Hillsborough", "Target", "35.78822882724383", "-78.66875186876884"],
-        ["22", "Lake gaston", "Food Lion", "36.53356305834947", "-77.93897122255822"],
+        [
+            "20",
+            "Strickland",
+            "Papa Johns",
+            "35.90119175054282",
+            "-78.65620646798338",
+        ],
+        [
+            "21",
+            "Hillsborough",
+            "Target",
+            "35.78822882724383",
+            "-78.66875186876884",
+        ],
+        [
+            "22",
+            "Lake gaston",
+            "Food Lion",
+            "36.53356305834947",
+            "-77.93897122255822",
+        ],
         [
             "23",
             "Lake gaston",
@@ -203,7 +289,13 @@ class TestMainWindow(TestCase):
             "36.533861832817294",
             "-77.93855413228337",
         ],
-        ["24", "Durant", "Sake House", "35.90689391700105", "-78.58924633168667"],
+        [
+            "24",
+            "Durant",
+            "Sake House",
+            "35.90689391700105",
+            "-78.58924633168667",
+        ],
         [
             "25",
             "Falls of the neuse",
@@ -218,8 +310,20 @@ class TestMainWindow(TestCase):
             "35.893861556979274",
             "-78.62447705549985",
         ],
-        ["27", "Work", "Burger King", "35.87550745065946", "-78.85141266359875"],
-        ["28", "Work", "Bojangles", "35.87821312322193", "-78.85020094835637"],
+        [
+            "27",
+            "Work",
+            "Burger King",
+            "35.87550745065946",
+            "-78.85141266359875",
+        ],
+        [
+            "28",
+            "Work",
+            "Bojangles",
+            "35.87821312322193",
+            "-78.85020094835637",
+        ],
     ]
 
     EXPECTED_TAGS_TAB_VALUES: list[list[str]] = [
@@ -344,7 +448,7 @@ class TestMainWindow(TestCase):
         self.assertTrue(view.notification_message_queue.empty())
 
         # Check that each tab has the correct values
-        self.assertEqual(list(range(1, 7)), app.transaction_tab.row_id_list)
+        self.assertEqual(list(range(1, 8)), app.transaction_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_TRANSACTION_TAB_VALUES, app.transaction_tab.values
         )

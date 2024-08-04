@@ -3,11 +3,24 @@ Contains the Popup class which is the base for all windows in the application.
 """
 
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any
 
 from PySimpleGUI import Window, Element, WINDOW_CLOSED, theme  # type: ignore
 
 from src.view import gui_theme
+
+
+class ClosedStatus(Enum):
+    """
+    Enum for the status of a popup.
+    """
+
+    OPEN: int = 0
+    STANDARD: int = 1
+    OPERATION_SUCCESS: int = 2
+    OPERATION_CANCELED: int = 3
+    UNACKNOWLEDGED: int = 4
 
 
 class Popup(ABC):
@@ -27,6 +40,9 @@ class Popup(ABC):
         this point.
         """
 
+        self.closed_status: ClosedStatus = ClosedStatus.OPEN
+        """Status of the popup when it is closed."""
+
         self.window: Window = Window(
             self.title,
             self._layout_generator(),
@@ -38,6 +54,16 @@ class Popup(ABC):
 
         self._event_loop_callback: list[Any] = []
         """List of functions to call every time the event loop runs."""
+
+    def close(self, closed_status: ClosedStatus = ClosedStatus.STANDARD) -> None:
+        """
+        Close the popup with a status.
+
+        :param closed_status: Status of the close operation
+        """
+        self.closed_status = closed_status
+        self.run_event_loop = False
+        self.window.close()
 
     @abstractmethod
     def _layout_generator(self) -> list[list[Element]]:
@@ -63,11 +89,13 @@ class Popup(ABC):
             event, values = self.window.read()
 
             if event in [WINDOW_CLOSED, "Exit"]:
+                self.closed_status = ClosedStatus.OPERATION_CANCELED
                 break
 
             self.check_event(event, values)
 
-        self.window.close()
+        if self.closed_status == ClosedStatus.OPEN:
+            self.close(closed_status=ClosedStatus.UNACKNOWLEDGED)
 
     @abstractmethod
     def check_event(self, event: Any, values: dict[Any, Any]) -> None:

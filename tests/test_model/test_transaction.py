@@ -59,7 +59,7 @@ class TestTransaction(Sample1TestCase):
         expected_transactions: list[Transaction] = EXPECTED_TRANSACTIONS.copy()
         expected_transactions.append(
             Transaction(
-                7,
+                8,
                 "Fancy date with Sara",
                 2,
                 False,
@@ -90,7 +90,7 @@ class TestTransaction(Sample1TestCase):
         transaction.sync()
 
         self.assertSqlListEqual(expected_transactions, Transaction.get_all())
-        self.assertEqual(7, transaction.sqlid)
+        self.assertEqual(8, transaction.sqlid)
 
         # Update existing Transaction
         expected_transactions[2] = Transaction(

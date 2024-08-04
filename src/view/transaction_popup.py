@@ -17,6 +17,7 @@ from src.model.tag import Tag
 from src.model.transaction import Transaction
 from src.view import full_date_format, short_date_format
 from src.view.data_popup import DataPopup
+from src.view.popup import ClosedStatus
 from src.view.tag_selector import TagSelector
 from src.view.validated_input import (
     ValidatedInput,
@@ -91,6 +92,7 @@ class TransactionPopup(DataPopup):
                 "Merchant: ",
                 "Coordinates: ",
                 "Date: ",
+                "Image Path: ",
                 "Reconciled: ",
                 "Statement: ",
                 "Transfer Transaction: ",
@@ -149,6 +151,15 @@ class TransactionPopup(DataPopup):
                     )
                 ),
                 key="-DATE INPUT-",
+                expand_x=True,
+            ),
+            Input(
+                default_text=(
+                    ""
+                    if self.trans.receipt_file_name is None
+                    else self.trans.receipt_file_name
+                ),
+                key="-RECEIPT PATH INPUT-",
                 expand_x=True,
             ),
             Text(
@@ -220,7 +231,6 @@ class TransactionPopup(DataPopup):
             )
 
     # pylint: disable=too-many-branches
-    # pylint: disable=too-many-statements
     def check_event(self, event: Any, values: dict) -> None:
         """
         Respond to events from the user.
@@ -231,8 +241,7 @@ class TransactionPopup(DataPopup):
         super().check_event(event, values)
 
         if event == "-CREATE BUTTON-":
-            self.run_event_loop = False
-            self.window.close()
+            self.close(closed_status=ClosedStatus.OPERATION_SUCCESS)
             TransactionPopup(None).event_loop()
             return
 
@@ -281,6 +290,8 @@ class TransactionPopup(DataPopup):
             if date is not None:
                 self.trans.date = date
 
+            self.trans.receipt_file_name = self.window["-RECEIPT PATH INPUT-"].get()
+
             # Sync Transaction and Amounts
             self.trans.sync()
 
@@ -298,7 +309,8 @@ class TransactionPopup(DataPopup):
                 row.amount.transaction_id = self.trans.sqlid
                 row.sync_row()
 
-            self.run_event_loop = False
+            self.close(ClosedStatus.OPERATION_SUCCESS)
+            return
 
         if event == "-NEW AMOUNT BUTTON-":
             new_amount_row: TransactionPopup.AmountRow = TransactionPopup.AmountRow(

@@ -25,6 +25,7 @@ from src.view.data_table_tab import (
     TagTab,
 )
 from src.view.notify_popup import NotifyPopup
+from src.view.photo_import_popup import PhotoImportPopup
 from src.view.popup import Popup
 
 
@@ -35,12 +36,12 @@ class MainWindow(Popup):
 
     MENU_DEFINITION: list = [
         ["File", ["New", "Open", "Close"]],
+        ["Import", ["From Photos", "From Statement"]],
         ["Reconcile", ["Start New Reconcile", "Continue Reconcile"]],
     ]
     """Menu bar definition."""
 
     def __init__(self) -> None:
-        # TODO Add other tabs then remove this comment
         self.statement_tab: StatementTab
         self.transaction_tab: TransactionTab
         self.account_tab: AccountTab
@@ -83,7 +84,6 @@ class MainWindow(Popup):
         return database_path
 
     def _layout_generator(self) -> list[list[Element]]:
-        # TODO Add other tabs then remove this comment
         self.statement_tab = StatementTab()
         self.transaction_tab = TransactionTab()
         self.account_tab = AccountTab()
@@ -96,7 +96,6 @@ class MainWindow(Popup):
                 TabGroup(
                     [
                         [
-                            # TODO Add other tabs then remove this comment
                             self.transaction_tab,
                             Tab("Budgets", [[Text("Coming Soon!")]]),
                             self.statement_tab,
@@ -116,7 +115,6 @@ class MainWindow(Popup):
         """
         Updates the table with transactions from the database.
         """
-        # TODO Add other tabs then remove this comment
         self.statement_tab.update_table()
         self.transaction_tab.update_table()
         self.account_tab.update_table()
@@ -158,12 +156,15 @@ class MainWindow(Popup):
                 database.connect(database_path)
                 self.update_table()
 
+        if event == "From Photos":
+            PhotoImportPopup().event_loop()
+            self.update_table()
+
         if event == "Close":
             model.app_settings.set_database_path(None)
             database.close()
             self.update_table()
 
-        # TODO Add other tabs then remove this comment
         for tab_key, tab in [
             ("-STATEMENTS TABLE-", self.statement_tab),
             ("-TRANSACTIONS TABLE-", self.transaction_tab),

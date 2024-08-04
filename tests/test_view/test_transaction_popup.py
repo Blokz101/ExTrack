@@ -5,7 +5,6 @@ Tests for the TransactionPopup class.
 # mypy: ignore-errors
 from datetime import datetime
 from typing import cast
-from unittest import skip
 
 from PySimpleGUI import Window
 from ddt import ddt, data
@@ -45,6 +44,7 @@ class TestTransactionPopup(Sample1TestCase):
             datetime.now().strftime(short_date_format),
             popup_window["-DATE INPUT-"].get(),
         )
+        self.assertEqual("", popup_window["-RECEIPT PATH INPUT-"].get())
         self.assertEqual("False", popup_window["-RECONCILED TEXT-"].get())
         self.assertEqual("None", popup_window["-STATEMENT TEXT-"].get())
         self.assertEqual("None", popup_window["-TRANSFER TRANSACTION TEXT-"].get())
@@ -84,6 +84,10 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertEqual(f"{lat}, {long}", popup_window["-COORDINATE INPUT-"].get())
         self.assertEqual(
             trans.date.strftime(full_date_format), popup_window["-DATE INPUT-"].get()
+        )
+        self.assertEqual(
+            "" if trans.receipt_file_name is None else trans.receipt_file_name,
+            popup_window["-RECEIPT PATH INPUT-"].get(),
         )
         self.assertEqual(str(trans.reconciled), popup_window["-RECONCILED TEXT-"].get())
         self.assertEqual(
@@ -429,6 +433,11 @@ class TestTransactionPopup(Sample1TestCase):
         popup.window[key].update(value=new_date)
         popup.check_event(key, {key: new_date})
 
+        key = "-RECEIPT PATH INPUT-"
+        new_receipt_path: str = "new_receipt.jpg"
+        popup.window[key].update(value=new_receipt_path)
+        popup.check_event(key, {key: new_receipt_path})
+
         # Edit amounts
         popup.window[("-AMOUNT ROW DESCRIPTION-", 0)].update(value="Graphics Card")
         popup.check_event(("-AMOUNT ROW DESCRIPTION-", 0), {})
@@ -481,6 +490,11 @@ class TestTransactionPopup(Sample1TestCase):
         popup.window[key].update(value=new_date)
         popup.check_event(key, {key: new_date})
 
+        key = "-RECEIPT PATH INPUT-"
+        new_receipt_path: str = "new_receipt.jpg"
+        popup.window[key].update(value=new_receipt_path)
+        popup.check_event(key, {key: new_receipt_path})
+
         # Check changes by getting the transaction from the database again
         popup.check_event("-DONE BUTTON-", {})
         actual_trans: Transaction = Transaction.from_id(3)
@@ -491,6 +505,7 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertEqual(new_lat, actual_trans.lat)
         self.assertEqual(new_long, actual_trans.long)
         self.assertEqual(new_date, actual_trans.date.strftime(full_date_format))
+        self.assertEqual(new_receipt_path, actual_trans.receipt_file_name)
 
         popup.window.close()
 
@@ -607,14 +622,14 @@ class TestTransactionPopup(Sample1TestCase):
         now: datetime = datetime.now()
         expected_transactions.append(
             Transaction(
-                7,
+                8,
                 account_id=1,
                 date=datetime(now.year, now.month, now.day, 0, 0, 0),
                 reconciled=False,
             )
         )
-        expected_amounts.append(Amount(8, 5.0, 7, None))
-        expected_amounts.append(Amount(9, 0.91, 7, None))
+        expected_amounts.append(Amount(8, 5.0, 8, None))
+        expected_amounts.append(Amount(9, 0.91, 8, None))
 
         popup: TransactionPopup = TransactionPopup(None)
         _, _ = popup.window.read(timeout=0)
@@ -646,11 +661,3 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
 
         popup.window.close()
-
-    @skip("Manual test")
-    def test_manual(self):
-        """
-        Manual test for the TransactionPopup.
-        """
-        TransactionPopup(Transaction.from_id(4)).event_loop()
-        # TransactionPopup(None).event_loop()

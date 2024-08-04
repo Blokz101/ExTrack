@@ -129,6 +129,7 @@ class TestAccount(Sample1TestCase):
             EXPECTED_TRANSACTIONS[3 - 1],
             EXPECTED_TRANSACTIONS[4 - 1],
             EXPECTED_TRANSACTIONS[6 - 1],
+            EXPECTED_TRANSACTIONS[7 - 1],
         ]
         self.assertSqlListEqual(
             expected_transactions, Account.from_id(1).transactions()

@@ -9,6 +9,8 @@ from PIL.ExifTags import TAGS
 from src.model import app_settings
 from src.model.location import Location
 from src.model.transaction import Transaction
+from src.view.popup import ClosedStatus
+from src.view.transaction_popup import TransactionPopup
 
 
 class ReceiptImporter:
@@ -115,6 +117,25 @@ class ReceiptImporter:
         new_path: Path = app_settings.receipts_folder() / self.receipt_path.name
         self.receipt_path.rename(new_path)
         self.receipt_path = new_path
+
+    @staticmethod
+    def batch_import(path_list: list[Path]) -> None:
+        """
+        Imports a batch of receipt photos.
+
+        :param path_list: List of paths to receipt photos
+        """
+        for path in path_list:
+
+            importer: ReceiptImporter = ReceiptImporter(path)
+            popup: TransactionPopup = TransactionPopup(importer.create_transaction())
+            popup.event_loop()
+
+            if popup.closed_status == ClosedStatus.OPERATION_SUCCESS:
+                importer.move_photo()
+
+            if popup.closed_status == ClosedStatus.OPERATION_CANCELED:
+                return
 
     @staticmethod
     def get_importable_photos(folder: Path) -> list[Path]:

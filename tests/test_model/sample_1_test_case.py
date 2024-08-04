@@ -100,6 +100,19 @@ EXPECTED_TRANSACTIONS: list[Transaction] = [
         1,
         5,
     ),
+    Transaction(
+        7,
+        None,
+        None,
+        False,
+        None,
+        None,
+        None,
+        None,
+        None,
+        1,
+        None,
+    ),
 ]
 
 EXPECTED_STATEMENTS: list[Statement] = [

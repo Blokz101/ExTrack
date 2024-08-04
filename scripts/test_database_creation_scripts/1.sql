@@ -92,6 +92,7 @@ INSERT INTO transactions (id, description, merchant_id, reconciled, date, statem
 INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (4, 'Things from Amazon', 3, 1, '2020-09-28 19:26:10', 1, null, null, null, 1, null);
 INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (5, 'Transfer From Savings', null, 0, '2021-02-15 02:32:18', null, null, null, null, 2, null);
 INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (6, 'Transfer Into Checking', null, 0, '2021-02-15 02:33:05', null, null, null, null, 1, null);
+INSERT INTO transactions (id, description, merchant_id, reconciled, date, statement_id, receipt_file_name, lat, long, account_id, transfer_trans_id) VALUES (7, null, null, 0, null, null, null, null, null, 1, null);
 UPDATE transactions SET transfer_trans_id = 6 WHERE id = 5;
 UPDATE transactions SET transfer_trans_id = 5 WHERE id = 6;
 
