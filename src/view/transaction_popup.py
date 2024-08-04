@@ -42,6 +42,7 @@ class TransactionPopup(DataPopup):
 
         super().__init__(
             f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else "New"}",
+            delete_supported=True,
         )
 
         self.window.read(timeout=0)
@@ -244,6 +245,11 @@ class TransactionPopup(DataPopup):
         if event == "-CREATE BUTTON-":
             self.close(closed_status=ClosedStatus.OPERATION_SUCCESS)
             TransactionPopup(None).event_loop()
+            return
+
+        if event == "-DELETE BUTTON-":
+            self.trans.delete()
+            self.close(closed_status=ClosedStatus.OPERATION_SUCCESS)
             return
 
         if event == "-ACCOUNT SELECTOR-":

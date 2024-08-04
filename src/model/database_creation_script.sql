@@ -21,7 +21,9 @@ CREATE TABLE amounts (
     amount FLOAT NOT NULL,
     transaction_id INTEGER NOT NULL,
     description TEXT,
-    FOREIGN KEY (transaction_id) REFERENCES transactions (id)
+    FOREIGN KEY (transaction_id)
+        REFERENCES transactions (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE accounts (

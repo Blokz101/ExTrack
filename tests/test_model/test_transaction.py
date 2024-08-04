@@ -3,6 +3,7 @@ Tests the Transaction class.
 """
 
 # mypy: ignore-errors
+from copy import deepcopy
 from datetime import datetime
 
 from src.model import date_format
@@ -392,3 +393,43 @@ class TestTransaction(Sample1TestCase):
 
         # Test with new Transaction
         self.assertEqual([], Transaction().tags())
+
+    def test_delete(self):
+        """
+        Tests Transaction.delete()
+
+        Prerequisite: test_get_all() and test_from_id()
+        """
+        expected_transactions: list[Transaction] = deepcopy(EXPECTED_TRANSACTIONS)
+        expected_amounts: list[Amount] = deepcopy(EXPECTED_AMOUNTS)
+
+        # Test with valid Transaction with 2 amounts
+        trans: Transaction = Transaction.from_id(1)
+        trans.delete()
+
+        expected_transactions.pop(0)
+        expected_amounts.pop(0)
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+        self.assertNotIn(trans, Tag.from_id(5).transactions())
+        self.assertNotIn(trans, Tag.from_id(7).transactions())
+
+        # Test with valid transaction with a transfer transaction
+        trans = Transaction.from_id(6)
+        trans.delete()
+
+        expected_transactions[3].transfer_trans_id = None
+        expected_transactions.pop(4)
+        expected_amounts.pop(len(expected_amounts) - 1)
+
+        self.assertSqlListEqual(expected_transactions, Transaction.get_all())
+        self.assertSqlListEqual(expected_amounts, Amount.get_all())
+        self.assertIsNone(Transaction.from_id(5).transfer_trans())
+
+        # Test invalid Transaction
+        with self.assertRaises(RuntimeError) as msg:
+            Transaction().delete()
+        self.assertEqual(
+            "Cannot delete a transaction that does not exist.", str(msg.exception)
+        )

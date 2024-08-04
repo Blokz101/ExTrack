@@ -419,3 +419,21 @@ class Transaction(SqlObject):
         )
 
         return list(tag.Tag(*data) for data in cur.fetchall())
+
+    def delete(self) -> None:
+        """
+        Deletes this transaction.
+        """
+        if not self.exists():
+            raise RuntimeError("Cannot delete a transaction that does not exist.")
+
+        transfer_trans: Optional[Transaction] = self.transfer_trans()
+        if transfer_trans is not None:
+            transfer_trans.transfer_trans_id = None
+            transfer_trans.sync()
+
+        con, cur = database.get_connection()
+
+        cur.execute("DELETE FROM transactions WHERE id = ?", (self.sqlid,))
+
+        con.commit()
