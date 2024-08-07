@@ -136,6 +136,7 @@ class MainWindow(Popup):
                 no_window=True,
                 file_types=(("Database", "*.db"),),
                 modal=True,
+                save_as=event == "New",
             )
 
             if str_new_path is None:
