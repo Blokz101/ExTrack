@@ -437,3 +437,18 @@ class Transaction(SqlObject):
         cur.execute("DELETE FROM transactions WHERE id = ?", (self.sqlid,))
 
         con.commit()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({", ".join(str(x) for x in [
+            self.sqlid,
+            self.description,
+            self.merchant_id,
+            self.reconciled,
+            self.date,
+            self.statement_id,
+            self.receipt_file_name,
+            self.lat,
+            self.long,
+            self.account_id,
+            self.transfer_trans_id
+        ])})"

@@ -50,7 +50,7 @@ class TestUserSettings(TestCase):
             {
                 "database_path": "",
                 "receipts_folder": "~/Documents/ExTrackReceipts",
-                "location_scan_radius": "0.2",
+                "location_scan_radius": 0.2,
             },
         )
 

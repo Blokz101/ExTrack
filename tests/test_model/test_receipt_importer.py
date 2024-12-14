@@ -73,7 +73,8 @@ class TestReceiptImporter(Sample1TestCase):
         )
 
         for expected_transaction, receipt_path in zip(
-            EXPECTED_IMPORTED_TRANSACTIONS, sample_receipt_folder_1_path.iterdir()
+            EXPECTED_IMPORTED_TRANSACTIONS,
+            sorted(sample_receipt_folder_1_path.iterdir()),
         ):
             self.assertSqlEqual(
                 expected_transaction, ReceiptImporter(receipt_path).create_transaction()

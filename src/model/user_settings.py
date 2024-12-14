@@ -14,7 +14,7 @@ class UserSettings:
     DEFAULT_SETTINGS: dict[str, str] = {
         "database_path": "",
         "receipts_folder": "~/Documents/ExTrackReceipts",
-        "location_scan_radius": "0.2",
+        "location_scan_radius": 0.2,
     }
     """Default settings for the application."""
 
