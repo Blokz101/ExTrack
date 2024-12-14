@@ -38,7 +38,7 @@ class DataTableTab(Tab, ABC, Generic[T]):
         self.tab_name: str = tab_name
         self._table: Table
         super().__init__(
-            tab_name, layout=self._layout_generator(), key=f"-{tab_name} TAB-"
+            tab_name, layout=self._layout_generator(), key=f"-{tab_name.upper()} TAB-"
         )
         self.row_id_list: list[int] = []
         self.values: list[list[str]] = []

@@ -27,6 +27,12 @@ from src.view.data_table_tab import (
 from src.view.notify_popup import NotifyPopup
 from src.view.photo_import_popup import PhotoImportPopup
 from src.view.popup import Popup
+from view.account_popup import AccountPopup
+from view.location_popup import LocationPopup
+from view.merchant_popup import MerchantPopup
+from view.statement_popup import StatementPopup
+from view.tag_popup import TagPopup
+from view.transaction_popup import TransactionPopup
 
 
 class MainWindow(Popup):
@@ -36,6 +42,18 @@ class MainWindow(Popup):
 
     MENU_DEFINITION: list = [
         ["File", ["New", "Open", "Close"]],
+        [
+            "New Entry",
+            [
+                "New Transaction",
+                "New Budget",
+                "New Statement",
+                "New Account",
+                "New Merchant",
+                "New Location",
+                "New Tag",
+            ],
+        ],
         ["Import", ["From Photos", "From Statement"]],
         ["Reconcile", ["Start New Reconcile", "Continue Reconcile"]],
     ]
@@ -105,6 +123,7 @@ class MainWindow(Popup):
                             self.tag_tab,
                         ]
                     ],
+                    key="-TAB GROUP-",
                     expand_x=True,
                     expand_y=True,
                 ),
@@ -156,6 +175,31 @@ class MainWindow(Popup):
             if database_path is not None:
                 database.connect(database_path)
                 self.update_table()
+
+        if (
+            event in MainWindow.MENU_DEFINITION[1][1]
+            and self.window.TKroot.focus_displayof() is not None
+        ):
+            if event == "New Transaction":
+                self.window["-TRANSACTIONS TAB-"].select()
+                TransactionPopup(None).event_loop()
+            if event == "New Budget":
+                NotifyPopup("Coming Soon!").event_loop()
+            if event == "New Statement":
+                self.window["-STATEMENTS TAB-"].select()
+                StatementPopup(None).event_loop()
+            if event == "New Account":
+                self.window["-ACCOUNTS TAB-"].select()
+                AccountPopup(None).event_loop()
+            if event == "New Merchant":
+                self.window["-MERCHANTS TAB-"].select()
+                MerchantPopup(None).event_loop()
+            if event == "New Location":
+                self.window["-LOCATIONS TAB-"].select()
+                LocationPopup(None).event_loop()
+            if event == "New Tag":
+                self.window["-TAGS TAB-"].select()
+                TagPopup(None).event_loop()
 
         if event == "From Photos":
             PhotoImportPopup().event_loop()
