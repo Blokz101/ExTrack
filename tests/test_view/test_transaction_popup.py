@@ -17,6 +17,7 @@ from src.model.transaction import Transaction
 from src.view import full_date_format, short_date_format
 from src.view.transaction_popup import TransactionPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
+from src.view.data_popup import DataPopup
 
 
 @ddt
@@ -53,6 +54,13 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertEqual([], popup.amount_rows)
 
         self.assertFalse(popup.inputs_valid())
+
+        # Validate disabled delete
+        self.assertEqual(
+            "disabled", popup_window[DataPopup.DELETE_BUTTON_KEY].Widget["state"].string
+        )
+
+        popup_window.close()
 
     @data(1, 2, 3, 4, 5, 6)
     def test_construction_with_existing_transaction(self, trans_id: int):

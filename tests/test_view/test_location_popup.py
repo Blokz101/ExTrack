@@ -10,6 +10,7 @@ from src.model.location import Location
 from src.model.merchant import Merchant
 from src.view.location_popup import LocationPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
+from src.view.data_popup import DataPopup
 
 
 @ddt
@@ -34,6 +35,11 @@ class TestLocationPopup(Sample1TestCase):
         )
 
         self.assertFalse(popup.inputs_valid())
+
+        # Validate disabled delete
+        self.assertEqual(
+            "disabled", popup_window[DataPopup.DELETE_BUTTON_KEY].Widget["state"].string
+        )
 
         popup_window.close()
 

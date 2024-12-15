@@ -9,6 +9,7 @@ from ddt import ddt, data
 from src.model.account import Account
 from src.view.account_popup import AccountPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
+from src.view.data_popup import DataPopup
 
 
 @ddt
@@ -32,6 +33,11 @@ class TestAccountPopup(Sample1TestCase):
         self.assertEqual("", popup_window[AccountPopup.DATE_IDX_INPUT_KEY].get())
 
         self.assertFalse(popup.inputs_valid())
+
+        # Validate disabled delete
+        self.assertEqual(
+            "disabled", popup_window[DataPopup.DELETE_BUTTON_KEY].Widget["state"].string
+        )
 
         popup_window.close()
 

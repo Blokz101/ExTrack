@@ -10,6 +10,7 @@ from src.model.merchant import Merchant
 from src.model.tag import Tag
 from src.view.merchant_popup import MerchantPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
+from src.view.data_popup import DataPopup
 
 
 @ddt
@@ -35,6 +36,11 @@ class TestMerchantPopup(Sample1TestCase):
         self.assertEqual("", popup_window[MerchantPopup.RULE_INPUT_KEY].get())
 
         self.assertFalse(popup.inputs_valid())
+
+        # Validate disabled delete
+        self.assertEqual(
+            "disabled", popup_window[DataPopup.DELETE_BUTTON_KEY].Widget["state"].string
+        )
 
         popup_window.close()
 
