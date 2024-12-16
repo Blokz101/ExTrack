@@ -176,6 +176,7 @@ class MainWindow(Popup):
                 database.connect(database_path)
                 self.update_table()
 
+        # Handel menu item events
         if (
             event in MainWindow.MENU_DEFINITION[1][1]
             and self.window.TKroot.focus_displayof() is not None
@@ -200,6 +201,7 @@ class MainWindow(Popup):
             if event == "New Tag":
                 self.window["-TAGS TAB-"].select()
                 TagPopup(None).event_loop()
+            self.update_table()
 
         if event == "From Photos":
             PhotoImportPopup().event_loop()
