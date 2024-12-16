@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Optional, cast, Any
 
+from src import model
 from src.model import database, transaction, statement
 from src.model.sql_object import SqlObject
 
@@ -192,3 +193,19 @@ class Account(SqlObject):
 
     def __str__(self) -> str:
         return "None" if not self.name else self.name
+
+    @staticmethod
+    def default_account() -> Optional[Account]:
+        """
+        Returns the default account or None if not defined in settings.
+
+        :return: Account object or None if not defined in settings.
+        """
+        raw_account: Optional[str] = model.app_settings.default_account()
+        if raw_account is None:
+            return None
+
+        try:
+            return next(x for x in Account.get_all() if x.name == raw_account)
+        except StopIteration:
+            return None

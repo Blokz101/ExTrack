@@ -27,12 +27,12 @@ from src.view.data_table_tab import (
 from src.view.notify_popup import NotifyPopup
 from src.view.photo_import_popup import PhotoImportPopup
 from src.view.popup import Popup
-from view.account_popup import AccountPopup
-from view.location_popup import LocationPopup
-from view.merchant_popup import MerchantPopup
-from view.statement_popup import StatementPopup
-from view.tag_popup import TagPopup
-from view.transaction_popup import TransactionPopup
+from src.view.account_popup import AccountPopup
+from src.view.location_popup import LocationPopup
+from src.view.merchant_popup import MerchantPopup
+from src.view.statement_popup import StatementPopup
+from src.view.tag_popup import TagPopup
+from src.view.transaction_popup import TransactionPopup
 
 
 class MainWindow(Popup):

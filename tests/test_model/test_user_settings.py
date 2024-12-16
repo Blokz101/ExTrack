@@ -51,6 +51,7 @@ class TestUserSettings(TestCase):
                 "database_path": "",
                 "receipts_folder": "~/Documents/ExTrackReceipts",
                 "location_scan_radius": 0.2,
+                "default_account": "",
             },
         )
 
@@ -95,7 +96,7 @@ class TestUserSettings(TestCase):
         self.assertTrue(test_settings_file_path.exists())
         self.assertIsNone(actual_database_path)
 
-        # Test without a settings file which lacks a database_path
+        # Test with a settings file which lacks a database_path
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
             file.write("{}")
         model.app_settings.load_settings()
@@ -151,3 +152,66 @@ class TestUserSettings(TestCase):
         model.app_settings.set_database_path(None)
         model.app_settings.load_settings()
         self.assertIsNone(model.app_settings.database_path())
+
+    def test_location_scan_radius(self):
+        """
+        Tests UserSettings.location_scan_radius()
+        """
+
+        self.assertFalse(test_settings_file_path.exists())
+
+        # Test with a settings file that lacks location_scan_radius
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            file.write("{}")
+        model.app_settings.load_settings()
+
+        self.assertTrue(test_settings_file_path.exists())
+        self.assertEqual(
+            UserSettings.DEFAULT_SETTINGS["location_scan_radius"],
+            model.app_settings.location_scan_radius(),
+        )
+
+        # Test with a settings file that contains an invalid value for location_scan_radius
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"location_scan_radius": "hello"}, file)
+        model.app_settings.load_settings()
+
+        self.assertEqual(
+            UserSettings.DEFAULT_SETTINGS["location_scan_radius"],
+            model.app_settings.location_scan_radius(),
+        )
+
+        # Test with a settings file and valid location_scan_radius
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"location_scan_radius": 3.14}, file)
+        model.app_settings.load_settings()
+
+        self.assertEqual(3.14, model.app_settings.location_scan_radius())
+
+    def test_default_account(self):
+        """
+        Tests UserSettings.default_account()
+        """
+
+        self.assertFalse(test_settings_file_path.exists())
+
+        # Test with a settings file that lacks location_scan_radius
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            file.write("{}")
+        model.app_settings.load_settings()
+
+        self.assertTrue(test_settings_file_path.exists())
+        self.assertIsNone(model.app_settings.default_account())
+
+        # Test with a settings file and valid default_account
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "Checking"}, file)
+        model.app_settings.load_settings()
+
+        self.assertEqual("Checking", model.app_settings.default_account())
+
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "Savings"}, file)
+        model.app_settings.load_settings()
+
+        self.assertEqual("Savings", model.app_settings.default_account())

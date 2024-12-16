@@ -2,6 +2,9 @@
 Tests for the TransactionPopup class.
 """
 
+import json
+import os
+
 # mypy: ignore-errors
 from datetime import datetime
 from typing import cast
@@ -9,13 +12,16 @@ from typing import cast
 from PySimpleGUI import Window
 from ddt import ddt, data
 
+from src.model import UserSettings
 from src.model.account import Account
 from src.model.amount import Amount
 from src.model.merchant import Merchant
 from src.model.tag import Tag
+from src import model
 from src.model.transaction import Transaction
 from src.view import full_date_format, short_date_format
 from src.view.transaction_popup import TransactionPopup
+from tests.test_model import test_settings_file_path
 from tests.test_model.sample_1_test_case import Sample1TestCase
 from src.view.data_popup import DataPopup
 
@@ -61,6 +67,73 @@ class TestTransactionPopup(Sample1TestCase):
         )
 
         popup_window.close()
+
+    def test_construction_with_default_account_settings(self):
+        """Tests construction various default account values in settings."""
+        # Setup
+        if test_settings_file_path.exists():
+            os.remove(test_settings_file_path)
+        model.app_settings = UserSettings(test_settings_file_path)
+
+        popup: TransactionPopup
+
+        # Main Test
+        # Test with a settings file that lacks location_scan_radius
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            file.write("{}")
+        model.app_settings.load_settings()
+
+        popup = TransactionPopup(None)
+        popup_window: Window = popup.window
+        _, _ = popup.window.read(timeout=0)
+
+        self.assertEqual("", popup_window["-ACCOUNT SELECTOR-"].get())
+
+        popup.close()
+
+        # Test with a settings file that has an invalid default_account
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "This account does not exist"}, file)
+        model.app_settings.load_settings()
+
+        popup = TransactionPopup(None)
+        popup_window: Window = popup.window
+        _, _ = popup.window.read(timeout=0)
+
+        self.assertEqual("", popup_window["-ACCOUNT SELECTOR-"].get())
+
+        popup.close()
+
+        # Test with a settings file and valid default_account
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "Checking"}, file)
+        model.app_settings.load_settings()
+
+        popup = TransactionPopup(None)
+        popup_window: Window = popup.window
+        _, _ = popup.window.read(timeout=0)
+
+        self.assertSqlEqual(
+            Account.from_id(1), popup_window["-ACCOUNT SELECTOR-"].get()
+        )
+
+        popup.close()
+
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "Savings"}, file)
+        model.app_settings.load_settings()
+
+        popup = TransactionPopup(None)
+        popup_window: Window = popup.window
+        _, _ = popup.window.read(timeout=0)
+
+        self.assertSqlEqual(
+            Account.from_id(2), popup_window["-ACCOUNT SELECTOR-"].get()
+        )
+
+        # Teardown
+        if test_settings_file_path.exists():
+            os.remove(test_settings_file_path)
 
     @data(1, 2, 3, 4, 5, 6)
     def test_construction_with_existing_transaction(self, trans_id: int):

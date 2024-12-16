@@ -11,10 +11,11 @@ from typing import Optional, Any
 class UserSettings:
     """Gets user settings from the settings file or returns the default if no setting is found."""
 
-    DEFAULT_SETTINGS: dict[str, str] = {
+    DEFAULT_SETTINGS: dict[str, any] = {
         "database_path": "",
         "receipts_folder": "~/Documents/ExTrackReceipts",
         "location_scan_radius": 0.2,
+        "default_account": "",
     }
     """Default settings for the application."""
 
@@ -118,9 +119,21 @@ class UserSettings:
         :return: Radius in miles to scan for a merchant location match.
         """
         location: Any = self._get_setting(
-            "location_scan_radius", require_existence=True
+            "location_scan_radius",
+            default=UserSettings.DEFAULT_SETTINGS["location_scan_radius"],
         )
-        return float(location)
+        try:
+            return float(location)
+        except ValueError:
+            return UserSettings.DEFAULT_SETTINGS["location_scan_radius"]
+
+    def default_account(self) -> Optional[str]:
+        """
+        Gets the default account from the settings if it exists.
+
+        :return: Raw account name string from the settings file if it exists.
+        """
+        return self._get_setting("default_account", default=None)
 
     def set_database_path(self, new_path: Optional[Path]) -> None:
         """

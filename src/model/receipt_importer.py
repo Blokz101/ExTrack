@@ -6,7 +6,7 @@ from typing import Optional
 from PIL import Image
 from PIL.ExifTags import TAGS
 
-from src.model import app_settings
+from src import model
 from src.model.location import Location
 from src.model.transaction import Transaction
 from src.view.popup import ClosedStatus
@@ -41,8 +41,8 @@ class ReceiptImporter:
         """
         Reads the exif data from the receipt photo and stores it in instance variables.
         """
-        if not app_settings.receipts_folder().exists():
-            app_settings.receipts_folder().mkdir()
+        if not model.app_settings.receipts_folder().exists():
+            model.app_settings.receipts_folder().mkdir()
 
         if not self.receipt_path.exists():
             return
@@ -114,7 +114,7 @@ class ReceiptImporter:
         """
         Moves the receipt photo to the ExTract storage folder.
         """
-        new_path: Path = app_settings.receipts_folder() / self.receipt_path.name
+        new_path: Path = model.app_settings.receipts_folder() / self.receipt_path.name
         self.receipt_path.rename(new_path)
         self.receipt_path = new_path
 
@@ -183,7 +183,7 @@ class ReceiptImporter:
             distance_to_location: float = ReceiptImporter.calculate_distance(
                 location.lat, location.long, lat, long
             )
-            if distance_to_location <= app_settings.location_scan_radius():
+            if distance_to_location <= model.app_settings.location_scan_radius():
                 possible_locations.append((location, distance_to_location))
 
         possible_locations.sort(key=lambda x: x[1])

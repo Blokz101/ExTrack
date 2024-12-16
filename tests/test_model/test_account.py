@@ -2,11 +2,18 @@
 Tests the Account class.
 """
 
+import json
+import os
+
+from model import UserSettings
+
 # mypy: ignore-errors
 
+from src import model
 from src.model.account import Account
 from src.model.statement import Statement
 from src.model.transaction import Transaction
+from tests.test_model import test_settings_file_path, test_database_path
 from tests.test_model.sample_1_test_case import (
     Sample1TestCase,
     EXPECTED_ACCOUNTS,
@@ -171,3 +178,40 @@ class TestAccount(Sample1TestCase):
 
         # Test with new Account
         self.assertEqual([], Account().statements())
+
+    def test_default_account(self):
+        """
+        Tests Account.default_account()
+        """
+        # Setup
+        if test_settings_file_path.exists():
+            os.remove(test_settings_file_path)
+        model.app_settings = UserSettings(test_settings_file_path)
+
+        # Main Test
+        self.assertFalse(test_settings_file_path.exists())
+
+        # Test with a settings file that lacks location_scan_radius
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            file.write("{}")
+        model.app_settings.load_settings()
+
+        self.assertTrue(test_settings_file_path.exists())
+        self.assertIsNone(model.app_settings.default_account())
+
+        # Test with a settings file and valid default_account
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "Checking"}, file)
+        model.app_settings.load_settings()
+
+        self.assertSqlEqual(Account.from_id(1), Account.default_account())
+
+        with open(test_settings_file_path, "w", encoding="utf-8") as file:
+            json.dump({"default_account": "Savings"}, file)
+        model.app_settings.load_settings()
+
+        self.assertSqlEqual(Account.from_id(2), Account.default_account())
+
+        # Teardown
+        if test_settings_file_path.exists():
+            os.remove(test_settings_file_path)

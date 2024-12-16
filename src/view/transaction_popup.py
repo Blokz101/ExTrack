@@ -10,6 +10,7 @@ from typing import cast, Optional, Any
 
 from PySimpleGUI import Element, Text, Combo, Input, Button, Frame, Column, pin  # type: ignore
 
+import model
 from src.model.account import Account
 from src.model.amount import Amount
 from src.model.merchant import Merchant
@@ -32,13 +33,26 @@ class TransactionPopup(DataPopup):
     Popup that allows the user to create or edit a transaction.
     """
 
-    def __init__(self, trans: Optional[Transaction]):
+    def __init__(
+        self, trans: Optional[Transaction], use_default_account: bool = True
+    ) -> None:
+        """
+        :param trans: Transaction to prefill fields with
+        :param use_default_account: True if the default account should be used if none is provided with the transaction
+        """
         self.trans: Transaction
         """Transaction that this popup interacts with."""
         if trans is not None:
             self.trans = trans
         else:
             self.trans = Transaction(reconciled=False)
+
+        if use_default_account and self.trans.account_id is None:
+            self.trans.account_id = (
+                Account.default_account().sqlid
+                if Account.default_account() is not None
+                else None
+            )
 
         super().__init__(
             f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else "New"}",
