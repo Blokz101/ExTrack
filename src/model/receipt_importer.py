@@ -152,19 +152,6 @@ class ReceiptImporter:
         ]
 
     @staticmethod
-    def get_merchant_locations() -> list[Location]:
-        """
-        Gets all merchant locations that are not online from the database.
-
-        :return: List of merchant locations
-        """
-        if ReceiptImporter.merchant_locations is not None:
-            return ReceiptImporter.merchant_locations
-
-        ReceiptImporter.merchant_locations = Location.get_all()
-        return ReceiptImporter.merchant_locations
-
-    @staticmethod
     def nearby_locations(lat: float, long: float) -> list[tuple[Location, float]]:
         """
         Gets all merchant locations near a given location.
@@ -175,7 +162,7 @@ class ReceiptImporter:
         specified location
         """
         possible_locations: list[tuple[Location, float]] = []
-        for location in ReceiptImporter.get_merchant_locations():
+        for location in Location.get_all():
             if location.lat is None or location.long is None:
                 raise RuntimeError(
                     f"Location id = {location.sqlid} is missing coordinates."
