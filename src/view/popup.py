@@ -2,9 +2,8 @@
 Contains the Popup class which is the base for all windows in the application.
 """
 
-from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from PySimpleGUI import Window, Element, WINDOW_CLOSED, theme  # type: ignore
 
@@ -23,12 +22,22 @@ class ClosedStatus(Enum):
     UNACKNOWLEDGED: int = 4
 
 
-class Popup(ABC):
+class Popup:
     """
     Basic popup with an event loop and layout.
     """
 
-    def __init__(self, title: str, modal: bool = True) -> None:
+    def __init__(
+        self,
+        title: str,
+        modal: bool = True,
+        layout: Optional[list[list[Element]]] = None,
+    ) -> None:
+        """
+        :param title: Title of the popup, will be displayed as the window title
+        :param modal: True if the popup should be modal
+        :param layout: The layout of the popup if, if not specified then _layout_generator will be called to generate the layout instead.
+        """
         theme(gui_theme)
 
         self.title: str = title
@@ -45,7 +54,7 @@ class Popup(ABC):
 
         self.window: Window = Window(
             self.title,
-            self._layout_generator(),
+            layout if layout is not None else self._layout_generator(),
             resizable=True,
             finalize=True,
             modal=modal,
@@ -65,10 +74,10 @@ class Popup(ABC):
         self.run_event_loop = False
         self.window.close()
 
-    @abstractmethod
     def _layout_generator(self) -> list[list[Element]]:
         """
-        Generates the layout for the window
+        Generates the layout for the window. This method gets called if layout was not defined in the constructor.
+        Implemented separately to separate construction code from logic code.
 
         :return: Layout for the window
         """
@@ -97,7 +106,6 @@ class Popup(ABC):
         if self.closed_status == ClosedStatus.OPEN:
             self.close(closed_status=ClosedStatus.UNACKNOWLEDGED)
 
-    @abstractmethod
     def check_event(self, event: Any, values: dict[Any, Any]) -> None:
         """
         Respond to events from the user or test.
@@ -111,7 +119,6 @@ class Popup(ABC):
     def add_callback(self, func: Any) -> None:
         """
         Add a callback function to be run with every event loop.
-
         Each callback function will take parameters (event, values).
 
         :param func: Function to run
