@@ -10,7 +10,6 @@ from typing import cast, Optional, Any
 
 from PySimpleGUI import Element, Text, Combo, Input, Button, Frame, Column, pin  # type: ignore
 
-import model
 from src.model.account import Account
 from src.model.amount import Amount
 from src.model.merchant import Merchant
@@ -26,6 +25,7 @@ from src.view.validated_input import (
     DateInput,
     AmountInput,
 )
+from src.view.searchable_combo import SearchableCombo
 
 
 class TransactionPopup(DataPopup):
@@ -93,6 +93,11 @@ class TransactionPopup(DataPopup):
         for key in self.validated_input_keys:
             validated_input: ValidatedInput = cast(ValidatedInput, self.window[key])
             self.add_callback(validated_input.update_validation_appearance)
+        self.add_callback(
+            cast(
+                SearchableCombo, self.window["-MERCHANT SELECTOR-"]
+            ).event_loop_callback
+        )
 
         self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
 
@@ -135,21 +140,22 @@ class TransactionPopup(DataPopup):
                 key="-TOTAL AMOUNT INPUT-",
                 expand_x=True,
             ),
-            Combo(
+            SearchableCombo(
                 Merchant.get_all(),
-                default_value=(
-                    ""
-                    if self.trans.merchant_id is None
-                    else (
-                        self.trans.merchant().name  # type: ignore
-                        if self.trans.merchant_id is not None
-                        else "None"
-                    )
-                ),
+                default_value=self.trans.merchant(),
                 key="-MERCHANT SELECTOR-",
-                enable_events=True,
-                expand_x=True,
             ),
+            # Combo(
+            #     Merchant.get_all(),
+            #     default_value=(
+            #         ""
+            #         if self.trans.merchant_id is None
+            #         else self.trans.merchant().name  # type: ignore
+            #     ),
+            #     key="-MERCHANT SELECTOR-",
+            #     enable_events=True,
+            #     expand_x=True,
+            # ),
             CoordinateInput(
                 default_text=f"{self.trans.lat}, {self.trans.long}",
                 key="-COORDINATE INPUT-",
@@ -269,8 +275,10 @@ class TransactionPopup(DataPopup):
         if event == "-ACCOUNT SELECTOR-":
             self.account = values["-ACCOUNT SELECTOR-"]
 
-        if event == "-MERCHANT SELECTOR-":
-            self.merchant = values["-MERCHANT SELECTOR-"]
+        if event is not None and "-MERCHANT SELECTOR-" in event:
+            self.merchant = cast(
+                SearchableCombo, self.window["-MERCHANT SELECTOR-"]
+            ).selected_value
 
         if event == "-DONE BUTTON-":
 

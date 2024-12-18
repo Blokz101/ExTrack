@@ -13,6 +13,7 @@ from src.model.location import Location
 from src.model.merchant import Merchant
 from src.view.data_popup import DataPopup
 from src.view.validated_input import ValidatedInput, CoordinateInput
+from view.searchable_combo import SearchableCombo
 
 
 class LocationPopup(DataPopup):
@@ -52,6 +53,11 @@ class LocationPopup(DataPopup):
         for key in self.validated_input_keys:
             validated_input: ValidatedInput = cast(ValidatedInput, self.window[key])
             self.add_callback(validated_input.update_validation_appearance)
+        self.add_callback(
+            cast(
+                SearchableCombo, self.window[LocationPopup.MERCHANT_COMBO_KEY]
+            ).event_loop_callback
+        )
 
         self.window[LocationPopup.DONE_BUTTON_KEY].update(
             disabled=not self.inputs_valid()
@@ -80,15 +86,10 @@ class LocationPopup(DataPopup):
                 key=LocationPopup.DESCRIPTION_INPUT_KEY,
                 enable_events=True,
             ),
-            Combo(
+            SearchableCombo(
                 values=Merchant.get_all(),
-                default_value=(
-                    ""
-                    if self.location.merchant_id is None
-                    else self.location.merchant().name  # type: ignore
-                ),
+                default_value=self.location.merchant(),
                 key=LocationPopup.MERCHANT_COMBO_KEY,
-                enable_events=True,
             ),
             CoordinateInput(
                 default_text=f"{self.location.lat}, {self.location.long}",
@@ -114,8 +115,10 @@ class LocationPopup(DataPopup):
             LocationPopup(None).event_loop()
             return
 
-        if event == LocationPopup.MERCHANT_COMBO_KEY:
-            self.merchant = values[LocationPopup.MERCHANT_COMBO_KEY]
+        if event is not None and LocationPopup.MERCHANT_COMBO_KEY in event:
+            self.merchant = cast(
+                SearchableCombo, self.window[LocationPopup.MERCHANT_COMBO_KEY]
+            ).selected_value
 
         if event == LocationPopup.DONE_BUTTON_KEY:
 

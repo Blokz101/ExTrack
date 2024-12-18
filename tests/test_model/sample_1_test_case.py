@@ -9,8 +9,8 @@ import shutil
 from datetime import datetime
 from unittest import TestCase
 
-from src.model import database
-from src.model import date_format
+from src import model
+from src.model import UserSettings, database, date_format
 from src.model.account import Account
 from src.model.amount import Amount
 from src.model.location import Location
@@ -1031,6 +1031,7 @@ class Sample1TestCase(TestCase):
         """
         shutil.copyfile(sample_database_1_path, test_database_path)
         database.connect(test_database_path)
+        model.app_settings.settings = UserSettings.DEFAULT_SETTINGS.copy()
 
     def tearDown(self):
         """

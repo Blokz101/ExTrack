@@ -5,12 +5,14 @@ Tests for the LocationPopup class.
 # mypy: ignore-errors
 from PySimpleGUI import Window
 from ddt import ddt, data
+from typing import cast
 
 from src.model.location import Location
 from src.model.merchant import Merchant
 from src.view.location_popup import LocationPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
 from src.view.data_popup import DataPopup
+from view.searchable_combo import SearchableCombo
 
 
 @ddt
@@ -29,7 +31,11 @@ class TestLocationPopup(Sample1TestCase):
 
         # Validate basic fields and inputs
         self.assertEqual("", popup_window[LocationPopup.DESCRIPTION_INPUT_KEY].get())
-        self.assertEqual("", popup_window[LocationPopup.MERCHANT_COMBO_KEY].get())
+        self.assertIsNone(
+            cast(
+                SearchableCombo, popup_window[LocationPopup.MERCHANT_COMBO_KEY]
+            ).selected_value
+        )
         self.assertEqual(
             "None, None", popup_window[LocationPopup.COORD_INPUT_KEY].get()
         )
@@ -60,7 +66,9 @@ class TestLocationPopup(Sample1TestCase):
         )
         self.assertSqlEqual(
             location.merchant(),
-            popup_window[LocationPopup.MERCHANT_COMBO_KEY].get(),
+            cast(
+                SearchableCombo, popup_window[LocationPopup.MERCHANT_COMBO_KEY]
+            ).selected_value,
         )
         self.assertEqual(
             f"{location.lat}, {location.long}",
@@ -143,10 +151,10 @@ class TestLocationPopup(Sample1TestCase):
 
         new_merchant: Merchant = Merchant.from_id(7)
         popup.window[LocationPopup.MERCHANT_COMBO_KEY].update(new_merchant)
-        popup.check_event(
-            LocationPopup.MERCHANT_COMBO_KEY,
-            {LocationPopup.MERCHANT_COMBO_KEY: new_merchant},
+        cast(SearchableCombo, popup.window[LocationPopup.MERCHANT_COMBO_KEY]).set_value(
+            new_merchant
         )
+        popup.check_event(LocationPopup.MERCHANT_COMBO_KEY, {})
 
         new_coords: str = "35.87297786212306, -78.62322715316918"
         popup.window[LocationPopup.COORD_INPUT_KEY].update(new_coords)

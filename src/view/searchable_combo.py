@@ -12,7 +12,8 @@ class SearchableCombo(Column):
 
     COMBO_LISTBOX_KEY: str = "-COMBO LISTBOX-"
     COMBO_INPUT_KEY: str = "-COMBO INPUT-"
-    VALID_INPUT_TEXT_COLOR: str = "black"
+    COMBO_LISTBOX_HEIGHT: int = 4
+    VALID_INPUT_TEXT_COLOR: str = "white"
     INVALID_INPUT_TEXT_COLOR: str = "red"
 
     def __init__(
@@ -31,7 +32,8 @@ class SearchableCombo(Column):
         """Height of the input element."""
         self.display_values: list[Any] = self.values.copy()
         """List of values to be displayed in the listbox. Changes as the value in the Input element is changed."""
-        self.selected_value: Any = default_value
+        self.selected_value: Any = None
+        self.set_value(default_value)
         """Value that has been selected."""
         self._enter_bound: bool = False
         """True if the input has had the enter key bound, false otherwise."""
@@ -45,9 +47,12 @@ class SearchableCombo(Column):
         """Combo Input element."""
 
         self.display_values.sort(key=lambda x: str(x))
-        super().__init__(layout=self._layout_generator(), key=key, expand_y=True)
-        if default_value is not None and default_value not in values:
-            raise ValueError("Default value must be in values.")
+        super().__init__(
+            layout=self._layout_generator(),
+            key=key,
+            expand_y=True,
+            expand_x=True,
+        )
 
     def _layout_generator(self) -> list[list[Element]]:
         """
@@ -58,9 +63,11 @@ class SearchableCombo(Column):
             expand_y=True,
             expand_x=True,
             enable_events=True,
+            size=(1, SearchableCombo.COMBO_LISTBOX_HEIGHT),
             key=self.combo_listbox_key,
         )
         self.combo_input = Input(
+            default_text=str(self.selected_value),
             expand_x=True,
             enable_events=True,
             key=self.combo_input_key,
@@ -77,6 +84,16 @@ class SearchableCombo(Column):
         :return: True if a value is currently selected, false otherwise
         """
         return self.selected_value is not None
+
+    def set_value(self, new_value: Any) -> None:
+        """
+        Set the value of this element.
+
+        :param new_value: New value to set the selected value to
+        """
+        if new_value is not None and new_value not in self.values:
+            raise ValueError("Default value must be in values.")
+        self.selected_value = new_value
 
     def event_loop_callback(self, event: Any, values: dict[Any, Any]) -> None:
         """

@@ -142,6 +142,7 @@ class TestSearchableCombo(Sample1TestCase):
 
         self.close_window()
 
+    @skip
     def test_manual(self):
         self.create_window(SearchableCombo(Merchant.get_all()))
         self.popup.event_loop()

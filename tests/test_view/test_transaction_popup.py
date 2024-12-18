@@ -24,6 +24,7 @@ from src.view.transaction_popup import TransactionPopup
 from tests.test_model import test_settings_file_path
 from tests.test_model.sample_1_test_case import Sample1TestCase
 from src.view.data_popup import DataPopup
+from view.searchable_combo import SearchableCombo
 
 
 @ddt
@@ -45,7 +46,9 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertEqual("", popup_window["-ACCOUNT SELECTOR-"].get())
         self.assertEqual("", popup_window["-DESCRIPTION INPUT-"].get())
         self.assertEqual(None, popup_window["-TOTAL AMOUNT INPUT-"].get())
-        self.assertEqual("", popup_window["-MERCHANT SELECTOR-"].get())
+        self.assertIsNone(
+            cast(SearchableCombo, popup_window["-MERCHANT SELECTOR-"]).selected_value
+        )
         self.assertEqual("None, None", popup_window["-COORDINATE INPUT-"].get())
         self.assertEqual(
             datetime.now().strftime(short_date_format),
@@ -155,10 +158,17 @@ class TestTransactionPopup(Sample1TestCase):
         # Test merchant differently for the case where the transaction has a merchant and the
         # case where it does not.
         if trans.merchant_id is None:
-            self.assertEqual("", popup_window["-MERCHANT SELECTOR-"].get())
+            self.assertIsNone(
+                cast(
+                    SearchableCombo, popup_window["-MERCHANT SELECTOR-"]
+                ).selected_value
+            )
         else:
             self.assertSqlEqual(
-                trans.merchant(), popup_window["-MERCHANT SELECTOR-"].get()
+                trans.merchant(),
+                cast(
+                    SearchableCombo, popup_window["-MERCHANT SELECTOR-"]
+                ).selected_value,
             )
         lat: str = trans.lat if trans.lat is not None else "None"
         long: str = trans.long if trans.long is not None else "None"
@@ -324,9 +334,10 @@ class TestTransactionPopup(Sample1TestCase):
         )
 
         # Create a new amount and check tags when the transaction has a merchant
-        popup.check_event(
-            "-MERCHANT SELECTOR-", {"-MERCHANT SELECTOR-": Merchant.from_id(1)}
+        cast(SearchableCombo, popup.window["-MERCHANT SELECTOR-"]).set_value(
+            Merchant.from_id(1)
         )
+        popup.check_event("-MERCHANT SELECTOR-", {})
         popup.check_event("-NEW AMOUNT BUTTON-", {})
 
         self.assertEqual(2, len(popup.amount_rows))
@@ -554,7 +565,9 @@ class TestTransactionPopup(Sample1TestCase):
 
         key = "-MERCHANT SELECTOR-"
         new_merchant_id: int = 1
-        popup.window[key].update(value=Merchant.from_id(new_merchant_id))
+        cast(SearchableCombo, popup.window[key]).set_value(
+            Merchant.from_id(new_merchant_id)
+        )
         popup.check_event(key, {key: Merchant.from_id(new_merchant_id)})
 
         key = "-COORDINATE INPUT-"
@@ -611,7 +624,9 @@ class TestTransactionPopup(Sample1TestCase):
 
         key = "-MERCHANT SELECTOR-"
         new_merchant_id: int = 1
-        popup.window[key].update(value=Merchant.from_id(new_merchant_id))
+        cast(SearchableCombo, popup.window["-MERCHANT SELECTOR-"]).set_value(
+            Merchant.from_id(new_merchant_id)
+        )
         popup.check_event(key, {key: Merchant.from_id(new_merchant_id)})
 
         key = "-COORDINATE INPUT-"
