@@ -72,6 +72,13 @@ class MainWindow(Popup):
         if database_path is not None and database_path.exists():
             database.connect(database_path)
 
+        self.add_callback(self.statement_tab.event_loop_callback)
+        self.add_callback(self.transaction_tab.event_loop_callback)
+        self.add_callback(self.account_tab.event_loop_callback)
+        self.add_callback(self.merchant_tab.event_loop_callback)
+        self.add_callback(self.location_tab.event_loop_callback)
+        self.add_callback(self.tag_tab.event_loop_callback)
+
         self.update_table()
 
     def _get_database_path(self, notify_on_error: bool = False) -> Optional[Path]:
@@ -148,6 +155,7 @@ class MainWindow(Popup):
         :param event: Event to parse
         :param values: Values related to the event
         """
+        super().check_event(event, values)
 
         if event in ["Open", "New"]:
             str_new_path: Optional[str] = popup_get_file(

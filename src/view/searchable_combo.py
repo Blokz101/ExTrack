@@ -67,7 +67,9 @@ class SearchableCombo(Column):
             key=self.combo_listbox_key,
         )
         self.combo_input = Input(
-            default_text=str(self.selected_value),
+            default_text=(
+                None if self.selected_value is None else str(self.selected_value)
+            ),
             expand_x=True,
             enable_events=True,
             key=self.combo_input_key,

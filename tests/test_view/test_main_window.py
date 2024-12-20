@@ -371,12 +371,17 @@ class TestMainWindow(TestCase):
 
         self.assertTrue(view.notification_message_queue.empty())
 
-        self.assertEqual([], app.transaction_tab.row_id_list)
-        self.assertEqual([], app.statement_tab.row_id_list)
-        self.assertEqual([], app.account_tab.row_id_list)
-        self.assertEqual([], app.merchant_tab.row_id_list)
-        self.assertEqual([], app.location_tab.row_id_list)
-        self.assertEqual([], app.tag_tab.row_id_list)
+        for table_list in [
+            app.transaction_tab.values,
+            app.statement_tab.values,
+            app.account_tab.values,
+            app.merchant_tab.values,
+            app.location_tab.values,
+            app.tag_tab.values,
+        ]:
+            self.assertEqual(1, len(table_list))
+            for value in table_list[0]:
+                self.assertIn(value, ["", "No database connected"])
 
         self.assertTrue(test_settings_file_path.exists())
 
@@ -398,12 +403,17 @@ class TestMainWindow(TestCase):
             view.notification_message_queue.get(),
         )
 
-        self.assertEqual([], app.transaction_tab.row_id_list)
-        self.assertEqual([], app.statement_tab.row_id_list)
-        self.assertEqual([], app.account_tab.row_id_list)
-        self.assertEqual([], app.merchant_tab.row_id_list)
-        self.assertEqual([], app.location_tab.row_id_list)
-        self.assertEqual([], app.tag_tab.row_id_list)
+        for table_list in [
+            app.transaction_tab.values,
+            app.statement_tab.values,
+            app.account_tab.values,
+            app.merchant_tab.values,
+            app.location_tab.values,
+            app.tag_tab.values,
+        ]:
+            self.assertEqual(1, len(table_list))
+            for value in table_list[0]:
+                self.assertIn(value, ["", "No database connected"])
 
         app.window.close()
 
@@ -423,12 +433,17 @@ class TestMainWindow(TestCase):
             f"Database file at path '{str(test_database_path.absolute())}' does not exist.",
             view.notification_message_queue.get(),
         )
-        self.assertEqual([], app.transaction_tab.row_id_list)
-        self.assertEqual([], app.statement_tab.row_id_list)
-        self.assertEqual([], app.account_tab.row_id_list)
-        self.assertEqual([], app.merchant_tab.row_id_list)
-        self.assertEqual([], app.location_tab.row_id_list)
-        self.assertEqual([], app.tag_tab.row_id_list)
+        for table_list in [
+            app.transaction_tab.values,
+            app.statement_tab.values,
+            app.account_tab.values,
+            app.merchant_tab.values,
+            app.location_tab.values,
+            app.tag_tab.values,
+        ]:
+            self.assertEqual(1, len(table_list))
+            for value in table_list[0]:
+                self.assertIn(value, ["", "No database connected"])
 
         app.window.close()
 
@@ -448,32 +463,21 @@ class TestMainWindow(TestCase):
         self.assertTrue(view.notification_message_queue.empty())
 
         # Check that each tab has the correct values
-        self.assertEqual(list(range(1, 8)), app.transaction_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_TRANSACTION_TAB_VALUES, app.transaction_tab.values
         )
-
-        self.assertEqual(list(range(1, 7)), app.statement_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_STATEMENTS_TAB_VALUES, app.statement_tab.values
         )
-
-        self.assertEqual(list(range(1, 3)), app.account_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_ACCOUNTS_TAB_VALUES, app.account_tab.values
         )
-
-        self.assertEqual(list(range(1, 28)), app.merchant_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_MERCHANT_TAB_VALUES, app.merchant_tab.values
         )
-
-        self.assertEqual(list(range(1, 29)), app.location_tab.row_id_list)
         self.assertEqual(
             TestMainWindow.EXPECTED_LOCATION_TAB_VALUES, app.location_tab.values
         )
-
-        self.assertEqual(list(range(1, 12)), app.tag_tab.row_id_list)
         self.assertEqual(TestMainWindow.EXPECTED_TAGS_TAB_VALUES, app.tag_tab.values)
 
         database.close()
