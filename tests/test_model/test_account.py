@@ -5,8 +5,6 @@ Tests the Account class.
 import json
 import os
 
-from model import UserSettings
-
 # mypy: ignore-errors
 
 from src import model
@@ -186,7 +184,7 @@ class TestAccount(Sample1TestCase):
         # Setup
         if test_settings_file_path.exists():
             os.remove(test_settings_file_path)
-        model.app_settings = UserSettings(test_settings_file_path)
+        model.app_settings = model.UserSettings(test_settings_file_path)
 
         # Main Test
         self.assertFalse(test_settings_file_path.exists())

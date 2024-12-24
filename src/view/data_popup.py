@@ -4,7 +4,7 @@ Contains the DataPopup class which is a base class for popups that deal with edi
 
 from abc import ABC
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Optional
 
 from PySimpleGUI import Element, Text, Button, Column  # type: ignore
 
@@ -20,13 +20,19 @@ class DataPopup(Popup, ABC):
     DELETE_BUTTON_KEY: str = "-DELETE BUTTON-"
     DONE_BUTTON_KEY: str = "-DONE BUTTON-"
 
-    def __init__(self, title: str, delete_supported: bool = False) -> None:
+    def __init__(
+        self,
+        title: str,
+        delete_supported: bool = False,
+        layout_generator: Any = None,
+    ) -> None:
         """
         :param title: Title of popup
         :param delete_supported: True if the delete button should be enabled, false otherwise
+        :param layout_generator: Alternative layout generator to use for this popup if the default layout behavior should be overridden
         """
         self._delete_supported: bool = delete_supported
-        super().__init__(title)
+        super().__init__(title, layout_generator=layout_generator)
 
     def _layout_generator(self) -> list[list[Element]]:
         """

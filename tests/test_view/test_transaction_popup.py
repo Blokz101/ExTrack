@@ -7,10 +7,12 @@ import os
 
 # mypy: ignore-errors
 from datetime import datetime
+from pathlib import Path
 from typing import cast
 
 from PySimpleGUI import Window
 from ddt import ddt, data
+from unittest import skip
 
 from src.model import UserSettings
 from src.model.account import Account
@@ -24,7 +26,9 @@ from src.view.transaction_popup import TransactionPopup
 from tests.test_model import test_settings_file_path
 from tests.test_model.sample_1_test_case import Sample1TestCase
 from src.view.data_popup import DataPopup
-from view.searchable_combo import SearchableCombo
+from src.view.searchable_combo import SearchableCombo
+from src.view.popup import Popup
+from src.view.image_viewer import ImageViewer
 
 
 @ddt
@@ -80,10 +84,9 @@ class TestTransactionPopup(Sample1TestCase):
 
         popup: TransactionPopup
 
-        # Main Test
-        # Test with a settings file that lacks location_scan_radius
+        # Test with a settings file that lacks location_scan_radius, default_account
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
-            file.write("{}")
+            json.dump({"receipts_folder": "/"}, file)
         model.app_settings.load_settings()
 
         popup = TransactionPopup(None)
@@ -96,7 +99,13 @@ class TestTransactionPopup(Sample1TestCase):
 
         # Test with a settings file that has an invalid default_account
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
-            json.dump({"default_account": "This account does not exist"}, file)
+            json.dump(
+                {
+                    "default_account": "This account does not exist",
+                    "receipts_folder": "/",
+                },
+                file,
+            )
         model.app_settings.load_settings()
 
         popup = TransactionPopup(None)
@@ -109,7 +118,13 @@ class TestTransactionPopup(Sample1TestCase):
 
         # Test with a settings file and valid default_account
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
-            json.dump({"default_account": "Checking"}, file)
+            json.dump(
+                {
+                    "default_account": "Checking",
+                    "receipts_folder": "/",
+                },
+                file,
+            )
         model.app_settings.load_settings()
 
         popup = TransactionPopup(None)
@@ -123,7 +138,13 @@ class TestTransactionPopup(Sample1TestCase):
         popup.close()
 
         with open(test_settings_file_path, "w", encoding="utf-8") as file:
-            json.dump({"default_account": "Savings"}, file)
+            json.dump(
+                {
+                    "default_account": "Savings",
+                    "receipts_folder": "/",
+                },
+                file,
+            )
         model.app_settings.load_settings()
 
         popup = TransactionPopup(None)
@@ -811,3 +832,20 @@ class TestTransactionPopup(Sample1TestCase):
         self.assertSqlListEqual(expected_amounts, Amount.get_all())
 
         popup.window.close()
+
+    @skip
+    def test_manual_image_viewer(self):
+        """
+        Create a window with just the ImageViewer for testing.
+        """
+        imgViewer = ImageViewer()
+        popup: Popup = Popup(title="Image Viewer Manual Test", layout=[[imgViewer]])
+        imgViewer.set_image(
+            Path(
+                "/Users/marcusq/Developer/Python/ExTrack/my_imported_photos/IMG5795.png"
+            )
+        )
+        popup.add_callback(imgViewer.event_loop_callback)
+
+        popup.event_loop()
+        popup.close()

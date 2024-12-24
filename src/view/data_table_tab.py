@@ -90,7 +90,12 @@ class DataTableTab(Tab, ABC, Generic[T]):
         """
         Event loop callback. Gets called every event loop iteration to respond to element specific events.
         """
-        if event is not None and DataTableTab.HEADER_CLICKED_EVENT in event:
+        if (
+            event is not None
+            and DataTableTab.HEADER_CLICKED_EVENT in event
+            and len(event) == 3
+            and event[2][0] == -1
+        ):
             selected_column_index: int = event[2][1]
 
             if selected_column_index == self.sort_by_column_index:

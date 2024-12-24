@@ -13,7 +13,7 @@ from src.model.location import Location
 from src.model.merchant import Merchant
 from src.view.data_popup import DataPopup
 from src.view.validated_input import ValidatedInput, CoordinateInput
-from view.searchable_combo import SearchableCombo
+from src.view.searchable_combo import SearchableCombo
 
 
 class LocationPopup(DataPopup):

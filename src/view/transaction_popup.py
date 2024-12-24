@@ -7,9 +7,11 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from typing import cast, Optional, Any
+from pathlib import Path
 
 from PySimpleGUI import Element, Text, Combo, Input, Button, Frame, Column, pin  # type: ignore
 
+from src import model
 from src.model.account import Account
 from src.model.amount import Amount
 from src.model.merchant import Merchant
@@ -25,6 +27,7 @@ from src.view.validated_input import (
     DateInput,
     AmountInput,
 )
+from src.view.image_viewer import ImageViewer
 from src.view.searchable_combo import SearchableCombo
 
 
@@ -34,11 +37,15 @@ class TransactionPopup(DataPopup):
     """
 
     def __init__(
-        self, trans: Optional[Transaction], use_default_account: bool = True
+        self,
+        trans: Optional[Transaction],
+        use_default_account: bool = True,
+        import_folder: Optional[Path] = None,
     ) -> None:
         """
         :param trans: Transaction to prefill fields with
         :param use_default_account: True if the default account should be used if none is provided with the transaction
+        :param import_folder: Folder that the image for this transaction is in if it exists, used to locate and display the photo during import from photo.
         """
         self.trans: Transaction
         """Transaction that this popup interacts with."""
@@ -54,12 +61,14 @@ class TransactionPopup(DataPopup):
                 else None
             )
 
+        self.import_folder: Optional[Path] = import_folder
+        """Path to the folder that images are being imported from. Used to locate and display the photo during import."""
+
         super().__init__(
             f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else "New"}",
             delete_supported=self.trans.exists(),
+            layout_generator=self._layout_generator,
         )
-
-        self.window.read(timeout=0)
 
         self.account: Optional[Account] = self.trans.account()
         """Internal Account object updated by the account combo element."""
@@ -90,6 +99,7 @@ class TransactionPopup(DataPopup):
         event loop.
         """
 
+        # Add various callback functions
         for key in self.validated_input_keys:
             validated_input: ValidatedInput = cast(ValidatedInput, self.window[key])
             self.add_callback(validated_input.update_validation_appearance)
@@ -98,8 +108,24 @@ class TransactionPopup(DataPopup):
                 SearchableCombo, self.window["-MERCHANT SELECTOR-"]
             ).event_loop_callback
         )
+        self.add_callback(
+            cast(ImageViewer, self.window["-IMAGE VIEWER-"]).event_loop_callback
+        )
 
+        cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(
+            self._get_image_path()
+        )
         self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
+
+        self.window.bind("<Escape>", "-ESCAPE-")
+
+    def _layout_generator(self) -> list[list[Element]]:
+        return [
+            [
+                Column(super()._layout_generator()),
+                ImageViewer(key="-IMAGE VIEWER-"),
+            ]
+        ]
 
     def _fields_generator(self) -> list[list[Element]]:
         labels: list[Element] = list(
@@ -112,7 +138,7 @@ class TransactionPopup(DataPopup):
                 "Merchant: ",
                 "Coordinates: ",
                 "Date: ",
-                "Image Path: ",
+                "Image Name: ",
                 "Reconciled: ",
                 "Statement: ",
                 "Transfer Transaction: ",
@@ -145,17 +171,6 @@ class TransactionPopup(DataPopup):
                 default_value=self.trans.merchant(),
                 key="-MERCHANT SELECTOR-",
             ),
-            # Combo(
-            #     Merchant.get_all(),
-            #     default_value=(
-            #         ""
-            #         if self.trans.merchant_id is None
-            #         else self.trans.merchant().name  # type: ignore
-            #     ),
-            #     key="-MERCHANT SELECTOR-",
-            #     enable_events=True,
-            #     expand_x=True,
-            # ),
             CoordinateInput(
                 default_text=f"{self.trans.lat}, {self.trans.long}",
                 key="-COORDINATE INPUT-",
@@ -182,6 +197,8 @@ class TransactionPopup(DataPopup):
                 ),
                 key="-RECEIPT PATH INPUT-",
                 expand_x=True,
+                enable_events=True,
+                disabled=self.import_folder is not None,
             ),
             Text(
                 self.trans.reconciled,
@@ -250,6 +267,26 @@ class TransactionPopup(DataPopup):
                 self.window["-AMOUNTS FRAME-"],
                 [[pin(row, expand_x=True)]],
             )
+
+    def _get_image_path(self) -> Optional[Path]:
+        """
+        Combines the image name and file path from settings to get the full image path.
+
+        :return: Absolute path to image.
+        """
+        folder_search_list: list[Path] = [
+            model.app_settings.receipts_folder(),
+            self.import_folder,
+        ]
+
+        for folder in folder_search_list:
+            if folder is None:
+                continue
+            image_path: Path = folder / self.window["-RECEIPT PATH INPUT-"].get()
+            if image_path.exists():
+                return image_path
+
+        return None
 
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
@@ -355,6 +392,17 @@ class TransactionPopup(DataPopup):
             self.window.extend_layout(
                 self.window["-AMOUNTS FRAME-"], [[pin(new_amount_row, expand_x=True)]]
             )
+
+        if event == "-RECEIPT PATH INPUT-":
+            image_path: Optional[Path] = self._get_image_path()
+            if image_path is not None and image_path.exists():
+                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(image_path)
+            else:
+                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(None)
+
+        if event == "-ESCAPE-":
+            self.close(closed_status=ClosedStatus.OPERATION_SUCCESS)
+            return
 
         # Update done button to be enabled/disabled based on input validity
         self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())

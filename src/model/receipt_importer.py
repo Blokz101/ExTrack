@@ -128,7 +128,9 @@ class ReceiptImporter:
         for path in path_list:
 
             importer: ReceiptImporter = ReceiptImporter(path)
-            popup: TransactionPopup = TransactionPopup(importer.create_transaction())
+            popup: TransactionPopup = TransactionPopup(
+                importer.create_transaction(), import_folder=path.parent
+            )
             popup.event_loop()
 
             if popup.closed_status == ClosedStatus.OPERATION_SUCCESS:

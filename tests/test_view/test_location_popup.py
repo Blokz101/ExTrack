@@ -12,7 +12,7 @@ from src.model.merchant import Merchant
 from src.view.location_popup import LocationPopup
 from tests.test_model.sample_1_test_case import Sample1TestCase
 from src.view.data_popup import DataPopup
-from view.searchable_combo import SearchableCombo
+from src.view.searchable_combo import SearchableCombo
 
 
 @ddt

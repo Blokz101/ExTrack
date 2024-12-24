@@ -32,6 +32,7 @@ class Popup:
         title: str,
         modal: bool = True,
         layout: Optional[list[list[Element]]] = None,
+        layout_generator: Any = None,
     ) -> None:
         """
         :param title: Title of the popup, will be displayed as the window title
@@ -52,9 +53,17 @@ class Popup:
         self.closed_status: ClosedStatus = ClosedStatus.OPEN
         """Status of the popup when it is closed."""
 
+        window_layout: list[list[Element]]
+        if layout is not None:
+            window_layout = layout
+        elif layout_generator is not None:
+            window_layout = layout_generator()
+        else:
+            window_layout = self._layout_generator()
+
         self.window: Window = Window(
             self.title,
-            layout if layout is not None else self._layout_generator(),
+            window_layout,
             resizable=True,
             finalize=True,
             modal=modal,
