@@ -146,7 +146,7 @@ class TagSelector(Popup):
         else:
             non_selected_tags.sort(
                 key=lambda t: SequenceMatcher(
-                    None, t.name, self.window["-TAG SEARCH-"].get()  # type: ignore
+                    None, t.name.lower(), self.window["-TAG SEARCH-"].get().lower()  # type: ignore
                 ).ratio(),
                 reverse=True,
             )
