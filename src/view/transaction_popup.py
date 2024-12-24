@@ -113,7 +113,7 @@ class TransactionPopup(DataPopup):
         )
 
         cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(
-            self._get_image_path()
+            self._get_image_path(), self.window
         )
         self.window["-DONE BUTTON-"].update(disabled=not self.inputs_valid())
 
@@ -398,7 +398,7 @@ class TransactionPopup(DataPopup):
             if image_path is not None and image_path.exists():
                 cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(image_path)
             else:
-                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(None)
+                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(None, self.window)
 
         if event == "-ESCAPE-":
             self.close(closed_status=ClosedStatus.OPERATION_SUCCESS)

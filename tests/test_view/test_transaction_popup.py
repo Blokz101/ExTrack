@@ -843,7 +843,8 @@ class TestTransactionPopup(Sample1TestCase):
         imgViewer.set_image(
             Path(
                 "/Users/marcusq/Developer/Python/ExTrack/my_imported_photos/IMG5795.png"
-            )
+            ),
+            popup.window
         )
         popup.add_callback(imgViewer.event_loop_callback)
 

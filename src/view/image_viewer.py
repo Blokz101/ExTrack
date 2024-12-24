@@ -4,7 +4,7 @@ Contains the ImageViewer class which allows the user to view, zoom, and pan imag
 
 from typing import Any
 from pathlib import Path
-from PySimpleGUI import Column, Element, Button
+from PySimpleGUI import Column, Element, Button, Window
 from PySimpleGUI import Image as GuiImage
 from typing import Optional
 from PIL import Image
@@ -33,6 +33,9 @@ class ImageViewer(Column):
 
         self.height: int = height
         """Height of the image element."""
+
+        self.window: Optional[Window] = None
+        """Window that this element is in."""
 
         self.zoom_level: int = 0
         """Zoom level, gets multiplied by ZOOM_INCREMENTS to find the target width of the image."""
@@ -69,11 +72,12 @@ class ImageViewer(Column):
             ],
         ]
 
-    def set_image(self, image_path: Optional[Path]) -> None:
+    def set_image(self, image_path: Optional[Path], window: Window) -> None:
         """
         Sets the image viewer to display a specific image.
 
-        :param image_path: Path to the image to display.
+        :param image_path: Path to the image to display
+        :param window: Window that this element is in
         """
         if (
             image_path is None
@@ -92,6 +96,7 @@ class ImageViewer(Column):
             if scale < 1:
                 self.zoom_level = int(1 / scale + 1)
 
+        self.window = window
         self._update_image()
 
     def event_loop_callback(self, event: Any, values: dict) -> None:
@@ -112,10 +117,13 @@ class ImageViewer(Column):
             self._update_image()
             return
 
-    def _update_image(self) -> None:
+    def _update_image(self, ) -> None:
         """
         Updates the image element using instance variables set before this call.
         """
+        if self.window is None:
+            return
+
         if self.image_path is None:
             self.image_element.update(source=None)
 
@@ -126,6 +134,7 @@ class ImageViewer(Column):
                 zoom=zoom,
                 subsample=subsample,
             )
+        self.window.refresh()
         self.scroll_column_element.contents_changed()
 
     def _get_zoom_and_subsample(self) -> tuple[Optional[int], Optional[int]]:
