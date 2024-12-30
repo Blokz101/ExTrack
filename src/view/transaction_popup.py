@@ -41,11 +41,13 @@ class TransactionPopup(DataPopup):
         trans: Optional[Transaction],
         use_default_account: bool = True,
         import_folder: Optional[Path] = None,
+        merchant_order: list[int] = None,
     ) -> None:
         """
         :param trans: Transaction to prefill fields with
         :param use_default_account: True if the default account should be used if none is provided with the transaction
         :param import_folder: Folder that the image for this transaction is in if it exists, used to locate and display the photo during import from photo.
+        :param merchant_order: Order that merchants options should be displayed in the merchant selector. Merchants that are not in this list will be added to the end.
         """
         self.trans: Transaction
         """Transaction that this popup interacts with."""
@@ -63,6 +65,9 @@ class TransactionPopup(DataPopup):
 
         self.import_folder: Optional[Path] = import_folder
         """Path to the folder that images are being imported from. Used to locate and display the photo during import."""
+
+        self.merchant_order: Optional[list[int]] = merchant_order
+        """Order that merchants options should be displayed in the merchant selector."""
 
         super().__init__(
             f"Transaction ID = {self.trans.sqlid if self.trans.sqlid is not None else "New"}",
@@ -145,6 +150,18 @@ class TransactionPopup(DataPopup):
             ]
         )
 
+        merchant_list: list[Merchant]
+        if self.merchant_order is None:
+            merchant_list = sorted(Merchant.get_all(), key=lambda x: x.name)
+        else:
+            merchant_list = list(Merchant.from_id(x) for x in self.merchant_order)
+
+            # Add the rest of the merchants
+            merchant_list += sorted(
+                list(x for x in Merchant.get_all() if x not in merchant_list),
+                key=lambda x: x.name,
+            )
+
         fields: list[Element] = [
             Text(self.trans.sqlid, key="-TRANS ID TEXT-"),
             Combo(
@@ -167,7 +184,7 @@ class TransactionPopup(DataPopup):
                 expand_x=True,
             ),
             SearchableCombo(
-                Merchant.get_all(),
+                merchant_list,
                 default_value=self.trans.merchant(),
                 key="-MERCHANT SELECTOR-",
             ),
@@ -396,9 +413,13 @@ class TransactionPopup(DataPopup):
         if event == "-RECEIPT PATH INPUT-":
             image_path: Optional[Path] = self._get_image_path()
             if image_path is not None and image_path.exists():
-                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(image_path)
+                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(
+                    image_path, self.window
+                )
             else:
-                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(None, self.window)
+                cast(ImageViewer, self.window["-IMAGE VIEWER-"]).set_image(
+                    None, self.window
+                )
 
         if event == "-ESCAPE-":
             self.close(closed_status=ClosedStatus.OPERATION_SUCCESS)

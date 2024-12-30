@@ -21,8 +21,15 @@ class SearchableCombo(Column):
         values: list[Any],
         default_value: Any = None,
         input_height: Optional[int] = None,
+        sorting_function: Optional[Any] = None,
         key: str = "",
     ):
+        """
+        :param values: List of objects that are the options, each object's __str__ function is used to find their display values
+        :param default_value: Object that should be selected initially
+        :param input_height: Height of the input element
+        :param key: Key for this element
+        """
         self.values: list[Any] = values
         """
         List of values that the searchable combo displays. 
@@ -30,11 +37,13 @@ class SearchableCombo(Column):
         """
         self.listbox_height: Optional[int] = input_height
         """Height of the input element."""
-        self.display_values: list[Any] = self.values.copy()
+        self._original_values: list[Any] = values.copy()
+        """Original list of values in their original order."""
+        self.display_values: list[Any] = values.copy()
         """List of values to be displayed in the listbox. Changes as the value in the Input element is changed."""
         self.selected_value: Any = None
-        self.set_value(default_value)
         """Value that has been selected."""
+        self.set_value(default_value)
         self._enter_bound: bool = False
         """True if the input has had the enter key bound, false otherwise."""
         self.combo_listbox_key: str = key + SearchableCombo.COMBO_LISTBOX_KEY
@@ -46,7 +55,6 @@ class SearchableCombo(Column):
         self.combo_input: Input
         """Combo Input element."""
 
-        self.display_values.sort(key=lambda x: str(x))
         super().__init__(
             layout=self._layout_generator(),
             key=key,
@@ -124,12 +132,16 @@ class SearchableCombo(Column):
         self._update_appearance()
 
         # Update the listbox
-        self.display_values.sort(
-            key=lambda x: SequenceMatcher(
-                None, str(x).lower(), self.combo_input.get().lower()
-            ).ratio(),
-            reverse=True,
-        )
+        if self._being_searched():
+            self.display_values.sort(
+                key=lambda x: SequenceMatcher(
+                    None, str(x).lower(), self.combo_input.get().lower()
+                ).ratio(),
+                reverse=True,
+            )
+        else:
+            self.display_values = self._original_values.copy()
+
         self.combo_listbox.update(values=self.display_values)
 
     def _update_appearance(self) -> None:
@@ -142,3 +154,10 @@ class SearchableCombo(Column):
 
         else:
             self.combo_input.update(text_color=SearchableCombo.INVALID_INPUT_TEXT_COLOR)
+
+    def _being_searched(self) -> bool:
+        """
+        Returns true if the listbox is being searched and false otherwise.
+        :return: True if the list box is being searched and false otherwise
+        """
+        return self.combo_input.get() != "" and self.selected_value is None

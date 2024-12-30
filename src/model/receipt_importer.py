@@ -22,7 +22,7 @@ class ReceiptImporter:
     """List of file extensions that are supported for receipt photos."""
 
     merchant_locations: Optional[list[Location]] = None
-    """List of all merchant locations so they are not queried multiple times."""
+    """List of all merchant locations, used to reduce the number of database queries."""
 
     def __init__(self, receipt_path: Path) -> None:
 
@@ -92,14 +92,16 @@ class ReceiptImporter:
 
         :return: Transaction created from the receipt data
         """
+        merchant_id: Optional[int] = None
+        if self.possible_locations is not None and len(self.possible_locations) > 0:
+            nearest_location = self.possible_locations[0]
+            if nearest_location[1] <= model.app_settings.location_scan_radius():
+                merchant_id = nearest_location[0].merchant_id
+
         return Transaction(
             sqlid=None,
             description=self.description,
-            merchant_id=(
-                None
-                if self.possible_locations is None or len(self.possible_locations) == 0
-                else self.possible_locations[0][0].merchant_id
-            ),
+            merchant_id=merchant_id,
             reconciled=False,
             date=self.date,
             statement_id=None,
@@ -129,7 +131,11 @@ class ReceiptImporter:
 
             importer: ReceiptImporter = ReceiptImporter(path)
             popup: TransactionPopup = TransactionPopup(
-                importer.create_transaction(), import_folder=path.parent
+                importer.create_transaction(),
+                import_folder=path.parent,
+                merchant_order=list(
+                    x[0].merchant().sqlid for x in importer.possible_locations
+                ),
             )
             popup.event_loop()
 
@@ -163,6 +169,7 @@ class ReceiptImporter:
         :return: List of merchant locations near the given location and their distances to the
         specified location
         """
+        used_merchant_ids: list[int] = []
         possible_locations: list[tuple[Location, float]] = []
         for location in Location.get_all():
             if location.lat is None or location.long is None:
@@ -172,7 +179,9 @@ class ReceiptImporter:
             distance_to_location: float = ReceiptImporter.calculate_distance(
                 location.lat, location.long, lat, long
             )
-            if distance_to_location <= model.app_settings.location_scan_radius():
+            merchant_id: int = location.merchant().sqlid
+            if merchant_id not in used_merchant_ids:
+                used_merchant_ids.append(merchant_id)
                 possible_locations.append((location, distance_to_location))
 
         possible_locations.sort(key=lambda x: x[1])
