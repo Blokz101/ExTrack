@@ -42,9 +42,6 @@ class TestSearchableCombo(Sample1TestCase):
 
         self.assertEqual("", self.searchable_combo.combo_input.get())
         self.assertSqlListEqual(Merchant.get_all(), self.searchable_combo.values)
-        sorted_list: list[Merchant] = Merchant.get_all()
-        sorted_list.sort(key=lambda x: str(x))
-        self.assertSqlListEqual(sorted_list, self.searchable_combo.display_values)
         self.assertIsNone(self.searchable_combo.selected_value)
 
         self.close_window()

@@ -169,8 +169,9 @@ class ReceiptImporter:
         :return: List of merchant locations near the given location and their distances to the
         specified location
         """
-        used_merchant_ids: list[int] = []
         possible_locations: list[tuple[Location, float]] = []
+
+        # Create a list of all locations and their distance to the specified coordinates
         for location in Location.get_all():
             if location.lat is None or location.long is None:
                 raise RuntimeError(
@@ -179,12 +180,17 @@ class ReceiptImporter:
             distance_to_location: float = ReceiptImporter.calculate_distance(
                 location.lat, location.long, lat, long
             )
-            merchant_id: int = location.merchant().sqlid
-            if merchant_id not in used_merchant_ids:
-                used_merchant_ids.append(merchant_id)
-                possible_locations.append((location, distance_to_location))
+            possible_locations.append((location, distance_to_location))
 
+        # Sort all locations by distance and remove duplicates
         possible_locations.sort(key=lambda x: x[1])
+        used_merchant_ids: list[int] = []
+        for index, (location, _) in enumerate(possible_locations):
+            if location.merchant_id in used_merchant_ids:
+                possible_locations.pop(index)
+            else:
+                used_merchant_ids.append(location.merchant_id)
+
         return possible_locations
 
     @staticmethod
