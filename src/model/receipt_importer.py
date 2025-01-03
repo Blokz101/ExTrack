@@ -2,6 +2,7 @@ import math
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import re
 
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -112,11 +113,35 @@ class ReceiptImporter:
             transfer_trans_id=None,
         )
 
-    def move_photo(self) -> None:
+    def move_photo(self, trans: Optional[Transaction] = None) -> None:
         """
         Moves the receipt photo to the ExTract storage folder.
+
+        :param trans: Transaction object that has been synced to the database, used to update the transaction if the photo must be renamed
         """
         new_path: Path = model.app_settings.receipts_folder() / self.receipt_path.name
+        new_path_stem: str = new_path.stem
+
+        # Create a unique file name if the file name is taken
+        identical_path_index: int = 0
+        while new_path.exists():
+            if not trans.exists():
+                raise ValueError(
+                    "Cannot move receipt photo corresponding to a transaction that is not in the database."
+                )
+
+            identical_path_index += 1
+            new_path = (
+                new_path.parent
+                / f"{new_path_stem}_{identical_path_index}{new_path.suffix}"
+            )
+
+        # Sync the path change to the database if required
+        if identical_path_index != 0:
+            trans.receipt_file_name = new_path.name
+            trans.sync()
+
+        # Move the photo
         self.receipt_path.rename(new_path)
         self.receipt_path = new_path
 
@@ -140,7 +165,7 @@ class ReceiptImporter:
             popup.event_loop()
 
             if popup.closed_status == ClosedStatus.OPERATION_SUCCESS:
-                importer.move_photo()
+                importer.move_photo(popup.trans)
 
             if popup.closed_status == ClosedStatus.OPERATION_CANCELED:
                 return

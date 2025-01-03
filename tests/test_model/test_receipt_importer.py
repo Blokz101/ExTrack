@@ -10,6 +10,7 @@ from unittest import TestCase
 
 from ddt import ddt, data, unpack  # type: ignore
 
+from src.model.transaction import Transaction
 from src import model
 from src.model.receipt_importer import ReceiptImporter
 from tests.test_model import (
@@ -545,6 +546,7 @@ class TestReceiptImporter(Sample1TestCase):
             sample_receipt_folder_1_path.absolute()
         )
 
+        # Import all photos from test data and ensure they are correct
         for expected_transaction, receipt_path in zip(
             EXPECTED_IMPORTED_TRANSACTIONS,
             sorted(sample_receipt_folder_1_path.iterdir()),
@@ -574,6 +576,10 @@ class TestReceiptImporter(Sample1TestCase):
         try:
             for receipt in TestReceiptImporter.IMPORT_FOLDER_PATH.iterdir():
 
+                # Skip hidden non photo files
+                if ".png" != receipt.suffix:
+                    continue
+
                 # Move the photo
                 importer: ReceiptImporter = ReceiptImporter(receipt)
                 previous_path: Path = importer.receipt_path
@@ -588,6 +594,36 @@ class TestReceiptImporter(Sample1TestCase):
                     (model.app_settings.receipts_folder() / previous_path.name).exists()
                 )
                 self.assertFalse(previous_path.exists())
+
+            # Test importing a photo with the same name as a photo in the database
+            for index in range(0, 10):
+                shutil.copyfile(
+                    test_receipt_folder_path / "IMG_5795.png",
+                    TestReceiptImporter.IMPORT_FOLDER_PATH / "IMG.png",
+                )
+
+                # Move the photo with function under test
+                importer: ReceiptImporter = ReceiptImporter(
+                    TestReceiptImporter.IMPORT_FOLDER_PATH / "IMG.png"
+                )
+                importer.move_photo(Transaction.from_id(1))
+
+                # Check that the photo was moved and renamed
+                # (Checking that the transaction was created correctly is tested in test_create_transaction)
+                expected_file_name: str = (
+                    f"IMG.png" if index == 0 else f"IMG_{index}.png"
+                )
+                self.assertEqual(
+                    model.app_settings.receipts_folder() / expected_file_name,
+                    importer.receipt_path,
+                )
+                self.assertTrue(
+                    (model.app_settings.receipts_folder() / expected_file_name).exists()
+                )
+                self.assertTrue(f"IMG_{index}.png")
+                self.assertFalse(
+                    (TestReceiptImporter.IMPORT_FOLDER_PATH / "IMG.png").exists()
+                )
 
         # Clean up
         finally:
