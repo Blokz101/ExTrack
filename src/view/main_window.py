@@ -14,6 +14,7 @@ from PySimpleGUI import (  # type: ignore
     popup_get_file,
 )
 
+from src.model.transaction import Transaction
 from src import model
 from src.model import database
 from src.view.data_table_tab import (
@@ -55,6 +56,7 @@ class MainWindow(Popup):
             ],
         ],
         ["Import", ["From Photos", "From Statement"]],
+        ["Export", ["Transactions"]],
         ["Reconcile", ["Start New Reconcile", "Continue Reconcile"]],
     ]
     """Menu bar definition."""
@@ -184,7 +186,7 @@ class MainWindow(Popup):
                 database.connect(database_path)
                 self.update_table()
 
-        # Handel menu item events
+        # Handle menu item events
         if (
             event in MainWindow.MENU_DEFINITION[1][1]
             and self.window.TKroot.focus_displayof() is not None
@@ -219,6 +221,13 @@ class MainWindow(Popup):
             model.app_settings.set_database_path(None)
             database.close()
             self.update_table()
+
+        if event == "Transactions":
+            file: Optional[str] = popup_get_file("Save file to", save_as=True)
+            if file is None:
+                NotifyPopup("No file selected.").event_loop()
+            else:
+                Transaction.export_to_csv(Path(file).with_suffix(".csv"))
 
         for tab_key, tab in [
             ("-STATEMENTS TABLE-", self.statement_tab),

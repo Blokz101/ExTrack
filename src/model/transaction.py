@@ -3,6 +3,8 @@ Contains the Transaction class which represents a transaction in the SQL databas
 """
 
 from __future__ import annotations
+from pathlib import Path
+import csv
 
 from datetime import datetime
 from typing import Optional, Union, cast, Any
@@ -452,3 +454,62 @@ class Transaction(SqlObject):
             self.account_id,
             self.transfer_trans_id
         ])})"
+
+    @staticmethod
+    def export_to_csv(csv_path: Path) -> None:
+        """
+        Exports the transactions sql table to the csv_path.
+
+        :param csv_path: Path to save the exported csv to
+        """
+        with open(csv_path, "w", newline="\n") as csv_file:
+            csv_writer = csv.writer(
+                csv_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_NONNUMERIC
+            )
+            csv_writer.writerow(
+                [
+                    "id",
+                    "description",
+                    "total amount",
+                    "merchant",
+                    "reconciled",
+                    "date",
+                    "statement",
+                    "receipt file name",
+                    "lat",
+                    "long",
+                    "account",
+                    "transfer transaction id",
+                    "tags",
+                ]
+            )
+            for transaction in Transaction.get_all():
+                csv_writer.writerow(
+                    [
+                        transaction.sqlid,
+                        transaction.description,
+                        transaction.total_amount(),
+                        (
+                            transaction.merchant().name
+                            if transaction.merchant_id is not None
+                            else ""
+                        ),
+                        transaction.reconciled,
+                        (
+                            transaction.date.strftime(date_format)
+                            if transaction.date
+                            else ""
+                        ),
+                        transaction.statement_id,
+                        transaction.receipt_file_name,
+                        transaction.lat,
+                        transaction.long,
+                        (
+                            transaction.account().name
+                            if transaction.account_id is not None
+                            else ""
+                        ),
+                        transaction.transfer_trans_id,
+                        ",".join(x.name for x in transaction.tags()),
+                    ]
+                )
