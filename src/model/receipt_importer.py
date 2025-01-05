@@ -155,12 +155,17 @@ class ReceiptImporter:
         for path in path_list:
 
             importer: ReceiptImporter = ReceiptImporter(path)
+
+            merchant_list_id: list[int] = []
+            if importer.possible_locations is not None:
+                merchant_list_id = list(
+                    x[0].merchant().sqlid for x in importer.possible_locations
+                )
+
             popup: TransactionPopup = TransactionPopup(
                 importer.create_transaction(),
                 import_folder=path.parent,
-                merchant_order=list(
-                    x[0].merchant().sqlid for x in importer.possible_locations
-                ),
+                merchant_order=merchant_list_id,
             )
             popup.event_loop()
 
